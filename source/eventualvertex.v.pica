@@ -1,0 +1,80 @@
+; PICA200 vertex shader which interpolates the eventual vertex coordinate and a progress value
+; Reference GLSL code can be found in resources
+
+; Uniforms
+.fvec projection[4]
+.fvec base
+.fvec expansion ; There's no "only 1 float" uniform so we'll just only use the x of this
+
+; Constants
+.constf myconst(0.0, 1.0, 100.0, 0.01)
+.constf myconst2(0.5, 0.0, 0.0, 0.0)
+.alias  zeros myconst.xxxx ; Vector full of zeros
+.alias  ones  myconst.yyyy ; Vector full of ones
+.alias  zeropointfive myconst2.xxxx
+.alias hundred myconst.zzzz ; Vector full of 100s
+.alias onedividedbyonehundred myconst.wwww ; 1 / 100
+
+
+; Outputs
+.out outpos position
+.out outclr color
+.out outtc0 texcoord0
+.out outtc1 texcoord1
+.out outtc2 texcoord2
+
+; Inputs (defined as aliases for convenience)
+.alias eventualpos v0
+.alias intex v1
+
+.bool test
+
+; r0.x = src1 r1.x = src2 r2.x = blendfactor
+; (src1 * (1-blendfactor)) + (src2 * blendfactor);
+.proc mix
+	add r3.x, ones, -r2.x
+	mul r4.x, r3.x, r0.x ; r4 = src1 * (1-blendfactor) (this is the base here)
+	mul r5.x, r1.x, r2.x ; r5 = src2 * blendfactor (this is the eventual pos here)
+	add r3.x, r4.x, r5.x ; r3 = r4 + r5 and ret
+.end
+
+.proc main
+	mov r6.x, expansion.x
+	
+	mov r0.x, base.x
+	mov r1.x, eventualpos.x
+	mov r2.x, r6.x
+	call mix
+	mov r7.x, r3.x
+	
+	mov r0.x, base.y
+	mov r1.x, eventualpos.y
+	mov r2.x, r6.x
+	call mix
+	mov r7.y, r3.x
+	
+	mov r1.xy, r7.xy
+
+	; Force the w component of our final position to be 1.0 and forward the original z (we're not working in 3D here)
+	mov r1.z, eventualpos.z
+	mov r1.w,   ones
+	
+
+	; outpos = projectionMatrix * finalvalue
+	dp4 outpos.x, projection[0], r1
+	dp4 outpos.y, projection[1], r1
+	dp4 outpos.z, projection[2], r1
+	dp4 outpos.w, projection[3], r1
+
+	; outclr = white
+	mov outclr, ones
+
+	; outtc0 = intex
+	mov outtc0, intex
+	; Move it to texcoord1 and texcoord2 as well so we can use units 1 and 2
+	mov outtc1, intex
+	mov outtc2, intex
+
+	; We're finished
+	end
+.end
