@@ -1,6 +1,7 @@
 /build
 /output
-Smash-Selector.elf
-Smash-Selector.3dsx
-Smash-Selector.smdh
+ModMoon.elf
+ModMoon.3dsx
+ModMoon.smdh
 resources/Planning.txt
+/.vs
