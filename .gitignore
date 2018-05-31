@@ -1,7 +1,9 @@
 /build
 /output
+/.vs
+/Debug
 ModMoon.elf
 ModMoon.3dsx
 ModMoon.smdh
+ModMoon.vcxproj
 resources/Planning.txt
-/.vs
