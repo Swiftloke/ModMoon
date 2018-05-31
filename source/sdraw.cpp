@@ -169,7 +169,7 @@ sdraw_texture* loadbin(string filepath, int width, int height)
 	C3D_TexUpload(&tex->image, (void*)buf);
 	C3D_TexSetFilter(&tex->image, GPU_LINEAR, GPU_LINEAR);
 	C3D_TexSetWrap(&tex->image, GPU_REPEAT, GPU_REPEAT);
-	delete[] buf;
+	//delete[] buf; //For some reason this kills everything on hardware. Works fine in Citra. Strange...
 	return tex;
 }
 
