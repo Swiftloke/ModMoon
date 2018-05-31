@@ -2,9 +2,9 @@
 #include "utils.hpp"
 
 vector<smdhdata> icons; //Initialized later, we can't init it before SMDH data is loaded
-int oldselectpos;
+unsigned int oldselectpos;
 
-void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrows, int selectpos, bool highlighterblink)
+void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrows, unsigned int selectpos, bool highlighterblink)
 {
 	draw.framestart();
 	drawtopscreen();
@@ -29,18 +29,18 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 		highlighteralpha -= PLUSVALUE;
 		if (highlighteralpha < 0) { highlighteralpha += PLUSVALUE; highlighteralphaplus = true; }
 	}
+	y -= 70 * scrollsubtractrows;
 	for (vector<smdhdata>::iterator iter = icons.begin(); iter < icons.end(); iter++)
 	{
-		//Subtract Y by *something* to deal with scrolling
 		x += 70;
 		if (x > 241)
 		{
 			x = 31;
 			y += 70;
-
 		}
 		if (i == selectpos)
 		{
+			draw.drawtext(tid2str((*iter).titl).c_str(), 0, 0, .4, .4);
 			if (selectpos != oldselectpos)
 			{
 				oldselectpos = selectpos;
@@ -53,6 +53,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			}
 			if (highlighterismoving)
 			{
+				highlighteralpha = 255;
 				highlighterinterpfactor += 0.75;
 				if (highlighterinterpfactor >= 1)
 				{
@@ -105,7 +106,6 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 
 void titleselect()
 {
-	icons = *(getSMDHdata());
 	C3D_Tex prevbot;
 	//Save the framebuffer from the previous menu
 	C3D_TexInit(&prevbot, 256, 512, GPU_RGBA8);
@@ -117,7 +117,8 @@ void titleselect()
 	draw.drawon(GFX_BOTTOM);
 	draw.drawframebuffer(prevbot, 0, 0, false);
 	draw.frameend();
-	int selectpos = currenttidpos;
+	icons = *(getSMDHdata());
+	static int selectpos = currenttidpos;
 	oldselectpos = selectpos;
 	static int scrollsubtractrows = 0;
 
@@ -133,31 +134,43 @@ void titleselect()
 		u32 kDown = hidKeysDown();
 		if (kDown & KEY_LEFT)
 		{
+			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos--;
 			if (selectpos < 0)
 				selectpos++;
+			else if (currow == 0 && (selectpos + 1) % 4 == 0 && scrollsubtractrows > 0)
+				scrollsubtractrows--;
 		}
 		if (kDown & KEY_RIGHT)
 		{
+			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos++;
 			if (selectpos >= icons.size())
 				selectpos--;
+			else if (currow == 2 && selectpos % 4 == 0)
+				scrollsubtractrows++;
+
 		}
 		if (kDown & KEY_UP)
 		{
+			//What row are we on?
+			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos -= 4;
 			if (selectpos < 0)
 				selectpos += 4;
-			if (selectpos - scrollsubtractrows * 4 <= 12) //Will this work?
+			else if(currow == 0 && scrollsubtractrows > 0)
 				scrollsubtractrows--;
+			//if (selectpos - scrollsubtractrows * 3 <= 12 && scrollsubtractrows > 0) //Will this work? 12?
 		}
 		if (kDown & KEY_DOWN)
 		{
+			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos += 4;
-			if (selectpos > icons.size())
+			if (selectpos >= icons.size())
 				selectpos -= 4;
-			if (selectpos - scrollsubtractrows * 4 >= 12) //Will this work?
+			else if(currow == 2)
 				scrollsubtractrows++;
+			//if (selectpos - scrollsubtractrows * 3 >= 12) //Will this work?
 		}
 
 		if (kDown & KEY_A)
@@ -171,6 +184,11 @@ void titleselect()
 			//Re-initialize stuff for the new TID. This is actually all we have to do, the design
 			//Of accessing a vector based on currenttidpos does everything else.
 			maxslot = maxslotcheck();
+			if (maxslot == 0)
+			{
+				error("Warning: Failed to find mods for\nthis game!");
+				error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nWhere X is a number starting at 1.");
+			}
 			mainmenuupdateslotname();
 			config.write("SelectedTitleIDPos", currenttidpos);
 			break;
