@@ -7,6 +7,7 @@
 #include <fstream>
 #include <sys/stat.h>
 #include <cmath>
+#include <errno.h>
 
 #include <3ds.h>
 
@@ -38,7 +39,7 @@ sdraw_stex titleselecthighlighter(spritesheet, 268, 792, 65, 65);
 sdraw_stex progressbar(spritesheet, 720, 240, 260, 35);
 sdraw_stex progressbarstenciltex(spritesheet, 720, 275, 260, 35);
 
-Config config("/3ds/data/ModMoon/", "settings.txt");
+Config config("/3ds/ModMoon/", "settings.txt");
 
 bool modsenabled = config.read("ModsEnabled", true);
 
@@ -82,24 +83,41 @@ bool issaltysdtitle()
 	|| currenttitleid == 0x00040000000B8B00;
 }
 
-void startup()
+int startup()
 {
+	int renamefailed = 0;
 	if(modsenabled)
 	{
 		string source = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
-		if(rename(source.c_str(), (modsfolder + currenttitleidstr + '/' + "Slot_" + to_string(currentslot)).c_str()))
+		string dest = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
+		if(rename(source.c_str(), dest.c_str()))
 		{
-			error("Failed to move slot file from /saltysd/smash to " + modsfolder + "/Slot_" + to_string(currentslot) + '!');
+			renamefailed = 1;
 		}
 	}
 	mainmenuupdateslotname();
 	cfguInit(); //For system language
+	amInit(); //For getting all the installed titles + updating
 	initializeallSMDHdata(titleids);
+	return renamefailed;
 }
 
 void enablemods(bool isenabled)
 {
+	//Disables SaltySD for Smash titles, moves every mod file out of the way for LayeredFS, so it works
+	//in both cases
 	modsenabled = isenabled;
+	config.write("ModsEnabled", modsenabled);
+	string src = "/luma/titles/" + currenttitleidstr;
+	string dest = "/luma/titles/" + currenttitleidstr;
+	//If we're enabling, the source is the "Disabled" folder
+	if(isenabled) src.insert(13, "Disabled");
+	else dest.insert(13, "Disabled");
+	if (rename(src.c_str(), dest.c_str()))
+	{
+		string enable = isenabled ? "enable" : "disable";
+		error("Failed to " + enable + " mods!");
+	}
 }
 
 void touchwaitforrelease()
@@ -149,6 +167,7 @@ void mainmenushiftin()
 
 }
 
+
 void mainmenushiftinb()
 {
 	for (float i = 0; i <= 1.0; i += 0.08)
@@ -184,6 +203,7 @@ void mainmenushiftout()
 
 void mainmenuupdateslotname()
 {
+	if(maxslot == 0) {slotname = "None"; return;}
 	if(currentslot == 0) {slotname = "Disabled"; return;}
 	ifstream in(modsfolder + currenttitleidstr + '/' + "Slot_" + to_string(currentslot) + "/desc.txt");
 	if(!in) {slotname = "Slot " + to_string(currentslot); return;}
@@ -193,6 +213,7 @@ void mainmenuupdateslotname()
 
 void updateslots(bool plus)
 {
+	if(maxslot == 0) return; //No mods
 	int oldslot = currentslot;
 	currentslot += (plus ? 1 : -1);
 	if(currentslot == -1) currentslot = maxslot; //
@@ -241,7 +262,7 @@ void mainmenudraw(int dpadpos, touchPosition tpos, int alphapos, bool highlighte
 
 int main(int argc, char **argv) {
 
-	startup();
+	int renamefailed = startup();
 	touchPosition tpos;
 	touchPosition opos;
 	int alphapos = 0;
@@ -249,6 +270,13 @@ int main(int argc, char **argv) {
 	int dpadpos = 0;
 	
 	mainmenushiftinb();
+	//So, uh, sdraw doesn't like it when I trigger an error before shifting in the menu, and freezes the GPU...
+	if(renamefailed) error("Failed to move slot file from\n/saltysd/smash to\n" + modsfolder + currenttitleidstr + "\n/Slot_" + to_string(currentslot) + '!');
+	if (maxslot == 0) //No mods
+	{
+		error("Warning: Failed to find mods for\nthis game!");
+		error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nWhere X is a number starting at 1.");
+	}
 	while (aptMainLoop()) {
 		hidScanInput();
 		opos = tpos;
@@ -356,11 +384,14 @@ int main(int argc, char **argv) {
 	if (modsenabled)
 	{
 		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
-		if (rename((modsfolder + "Slot_" + to_string(currentslot)).c_str(), dest.c_str()))
+		if (rename((modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot)).c_str() + '/', dest.c_str()))
 		{
-			//error("Failed to move slot file from " + modsfolder + "/Slot_" + to_string(currentslot) + "to /saltysd/smash!")
+			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!");
 		}
 	}
+	config.u64multiwrite("ActiveTitleIDs", titleids, true);
+	config.intmultiwrite("TitleIDSlots", slots);
+	config.write("SelectedTitleIDPos", currenttidpos);
 	config.flush();
 	
 	//svcWaitSynchronization(event_fadefinished, U64_MAX);
@@ -370,5 +401,6 @@ int main(int argc, char **argv) {
 	romfsExit();
 	gfxExit();
 	cfguExit();
+	amExit();
 	return 0;
 }

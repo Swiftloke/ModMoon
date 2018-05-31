@@ -4,6 +4,7 @@
 #include <unistd.h>
 #include <sstream>
 #include <sys/stat.h>
+#include <errno.h>
 
 #include "utils.hpp"
 #include "main.hpp"
@@ -17,15 +18,16 @@ inline bool pathExist(const string filename){ //The compiler doesn't like me def
     return (stat (filename.c_str(),& buffer)==0);
 }
 
-int maxslotcheck()
+int maxslotcheck(u64 optionaltid)
 {
 	int currentFolderCount = 0;
 	stringstream path2Check;
 	stringstream NewPath2Check;
+	string tid2check = optionaltid != -1 ? tid2str(optionaltid) : currenttitleidstr;
 	do {
 		currentFolderCount++;
 		path2Check.str("");
-		path2Check << modsfolder + currenttitleidstr << '/' << "Slot_" << currentFolderCount << '/';
+		path2Check << modsfolder + tid2check << '/' << "Slot_" << currentFolderCount << '/';
 	} while (pathExist(path2Check.str()) || currentFolderCount == currentslot);
 	//the minus 1 is due to it returning the folder number that doesnt exist.
 	return currentFolderCount - 1;
@@ -108,13 +110,17 @@ void launch(){
 	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
 	svcCreateEvent(&event_fadefinished, RESET_ONESHOT);
 	threadCreate(threadfunc_fade, rgb, 8000, mainthreadpriority + 1, -2, true);
+	config.u64multiwrite("ActiveTitleIDs", titleids, true);
+	config.intmultiwrite("TitleIDSlots", slots);
+	config.write("SelectedTitleIDPos", currenttidpos);
 	config.flush();
 	if(modsenabled)
 	{
-		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
-		if(rename((modsfolder + "Slot_" + to_string(currentslot)).c_str(), dest.c_str()))
+		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr;
+		string src = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
+		if(rename(src.c_str(), dest.c_str()))
 		{
-			//error("Failed to move slot file from " + modsfolder + "/Slot_" + to_string(currentslot) + "to /saltysd/smash!")
+			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!\n\nError code: " + tid2str(errno));
 		}
 	}
 	svcWaitSynchronization(event_fadefinished, U64_MAX);
