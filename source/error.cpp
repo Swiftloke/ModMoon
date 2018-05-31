@@ -42,7 +42,7 @@ bool handleerror(float expandpos, string text)
 		alphapos -= ALPHAPLUSVALUE;
 		if (alphapos < 0) { alphapos += ALPHAPLUSVALUE; alphaplus = true; }
 	}
-	drawprogresserror(text, alphapos, expandpos, .5, prevtop, prevbot);
+	drawerrorbox(text, alphapos, expandpos);
 	hidScanInput();
 	hidTouchRead(&currentpos);
 	//Button pressed and the text box has fully popped up (we do, after all, want the user to actually read this thing...)

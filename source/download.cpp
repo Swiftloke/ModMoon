@@ -156,13 +156,11 @@ Result http_download(const char *url, string savelocation)
 		}
 		else //Install the CIA we downloaded
 		{
-			amInit();
 			Handle cia;
 			AM_QueryAvailableExternalTitleDatabase(NULL);
 			AM_StartCiaInstall(MEDIATYPE_SD, &cia);
 			FSFILE_Write(cia, NULL, 0, buf, contentsize, 0);
 			AM_FinishCiaInstall(cia);
-			amExit();
 		}
 		downloadprogress = 102; //Signal that we're all done
 	}

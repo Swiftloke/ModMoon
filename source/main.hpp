@@ -60,7 +60,7 @@ string tid2str(u64 in);
 #define currenttitleidstr tid2str(currenttitleid)
 
 
-void startup();
+int startup();
 void enablemods(bool enabled); //Vestigial from Smash-Selector 3.0
 void mainmenushiftout();
 void mainmenushiftin();
