@@ -8,6 +8,7 @@
 
 #include "utils.hpp"
 #include "main.hpp"
+#include "error.hpp"
 
 using namespace std;
 

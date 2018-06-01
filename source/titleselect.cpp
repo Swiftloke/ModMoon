@@ -1,5 +1,7 @@
+#include "titleselects.hpp"
 #include "main.hpp"
 #include "utils.hpp"
+#include "error.hpp"
 
 vector<smdhdata> icons; //Initialized later, we can't init it before SMDH data is loaded
 unsigned int oldselectpos;
@@ -117,6 +119,7 @@ void titleselect()
 	draw.drawon(GFX_BOTTOM);
 	draw.drawframebuffer(prevbot, 0, 0, false);
 	draw.frameend();
+	float popup = 0;
 	icons = *(getSMDHdata());
 	static int selectpos = currenttidpos;
 	oldselectpos = selectpos;

@@ -70,7 +70,3 @@ bool touched(int x, int y, int width, int height, touchPosition tpos);
 bool buttonpressed(sdraw_stex button, int bx, int by, touchPosition lastpos, u32 kHeld);
 bool issaltysdtitle();
 void drawtopscreen();
-
-void error(string text); //No need for a whole extra header for two functions...
-void drawprogresserror(string text, int alphapos, float expandpos, float progress, C3D_Tex prevtopfb, C3D_Tex prevbotfb);
-void titleselect(); //Ditto

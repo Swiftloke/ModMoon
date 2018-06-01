@@ -9,16 +9,21 @@
 class smdhdata
 {
 	public:
-	void load(u64 title);
+	void load(u64 title, int ingametype = -1);
 	u64 titl;
 	string shortdesc, longdesc;
 	C3D_Tex icon;
 	u8 gametype;
+	bool isactive = false; //Calculated in the threaded loading function
 };
 
 void initializeallSMDHdata(vector<u64> intitleids);
 void freeSMDHdata();
 vector<smdhdata>* getSMDHdata();
+vector<smdhdata>* getallSMDHdata();
+bool alltitlesareloaded();
+int getalltitlescount();
+int getalltitlesloadedcount();
 
 //Stuff to parse the SMDH data (from new-hbmenu)
 typedef struct
