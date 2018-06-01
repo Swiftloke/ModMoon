@@ -39,7 +39,7 @@ void threadfunc_loadallsmdhdata(void* main)
 	}
 	//Remove titles that aren't titles- extdata, updates, etc.
 	//Also determine if the title is active or not.
-	for (vector<smdhdata>::iterator iter = alltitlesvector->begin(); iter < alltitlesvector->end(); iter++)
+	for (vector<smdhdata>::iterator iter = alltitlesvector->begin(); iter != alltitlesvector->end(); iter++)
 	{
 		if(tid2str((*iter).titl)[7] != '0')
 			alltitlesvector->erase(iter);

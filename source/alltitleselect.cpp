@@ -5,6 +5,7 @@
 #include "main.hpp"
 #include "utils.hpp"
 #include "error.hpp"
+#include <algorithm>
 
 vector<smdhdata> allicons; //Initialized later, we can't init it before SMDH data is loaded
 unsigned int alloldselectpos;
@@ -211,15 +212,14 @@ void activetitleselect()
 
 		if (kDown & KEY_A)
 		{
-			unsigned int test = allicons.size();
-			unsigned int b = test;
 			smdhdata& titleop = allicons.at(selectpos);
 			if (titleop.isactive)
 			{
 				titleop.isactive = false;
 				//Remove the title ID from the global entries
-				vector<u64>::iterator i = titleids.begin() + selectpos;
-				vector<int>::iterator j = slots.begin() + selectpos;
+				vector<u64>::iterator i = std::find(titleids.begin(), titleids.end(), titleop.titl);
+				vector<int>::iterator j = slots.begin();
+				std::advance(j, i - titleids.begin()); //Get raw index, the two are in the same position
 				titleids.erase(i);
 				slots.erase(j);
 			}
