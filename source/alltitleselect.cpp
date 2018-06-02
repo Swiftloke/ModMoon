@@ -197,7 +197,7 @@ void activetitleselect()
 			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos -= 4;
 			if (selectpos < 0)
-				selectpos += 4;
+				selectpos = 0;
 			else if (currow == 0 && scrollsubtractrows > 0)
 				scrollsubtractrows--;
 			//if (selectpos - scrollsubtractrows * 3 <= 12 && scrollsubtractrows > 0) //Will this work? 12?
@@ -207,8 +207,8 @@ void activetitleselect()
 			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos += 4;
 			if (selectpos >= allicons.size())
-				selectpos -= 4;
-			else if (currow == 2)
+				selectpos = allicons.size() - 1; //Whee off-by-one errors
+			if (currow == 2)
 				scrollsubtractrows++;
 			//if (selectpos - scrollsubtractrows * 3 >= 12) //Will this work?
 		}

@@ -41,7 +41,7 @@ void threadfunc_loadallsmdhdata(void* main)
 	//Also determine if the title is active or not.
 	vector<smdhdata>::iterator remove = \
 		std::remove_if(alltitlesvector.begin(), alltitlesvector.end(), \
-		[](smdhdata& data) {return tid2str(data.titl)[7] != '0';});
+		[](const smdhdata& data) {return tid2str(data.titl)[7] != '0';});
 	alltitlesvector.erase(remove, alltitlesvector.end());
 	alltitlesloaded = true;
 }
