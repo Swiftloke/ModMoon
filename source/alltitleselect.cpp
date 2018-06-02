@@ -7,7 +7,10 @@
 #include "error.hpp"
 #include <algorithm>
 
-vector<smdhdata> allicons; //Initialized later, we can't init it before SMDH data is loaded
+//Actually initialized later, we can't use it before SMDH data is loaded
+//but we can't declare a reference without initializing it.
+//We're sure to wait until it's finished loading...
+vector<smdhdata>& allicons = getallSMDHdata();
 unsigned int alloldselectpos;
 
 void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsubtractrows, unsigned int selectpos, bool highlighterblink)
@@ -154,7 +157,7 @@ void activetitleselect()
 			}
 		}
 	}
-	allicons = *(getallSMDHdata());
+	allicons = getallSMDHdata();
 	static int selectpos = 0;
 	alloldselectpos = selectpos;
 	static int scrollsubtractrows = 0;

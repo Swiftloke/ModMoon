@@ -242,7 +242,7 @@ void drawtopscreen()
 	draw.drawtext(": Enable/Disable mods", 5, 240 - 40, 0.55, 0.55);
 	draw.drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
 	//Draw the current title
-	draw.drawSMDHicon((*getSMDHdata())[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
+	draw.drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
 	draw.drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
 }
 

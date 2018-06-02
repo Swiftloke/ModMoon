@@ -14,13 +14,13 @@ class smdhdata
 	string shortdesc, longdesc;
 	C3D_Tex icon;
 	u8 gametype;
-	bool isactive = false; //Calculated in the threaded loading function
+	bool isactive = false; //Calculated in the loading function
 };
 
 void initializeallSMDHdata(vector<u64> intitleids);
 void freeSMDHdata();
-vector<smdhdata>* getSMDHdata();
-vector<smdhdata>* getallSMDHdata();
+vector<smdhdata>& getSMDHdata();
+vector<smdhdata>& getallSMDHdata();
 bool alltitlesareloaded();
 int getalltitlescount();
 int getalltitlesloadedcount();

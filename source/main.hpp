@@ -21,6 +21,7 @@ typedef SSIZE_T ssize_t;
 #include "config.hpp"
 #include "smdh.hpp"
 #include <string>
+#include <vector>
 
 using namespace std;
 

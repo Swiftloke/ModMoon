@@ -3,7 +3,9 @@
 #include "utils.hpp"
 #include "error.hpp"
 
-vector<smdhdata> icons; //Initialized later, we can't init it before SMDH data is loaded
+//Actually initialized later, we can't use it before SMDH data is loaded
+//but we can't declare a reference without initializing it.
+vector<smdhdata>& icons = getSMDHdata(); 
 unsigned int oldselectpos;
 
 void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrows, unsigned int selectpos, bool highlighterblink)
@@ -119,8 +121,7 @@ void titleselect()
 	draw.drawon(GFX_BOTTOM);
 	draw.drawframebuffer(prevbot, 0, 0, false);
 	draw.frameend();
-	float popup = 0;
-	icons = *(getSMDHdata());
+	icons = getSMDHdata();
 	static int selectpos = currenttidpos;
 	oldselectpos = selectpos;
 	static int scrollsubtractrows = 0;
