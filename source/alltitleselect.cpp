@@ -219,9 +219,12 @@ void activetitleselect()
 				//Remove the title ID from the global entries
 				vector<u64>::iterator i = std::find(titleids.begin(), titleids.end(), titleop.titl);
 				vector<int>::iterator j = slots.begin();
+				vector<smdhdata>::iterator k = getSMDHdata().begin();
 				std::advance(j, i - titleids.begin()); //Get raw index, the two are in the same position
+				std::advance(k, i - titleids.begin());
 				titleids.erase(i);
 				slots.erase(j);
+				getSMDHdata().erase(k);
 			}
 			else
 			{
@@ -229,6 +232,7 @@ void activetitleselect()
 				//Add it
 				titleids.push_back(titleop.titl);
 				slots.push_back(0); //Default
+				getSMDHdata().push_back(allicons[selectpos]);
 			}
 		}
 		if (kDown & KEY_B)
