@@ -1,7 +1,11 @@
+#include "titleselects.hpp"
 #include "main.hpp"
 #include "utils.hpp"
+#include "error.hpp"
 
-vector<smdhdata> icons; //Initialized later, we can't init it before SMDH data is loaded
+//Actually initialized later, we can't use it before SMDH data is loaded
+//but we can't declare a reference without initializing it.
+vector<smdhdata>& icons = getSMDHdata(); 
 unsigned int oldselectpos;
 
 void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrows, unsigned int selectpos, bool highlighterblink)
@@ -117,7 +121,7 @@ void titleselect()
 	draw.drawon(GFX_BOTTOM);
 	draw.drawframebuffer(prevbot, 0, 0, false);
 	draw.frameend();
-	icons = *(getSMDHdata());
+	icons = getSMDHdata();
 	static int selectpos = currenttidpos;
 	oldselectpos = selectpos;
 	static int scrollsubtractrows = 0;
@@ -157,7 +161,7 @@ void titleselect()
 			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos -= 4;
 			if (selectpos < 0)
-				selectpos += 4;
+				selectpos = 0;
 			else if(currow == 0 && scrollsubtractrows > 0)
 				scrollsubtractrows--;
 			//if (selectpos - scrollsubtractrows * 3 <= 12 && scrollsubtractrows > 0) //Will this work? 12?
@@ -167,8 +171,8 @@ void titleselect()
 			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos += 4;
 			if (selectpos >= icons.size())
-				selectpos -= 4;
-			else if(currow == 2)
+				selectpos = icons.size() - 1; //Whee off-by-one errors
+			if(currow == 2)
 				scrollsubtractrows++;
 			//if (selectpos - scrollsubtractrows * 3 >= 12) //Will this work?
 		}

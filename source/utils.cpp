@@ -8,6 +8,7 @@
 
 #include "utils.hpp"
 #include "main.hpp"
+#include "error.hpp"
 
 using namespace std;
 
@@ -135,7 +136,7 @@ void launch(){
 	memset(param, 0, sizeof(param));
 	memset(hmac, 0, sizeof(hmac));
 
-	APT_PrepareToDoApplicationJump(0, currenttitleid, (*getSMDHdata())[currenttidpos].gametype);
+	APT_PrepareToDoApplicationJump(0, currenttitleid, getSMDHdata()[currenttidpos].gametype);
 
 	APT_DoApplicationJump(param, sizeof(param), hmac);
 }

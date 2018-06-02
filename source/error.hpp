@@ -1,4 +1,6 @@
 #pragma once
+#include "sdraw.hpp"
 #include <string>
-void error(string text); //No need for a whole extra header for two functions...
-void drawprogresserror(string text, float expandpos, float progress);
+using namespace std;
+void error(string text);
+void drawprogresserror(string text, float expandpos, float progress, C3D_Tex topfb, C3D_Tex botfb);

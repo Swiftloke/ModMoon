@@ -15,6 +15,8 @@
 #include "config.hpp"
 #include "utils.hpp"
 #include "main.hpp"
+#include "error.hpp"
+#include "titleselects.hpp"
 
 using namespace std;
 
@@ -240,7 +242,7 @@ void drawtopscreen()
 	draw.drawtext(": Enable/Disable mods", 5, 240 - 40, 0.55, 0.55);
 	draw.drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
 	//Draw the current title
-	draw.drawSMDHicon((*getSMDHdata())[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
+	draw.drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
 	draw.drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
 }
 
@@ -290,7 +292,7 @@ int main(int argc, char **argv) {
 			switch(dpadpos)
 			{
 				case 0: launch(); break;
-				case 1: error("Progress Bar Test"); break;
+				case 1: mainmenushiftout(); activetitleselect(); mainmenushiftin(); break;
 			}
 		}
 		if(kDown & KEY_LEFT)
@@ -354,8 +356,10 @@ int main(int argc, char **argv) {
 			updateslots(false);
 		if(touched(288, 180, 28, 42, opos) && !(kHeld & KEY_TOUCH)) //Right button coordinates
 			updateslots(true);
-		if(touched(rightbutton, 169, 13, opos) && !(kHeld & KEY_TOUCH))
-			error("The tools menu is not\nyet implemented. Sorry!");
+		if (touched(rightbutton, 169, 13, opos) && !(kHeld & KEY_TOUCH))
+		{
+			mainmenushiftout(); activetitleselect(); mainmenushiftin();
+		}
 		draw.framestart();
 		drawtopscreen();
 		draw.drawon(GFX_BOTTOM);
@@ -383,10 +387,11 @@ int main(int argc, char **argv) {
 	
 	if (modsenabled)
 	{
-		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
-		if (rename((modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot)).c_str() + '/', dest.c_str()))
+		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr;
+		string src = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
+		if (rename(src.c_str(), dest.c_str()))
 		{
-			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!");
+			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!\n\nError code: " + tid2str(errno));
 		}
 	}
 	config.u64multiwrite("ActiveTitleIDs", titleids, true);

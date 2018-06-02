@@ -1,21 +1,67 @@
-#include "smdh.hpp"
+#include "main.hpp" //Also includes smdh.hpp
+#include <algorithm>
 
-vector<smdhdata>* smdhvector;
+vector<smdhdata> smdhvector;
+vector<smdhdata> alltitlesvector;
+u32 alltitlesloadedcount = 0;
+u32 alltitlescount = 0;
 u8 language = 0;
 vector<u64> tidstoload;
+bool alltitlesloaded = false;
+
 void threadfunc_loadallsmdhdata(void* main)
 {
 	for(unsigned int i = 0; i < tidstoload.size(); i++)
-		(*smdhvector)[i].load(tidstoload[i]);
+		smdhvector[i].load(tidstoload[i]);
+
+	//Now, load everything that's not already loaded to support selection of new titles
+	u64* alltids = new u64[alltitlescount];
+	AM_GetTitleList(NULL, MEDIATYPE_SD, alltitlescount, alltids);
+
+	for (unsigned int i = 0; i < alltitlescount; i++)
+	{
+		//Doesn't work, but that's OK, it's not *that* costly
+		//If it's already loaded, why bother loading it again? Loading textures is expensive.
+		/*bool alreadyloaded = false;
+		for (unsigned int j = 0; j < smdhvector->size(); j++)
+		{
+			if ((*smdhvector)[j].titl == alltids[i])
+			{
+				alreadyloaded = true;
+				C3D_TexDelete(&((*alltitlesvector)[i].icon));
+				alltitlesvector->push_back((*smdhvector)[j]);
+			}
+		}
+		//Well, it hasn't already been loaded, so let's load it!
+		if(!alreadyloaded)*/
+		alltitlesvector[i].load(alltids[i]);
+		alltitlesloadedcount++;
+	}
+	//Remove titles that aren't titles- extdata, updates, etc.
+	//Also determine if the title is active or not.
+	vector<smdhdata>::iterator remove = \
+		std::remove_if(alltitlesvector.begin(), alltitlesvector.end(), \
+		[](const smdhdata& data) {return tid2str(data.titl)[7] != '0';});
+	alltitlesvector.erase(remove, alltitlesvector.end());
+	alltitlesloaded = true;
 }
 
 void initializeallSMDHdata(vector<u64> intitleids)
 {
 	tidstoload = intitleids;
-	smdhvector = new vector<smdhdata>(tidstoload.size()); //Love how pointers are necessary for this construction
-	//Initialize the SMDH vector with blank white textures TODO: initialize it with a "!" texture by doing TexCopy instead
-	for(unsigned int i = 0; i < smdhvector->size(); i++)
-		C3D_TexInit(&((*smdhvector)[i].icon), 64, 64, GPU_RGB565);
+	smdhvector.resize(tidstoload.size());
+	//Initialize the SMDH vector TODO: initialize it with a "!" texture by doing TexCopy instead
+	//We need to do this ahead of time in the main thread, because what if the main thread attempts to load
+	//the textures before they're allocated? Instant segfault!
+	for(unsigned int i = 0; i < smdhvector.size(); i++)
+		C3D_TexInit(&(smdhvector[i].icon), 64, 64, GPU_RGB565);
+
+	//Initialize the all-titles vector in the same way
+	AM_GetTitleCount(MEDIATYPE_SD, &alltitlescount);
+	alltitlesvector.resize(alltitlescount);
+	for (unsigned int i = 0; i < alltitlesvector.size(); i++)
+		C3D_TexInit(&(alltitlesvector[i].icon), 64, 64, GPU_RGB565);
+
 	CFGU_GetSystemLanguage(&language);
 	//Create the thread
 	s32 mainthreadpriority;
@@ -25,46 +71,87 @@ void initializeallSMDHdata(vector<u64> intitleids)
 
 void freeSMDHdata()
 {
-	for(unsigned int i = 0; i < smdhvector->size(); i++)
+	for(unsigned int i = 0; i < smdhvector.size(); i++)
 	{
 		//Get a pointer to the icon by dereferencing the vector and going by array count. Quite a handful of operators.
-		C3D_TexDelete(&((*smdhvector)[i].icon));
+		C3D_TexDelete(&(smdhvector[i].icon));
 	}
-	delete smdhvector;
 }
 
-vector<smdhdata>* getSMDHdata()
+vector<smdhdata>& getSMDHdata()
 {
 	return smdhvector;
 }
 
-void smdhdata::load(u64 title)
+vector<smdhdata>& getallSMDHdata()
 {
-	titl = title;
+	return alltitlesvector;
+}
+
+bool alltitlesareloaded()
+{
+	return alltitlesloaded;
+}
+
+int getalltitlescount()
+{
+	return alltitlescount;
+}
+
+int getalltitlesloadedcount()
+{
+	return alltitlesloadedcount;
+}
+
+void smdhdata::load(u64 title, int ingametype) //gametype is optional
+{
+	this->titl = title;
+	//Search the global active TIDs vector
+	if (std::find(titleids.begin(), titleids.end(), this->titl) != titleids.end())
+		this->isactive = true;
 	smdh_s smdhstruct;
-	for(u8 i = 0; i < 3; i++)
+	if (ingametype != -1) //Skip looping and checking
 	{
-		if(titlesLoadSmdh(&smdhstruct, i, title))
+		if(titlesLoadSmdh(&smdhstruct, ingametype, title))
+			this->gametype = ingametype;
+		else
 		{
-			gametype = i;
-			break;
-		}
-		if(i == 2)
-		{
-			//We couldn't find anything as we haven't broken out, 
-			//set the short description equal to the title id (to show what wasn't found)
+			//Set the short description equal to the title id (to show what wasn't found)
 			//Show an error message for the long description and return
 			stringstream tohex;
 			tohex << std::hex << title;
-			shortdesc = tohex.str();
-			longdesc = "Couldn't find anything! If it's on a cartridge, is it inserted?";
-			titl = title;
+			this->shortdesc = tohex.str();
+			this->longdesc = "Couldn't find anything! If it's on a cartridge, is it inserted?";
+			this->titl = title;
 			return;
 		}
-		
+	}
+	else
+	{
+		for (u8 i = 0; i < 3; i++)
+		{
+			if (titlesLoadSmdh(&smdhstruct, i, title))
+			{
+				this->gametype = i;
+				break;
+			}
+			if (i == 2)
+			{
+				//We couldn't find anything as we haven't broken out, 
+				//set the short description equal to the title id (to show what wasn't found)
+				//Show an error message for the long description and return
+				stringstream tohex;
+				tohex << std::hex << title;
+				this->shortdesc = tohex.str();
+				this->longdesc = "Couldn't find anything! If it's on a cartridge, is it inserted?";
+				this->titl = title;
+				return;
+			}
+
+		}
 	}
 	//48x48 -> 64x64
-	u16* dest = (u16*)icon.data + (64-48)*64;
+	u16* dest = (u16*)this->icon.data + (64-48)*64;
 	u16* src = (u16*)smdhstruct.bigIconData;
 	for (int j = 0; j < 48; j += 8)
 	{
@@ -74,9 +161,9 @@ void smdhdata::load(u64 title)
 	}
 	char* buf = new char[0x40 * 3 + 1]; //Size from new-hbmenu, not sure why it's that big
 	safe_utf8_convert(buf, smdhstruct.applicationTitles[language].shortDescription, 0x40 * 3);
-	shortdesc = string(buf);
+	this->shortdesc = string(buf);
 	safe_utf8_convert(buf, smdhstruct.applicationTitles[language].longDescription, 0x40 * 3); //Reusing the buffer isn't a problem.
-	longdesc = string(buf);
+	this->longdesc = string(buf);
 	delete[] buf;
 }
 

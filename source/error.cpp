@@ -1,3 +1,4 @@
+#include "error.hpp"
 #include "main.hpp"
 #include "sdraw.hpp"
 
@@ -85,6 +86,8 @@ void error(string text)
 		handleerror(expandpos, text);
 	}
 	draw.usebasicshader();
+	C3D_TexDelete(&prevtop);
+	C3D_TexDelete(&prevbot);
 }
 
 /*
@@ -93,15 +96,15 @@ Constantly increase the x texcoord to animate it
 In handle, if it suddenly jumps smooth it... How
 First two vertices have same coordinates for both positions, second two have them at the end of the progress bar
 */
-void drawprogresserror(string text, int alphapos, float expandpos, float progress, C3D_Tex prevtopfb, C3D_Tex prevbotfb)
+void drawprogresserror(string text, float expandpos, float progress, C3D_Tex topfb, C3D_Tex botfb)
 {
 	static float texcoordplus = 0; //Constantly increase this for an animation
 	texcoordplus += 0.005;
 	draw.framestart();
 	draw.usebasicshader();
-	draw.drawframebuffer(prevtopfb, 0, 0, true);
+	draw.drawframebuffer(topfb, 0, 0, true);
 	draw.drawon(GFX_BOTTOM);
-	draw.drawframebuffer(prevbotfb, 0, 0, false);
+	draw.drawframebuffer(botfb, 0, 0, false);
 	draw.useeventualshader();
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_baseloc, 320 / 2, 240 / 2, 0, 0);
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_expandloc, expandpos, 0, 0, 0);
