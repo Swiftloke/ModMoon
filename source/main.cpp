@@ -85,17 +85,23 @@ bool issaltysdtitle()
 	|| currenttitleid == 0x00040000000B8B00;
 }
 
+int movemodsin()
+{
+	string source = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
+	string dest = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
+	if (rename(source.c_str(), dest.c_str()))
+	{
+		return 1;
+	}
+	return 0;
+}
+
 int startup()
 {
 	int renamefailed = 0;
 	if(modsenabled)
 	{
-		string source = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
-		string dest = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
-		if(rename(source.c_str(), dest.c_str()))
-		{
-			renamefailed = 1;
-		}
+		renamefailed = movemodsin();
 	}
 	mainmenuupdateslotname();
 	cfguInit(); //For system language
@@ -273,7 +279,28 @@ int main(int argc, char **argv) {
 	
 	mainmenushiftinb();
 	//So, uh, sdraw doesn't like it when I trigger an error before shifting in the menu, and freezes the GPU...
-	if(renamefailed) error("Failed to move slot file from\n/saltysd/smash to\n" + modsfolder + currenttitleidstr + "\n/Slot_" + to_string(currentslot) + '!');
+	//I don't like this at all, it fragments the code and forces me to do bad things
+	if(renamefailed)
+	{
+		renamefailederror:
+		string dest = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot); //Just copy/pasted
+		error("Failed to move slot file from\n/saltysd/smash to\n" + modsfolder + currenttitleidstr + "\n/Slot_" + to_string(currentslot) + '!');
+		error("Error code:\n" + to_string(errno));
+		if ((unsigned int)errno == 0xC82044BE) //Destination already exists
+		{
+			if (countEntriesInDir(dest.c_str()) == 0)
+			{
+				rmdir(dest.c_str());
+				error("ModMoon tackled this issue\nautomagically. Now isn't that\nnice? Retrying now...");
+				if(movemodsin()) goto renamefailederror;
+			}
+		}
+		else if(errno == 2) //Maybe they shut off the system, preventing us from moving to /saltysd/smash?
+		{
+			error("This error probably occurred\nbecause you shut off the system\nwhile using ModMoon.");
+			error("It will likely resolve itself\nthrough normal usage.");
+		}
+	}
 	if (maxslot == 0) //No mods
 	{
 		error("Warning: Failed to find mods for\nthis game!");
@@ -389,9 +416,20 @@ int main(int argc, char **argv) {
 	{
 		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr;
 		string src = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
+		attemptrename:
 		if (rename(src.c_str(), dest.c_str()))
 		{
-			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!\n\nError code: " + tid2str(errno));
+			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!");
+			error("Error code:\n" + to_string(errno));
+			if ((unsigned int)errno == 0xC82044BE) //Destination already exists
+			{
+				if (countEntriesInDir(dest.c_str()) == 0)
+				{
+					rmdir(dest.c_str());
+					error("ModMoon tackled this issue\nautomagically. Now isn't that\nnice? Retrying now...");
+					goto attemptrename;
+				}
+			}
 		}
 	}
 	config.u64multiwrite("ActiveTitleIDs", titleids, true);

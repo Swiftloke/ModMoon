@@ -5,6 +5,7 @@
 #include <sstream>
 #include <sys/stat.h>
 #include <errno.h>
+#include <dirent.h>
 
 #include "utils.hpp"
 #include "main.hpp"
@@ -102,6 +103,17 @@ C3D_TexEnvFunc(env, C3D_Alpha, GPU_MODULATE);
 C3D_TexEnvColor(tev, RGBA8(0,0,0,128));
 */
 
+//https://www.linuxquestions.org/questions/linux-newbie-8/how-to-check-if-a-folder-is-empty-661934/
+int countEntriesInDir(const char* dirname)
+{
+	int n = 0;
+	dirent* d;
+	DIR* dir = opendir(dirname);
+	if (dir == NULL) return 0;
+	while ((d = readdir(dir)) != NULL) n++;
+	closedir(dir);
+	return n;
+}
 
 void launch(){
 
@@ -119,9 +131,20 @@ void launch(){
 	{
 		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr;
 		string src = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
+		attemptrename:
 		if(rename(src.c_str(), dest.c_str()))
 		{
-			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!\n\nError code: " + tid2str(errno));
+			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!");
+			error("Error code:\n" + to_string(errno));
+			if ((unsigned int)errno == 0xC82044BE) //Destination already exists
+			{
+				if (countEntriesInDir(dest.c_str()) == 0)
+				{
+					rmdir(dest.c_str());
+					error("ModMoon tackled this issue\nautomagically. Now isn't that\nnice? Retrying now...");
+					goto attemptrename;
+				}
+			}
 		}
 	}
 	svcWaitSynchronization(event_fadefinished, U64_MAX);
