@@ -6,9 +6,9 @@
 //Actually initialized later, we can't use it before SMDH data is loaded
 //but we can't declare a reference without initializing it.
 vector<smdhdata>& icons = getSMDHdata(); 
-unsigned int oldselectpos;
+int oldselectpos;
 
-void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrows, unsigned int selectpos, bool highlighterblink)
+void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrows, int selectpos, bool highlighterblink)
 {
 	draw.framestart();
 	drawtopscreen();
@@ -71,8 +71,10 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			{
 				//Configure TexEnv stage 1 to "blink" the texture by making it all blue
 				C3D_TexEnv* tev = C3D_GetTexEnv(1);
-				C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT, 0, 0);
-				C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, 0, 0);
+				C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
+				C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS);
+				C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
+				C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 				C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 				C3D_TexEnvFunc(tev, C3D_Alpha, GPU_REPLACE);
 				C3D_TexEnvColor(tev, RGBA8(0, 0, 255, 255));
@@ -82,8 +84,10 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			else 
 			{
 				C3D_TexEnv* tev = C3D_GetTexEnv(1);
-				C3D_TexEnvSrc(tev, C3D_RGB, GPU_PREVIOUS, 0, 0);
-				C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, GPU_CONSTANT, 0);
+				C3D_TexEnvSrc(tev, C3D_RGB, GPU_PREVIOUS);
+				C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, GPU_CONSTANT);
+				C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
+				C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 				C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 				C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
 				C3D_TexEnvColor(tev, RGBA8(0, 0, 0, highlighteralpha));
@@ -98,7 +102,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			draw.drawtexture(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, x - 9, y - 9, highlighterinterpfactor);
 			//Now we need to reset stage 1
 			C3D_TexEnv* tev = C3D_GetTexEnv(1);
-			TexEnv_Init(tev);
+			C3D_TexEnvInit(tev);
 		}
 		i++;
 		draw.drawSMDHicon((*iter).icon, x, y);
@@ -149,7 +153,8 @@ void titleselect()
 		{
 			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos++;
-			if (selectpos >= icons.size())
+			//selectpos can't be unsigned due to logic preventing it from getting lower than 0
+			if (selectpos >= (signed int)icons.size()) 
 				selectpos--;
 			else if (currow == 2 && selectpos % 4 == 0)
 				scrollsubtractrows++;
@@ -170,7 +175,8 @@ void titleselect()
 		{
 			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos += 4;
-			if (selectpos >= icons.size())
+			//selectpos can't be unsigned due to logic preventing it from getting lower than 0
+			if (selectpos >= (signed int)icons.size())
 				selectpos = icons.size() - 1; //Whee off-by-one errors
 			if(currow == 2)
 				scrollsubtractrows++;

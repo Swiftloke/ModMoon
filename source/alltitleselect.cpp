@@ -11,16 +11,16 @@
 //but we can't declare a reference without initializing it.
 //We're sure to wait until it's finished loading...
 vector<smdhdata>& allicons = getallSMDHdata();
-unsigned int alloldselectpos;
+int alloldselectpos;
 
-void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsubtractrows, unsigned int selectpos, bool highlighterblink)
+void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsubtractrows, int selectpos, bool highlighterblink)
 {
 	draw.framestart();
 	drawtopscreen();
 	draw.drawon(GFX_BOTTOM);
 	draw.drawtexture(backgroundbot, 0, 0);
 	int x = -39, y = 26; //Start at a smaller X coordinate as it'll be advanced in the first loop iteration
-	unsigned int i = 0;
+	int i = 0;
 	static float highlighterinterpfactor = 0;
 	static int highlighteroldx = 0;
 	static int highlighteroldy = 0;
@@ -75,8 +75,10 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			//Apply the highlighter fade. There's an sdraw function for this but it shouldn't really exist,
 			//configuring tev1 is the way it should be done.
 			C3D_TexEnv* tev = C3D_GetTexEnv(1);
-			C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT, 0, 0);
-			C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, GPU_CONSTANT, 0);
+			C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
+			C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, GPU_CONSTANT);
+			C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
+			C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 			C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 			C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
 			C3D_TexEnvColor(tev, RGBA8(iter->isactive ? 0 : 255, 0, iter->isactive ? 255 : 0, highlighteralpha));
@@ -90,21 +92,23 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			draw.drawtexture(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, x - 9, y - 9, highlighterinterpfactor);
 			//Now we need to reset stage 1
 			tev = C3D_GetTexEnv(1);
-			TexEnv_Init(tev);
+			C3D_TexEnvInit(tev);
 		}
 		else if (iter->isactive)
 		{
 			//Configure TexEnv stage 1 to "blink" the texture by making it all blue
 			C3D_TexEnv* tev = C3D_GetTexEnv(1);
-			C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT, 0, 0);
-			C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, 0, 0);
+			C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
+			C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS);
+			C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
+			C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 			C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 			C3D_TexEnvFunc(tev, C3D_Alpha, GPU_REPLACE);
 			C3D_TexEnvColor(tev, RGBA8(0, 0, 255, 255));
 			draw.drawtexture(titleselecthighlighter, x - 9, y - 9);
 			//Now we need to reset stage 1
 			tev = C3D_GetTexEnv(1);
-			TexEnv_Init(tev);
+			C3D_TexEnvInit(tev);
 		}
 		i++;
 		draw.drawSMDHicon((*iter).icon, x, y);
@@ -185,7 +189,8 @@ void activetitleselect()
 		{
 			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos++;
-			if (selectpos >= allicons.size())
+			//selectpos can't be unsigned due to logic preventing it from getting lower than 0
+			if (selectpos >= (signed int)allicons.size())
 				selectpos--;
 			else if (currow == 2 && selectpos % 4 == 0)
 				scrollsubtractrows++;
@@ -206,7 +211,8 @@ void activetitleselect()
 		{
 			int currow = (selectpos / 4) - scrollsubtractrows;
 			selectpos += 4;
-			if (selectpos >= allicons.size())
+			//selectpos can't be unsigned due to logic preventing it from getting lower than 0
+			if (selectpos >= (signed int)allicons.size())
 				selectpos = allicons.size() - 1; //Whee off-by-one errors
 			if (currow == 2)
 				scrollsubtractrows++;

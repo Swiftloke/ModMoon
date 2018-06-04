@@ -25,7 +25,7 @@ int maxslotcheck(u64 optionaltid)
 	int currentFolderCount = 0;
 	stringstream path2Check;
 	stringstream NewPath2Check;
-	string tid2check = optionaltid != -1 ? tid2str(optionaltid) : currenttitleidstr;
+	string tid2check = optionaltid != 1 ? tid2str(optionaltid) : currenttitleidstr;
 	do {
 		currentFolderCount++;
 		path2Check.str("");
@@ -63,45 +63,6 @@ void threadfunc_fade(void* main)
 	}
 	svcSignalEvent(event_fadefinished);
 }
-
-/*static int fadepoint;
-static sdraw_stex fadea, fadeb;
-
-void texfadeinit(sdraw_stex texa, sdraw_stex texb)
-{
-	fadepoint = 0;
-	fadea = texa;
-	fadeb = texb;
-}*/
-
-//Citro3D port of this https://www.khronos.org/opengl/wiki/Texture_Combiners#Example_:_Blend_tex0_and_tex1_based_on_a_blending_factor_you_supply
-// *Lack of fragment shader intensifies*
-
-//I'm not certain whether I want this to be in utils or sdraw itself so I'm leaving it in both for now
-void texfadeadvance(C3D_Tex* texture1, C3D_Tex* texture2, int blendfactor)
-{
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_Tex* texa = texture1;
-	C3D_Tex* texb = texture2;
-	C3D_TexBind(0, texa);
-	C3D_TexBind(1, texb);
-	//Configure the fragment shader to blend texture0 with texture1 based on the alpha of the constant
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
-	//One minus alpha to get it to be 0 -> all texture 0, 256 -> all texture1, whereas it would be the opposite otherwise
-	C3D_TexEnvOp(tev, C3D_RGB, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
-	C3D_TexEnvColor(tev, RGBA8(0,0,0,blendfactor));
-	C3D_TexEnvFunc(tev, C3D_Both, GPU_INTERPOLATE);
-	
-}
-
-/* finc's implementation
-C3D_TexEnvSrc(env, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
-C3D_TexEnvOp(env, C3D_RGB, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
-C3D_TexEnvSrc(env, C3D_Alpha, GPU_TEXTURE0, GPU_TEXTURE1, 0);
-C3D_TexEnvFunc(env, C3D_RGB, GPU_INTERPOLATE);
-C3D_TexEnvFunc(env, C3D_Alpha, GPU_MODULATE);
-C3D_TexEnvColor(tev, RGBA8(0,0,0,128));
-*/
 
 //https://www.linuxquestions.org/questions/linux-newbie-8/how-to-check-if-a-folder-is-empty-661934/
 int countEntriesInDir(const char* dirname)

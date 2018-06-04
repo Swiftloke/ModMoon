@@ -11,6 +11,7 @@ bool alltitlesloaded = false;
 
 void threadfunc_loadallsmdhdata(void* main)
 {
+	//smdhvector[0].load(0, 2); //MEDIATYPE_GAME_CARD; Always load the cartridge in the first position
 	for(unsigned int i = 0; i < tidstoload.size(); i++)
 		smdhvector[i].load(tidstoload[i]);
 
@@ -112,6 +113,17 @@ void smdhdata::load(u64 title, int ingametype) //gametype is optional
 	smdh_s smdhstruct;
 	if (ingametype != -1) //Skip looping and checking
 	{
+		/*if (ingametype == 2) //Get the title ID from the cartridge
+		{
+			bool cardinserted;
+			FS_CardType type;
+			FSUSER_CardSlotIsInserted(&cardinserted);
+			FSUSER_GetCardType(&type);
+			if(cardinserted && type == CARD_CTR)
+				AM_GetTitleList(NULL, MEDIATYPE_GAME_CARD, 1, &title);
+			else
+				this->isactive = false; //Holds a special meaning for the cartridge; see header
+		}*/
 		if(titlesLoadSmdh(&smdhstruct, ingametype, title))
 			this->gametype = ingametype;
 		else

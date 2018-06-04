@@ -37,6 +37,7 @@ using namespace std;
 	GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
 	GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
+
 	int idcount = 0;
 	static DVLB_s* basicvshader_dvlb;
 	static DVLB_s* eventualvshader_dvlb;
@@ -128,8 +129,7 @@ sdraw_texture* loadpng(string filepath)
 
 
 	// Convert image to 3DS tiled texture format
-	C3D_SafeDisplayTransfer((u32*)gpusrc, GX_BUFFER_DIM(width, height), (u32*)tex->image.data, GX_BUFFER_DIM(width, height), TEXTURE_TRANSFER_FLAGS);
-	gspWaitForPPF();
+	C3D_SyncDisplayTransfer((u32*)gpusrc, GX_BUFFER_DIM(width, height), (u32*)tex->image.data, GX_BUFFER_DIM(width, height), TEXTURE_TRANSFER_FLAGS);
 
 	/*ofstream out(("spritesheet.bin"), ios::binary | ios::trunc);
 	out.write((char*)dest, width*height*4);
@@ -183,11 +183,11 @@ sDraw_interface::sDraw_interface()
 	
 	// Initialize the render targets
 	top = C3D_RenderTargetCreate(240, 400, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
-	C3D_RenderTargetSetClear(top, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
+	C3D_RenderTargetClear(top, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	C3D_RenderTargetSetOutput(top, GFX_TOP, GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
 
 	bottom = C3D_RenderTargetCreate(240, 320, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
-	C3D_RenderTargetSetClear(bottom, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
+	C3D_RenderTargetClear(bottom, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	C3D_RenderTargetSetOutput(bottom, GFX_BOTTOM, GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
 	
 	// Load the vertex shader, create a shader program and bind it
@@ -292,9 +292,10 @@ void sDraw_interface::drawtext(const char* text, float x, float y, float sizeX, 
 void sDraw_interface::settextcolor(u32 color)
 {
 	C3D_TexEnv* env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_RGB, GPU_CONSTANT, 0, 0);
-	C3D_TexEnvSrc(env, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT, 0);
-	C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
+	C3D_TexEnvSrc(env, C3D_RGB, GPU_CONSTANT);
+	C3D_TexEnvSrc(env, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
+	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(env, C3D_RGB, GPU_REPLACE);
 	C3D_TexEnvFunc(env, C3D_Alpha, GPU_MODULATE);
 	C3D_TexEnvColor(env, color);
@@ -304,8 +305,9 @@ void sDraw_interface::drawrectangle(int x, int y, int width, int height, u32 col
 {
 	//Override the color entirely
 	C3D_TexEnv *env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_CONSTANT, GPU_CONSTANT, 0);
-	C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
+	C3D_TexEnvSrc(env, C3D_Both, GPU_CONSTANT, GPU_CONSTANT);
+	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 	C3D_TexEnvColor(env, color);
 
@@ -529,8 +531,9 @@ void sDraw_interface::drawtexture(sdraw_texture* tex, int x, float y)
 	C3D_TexBind(0, &tex->image);
 	
 	C3D_TexEnv	*env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
-	C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
+	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
+	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (tex->width / 2); y = (240 / 2) - (tex->height / 2);}
 	
@@ -542,7 +545,8 @@ void sDraw_interface::drawtexture(sdraw_texture* tex, int x, float y)
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
 }
 
-//I'm not certain whether I want this to be in utils or sdraw itself so I'm leaving it in both for now
+//Citro3D port of this https://www.khronos.org/opengl/wiki/Texture_Combiners#Example_:_Blend_tex0_and_tex1_based_on_a_blending_factor_you_supply
+// *Lack of fragment shader intensifies*
 void sDraw_interface::drawblendedtexture(sdraw_texture* texture1, sdraw_texture* texture2, int x, int y, int blendfactor)
 {
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
@@ -552,8 +556,10 @@ void sDraw_interface::drawblendedtexture(sdraw_texture* texture1, sdraw_texture*
 	C3D_TexBind(1, texb);
 	//Configure the fragment shader to blend texture0 with texture1 based on the alpha of the constant
 	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
+	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
 	//One minus alpha to get it to be 0 -> all texture 0, 256 -> all texture1, whereas it would be the opposite otherwise
-	C3D_TexEnvOp(tev, C3D_RGB, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
+	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
+	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_ONE_MINUS_SRC_ALPHA);
 	C3D_TexEnvColor(tev, RGBA8(0,0,0,blendfactor));
 	C3D_TexEnvFunc(tev, C3D_Both, GPU_INTERPOLATE);
 	
@@ -609,8 +615,9 @@ void sDraw_interface::drawtexture(sdraw_stex info, int x, int y, int x1, int y1,
 	C3D_TexBind(0, &(info.spritesheet->image));
 	
 	C3D_TexEnv	*env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
-	C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
+	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
+	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 	
 	float rleft = info.x/info.spritesheet->width;
@@ -650,8 +657,9 @@ void sDraw_interface::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, i
 	C3D_TexBind(0, &tex);
 	
 	C3D_TexEnv	*env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
-	C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
+	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
+	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 	const float scrwidth = 240, scrheight = istopfb ? 400 : 320;
 	const float texwidth = 256, texheight = 512;
@@ -698,9 +706,10 @@ void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, in
 	C3D_StencilTest(true, GPU_NOTEQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it hasn't been set
 	
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT, 0, 0);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT, 0);
-	C3D_TexEnvOp(tev, C3D_Both, 0, 0, 0);
+	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
+	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
+	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
 	C3D_TexEnvColor(tev, RGBA8(255, 0, 0, alpha));
@@ -718,8 +727,9 @@ void sDraw_interface::drawSMDHicon(C3D_Tex icon, int x, int y)
 {
 	C3D_TexBind(0, &icon);
 	C3D_TexEnv	*env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0, 0, 0);
-	C3D_TexEnvOp(env, C3D_Both, 0, 0, 0);
+	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
+	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 	
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (48 / 2); y = (240 / 2) - (48 / 2);}
@@ -739,8 +749,8 @@ void sDraw_interface::drawtexture_replacealpha(sdraw_stex info, int x, int y, in
 	C3D_TexBind(0, &(info.spritesheet->image));
 	
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, 0, 0);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT, 0);
+	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0);
+	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
 	C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
 	C3D_TexEnvColor(tev, RGBA8(0, 0, 0, alpha));
