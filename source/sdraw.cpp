@@ -742,6 +742,40 @@ void sDraw_interface::drawSMDHicon(C3D_Tex icon, int x, int y)
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
 }
 
+void sDraw_interface::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
+{
+	float rleft = info.x / info.spritesheet->width;
+	float rright = (info.x + info.width) / info.spritesheet->width;
+	float rtop = info.y / info.spritesheet->height;
+	float rbot = (info.y + info.height) / info.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
+
+
+	if (x == CENTERED && y == CENTERED) { x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2); }
+
+	//If we have a second coordinate we need to activate the interpolation shader and add coordinates to its buffer
+	if (x1 != -1)
+	{
+		usetwocoordsshader();
+		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
+		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
+		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, rleft, rbot);
+		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, rright, rbot);
+		sDrawi_addTwoCoordsVertex(x, y, x1, y1, rleft, rtop);
+		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, rright, rtop);
+		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawTwoCdsVtxArrayPos - 4, 4);
+		usebasicshader();
+	}
+	else
+	{
+		sDrawi_addTextVertex(x, y + info.height, rleft, rbot); //left bottom
+		sDrawi_addTextVertex(x + info.width, y + info.height, rright, rbot); //right bottom
+		sDrawi_addTextVertex(x, y, rleft, rtop); //left top
+		sDrawi_addTextVertex(x + info.width, y, rright, rtop); //right top
+		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
+	}
+}
+
+
 //TODO: have all these different functions for individual texenv stuff configure their texenvs then call a drawquad() function.
 //It's really getting out of hand and not making sense to repeat all this code.
 void sDraw_interface::drawtexture_replacealpha(sdraw_stex info, int x, int y, int alpha, int x1, int y1, float interpfactor)

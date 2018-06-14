@@ -54,6 +54,7 @@ class sDraw_interface
 	
 	void drawblendedtexture(sdraw_texture* texture1, sdraw_texture* texture2, int x, int y, int blendfactor);
 	void drawtexture_replacealpha(sdraw_stex info, int x, int y, int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0);
+	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void usebasicshader();
 	void useeventualshader();
 	void usetwocoordsshader();

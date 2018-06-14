@@ -43,6 +43,7 @@ extern sdraw_stex titleselectionsinglebox;
 extern sdraw_stex titleselecthighlighter;
 extern sdraw_stex progressbar;
 extern sdraw_stex progressbarstenciltex;
+extern sdraw_stex secret;
 
 extern Config config;
 extern bool modsenabled;
@@ -72,3 +73,4 @@ bool touched(int x, int y, int width, int height, touchPosition tpos);
 bool buttonpressed(sdraw_stex button, int bx, int by, touchPosition lastpos, u32 kHeld);
 bool issaltysdtitle();
 void drawtopscreen();
+bool secretcodeadvance(u32 kDown);

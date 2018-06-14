@@ -41,6 +41,7 @@ sdraw_stex titleselectionsinglebox(spritesheet, 0, 792, 58, 58);
 sdraw_stex titleselecthighlighter(spritesheet, 268, 792, 65, 65);
 sdraw_stex progressbar(spritesheet, 720, 240, 260, 35);
 sdraw_stex progressbarstenciltex(spritesheet, 720, 275, 260, 35);
+sdraw_stex secret(spritesheet, 320, 369, 114, 113);
 
 Config config("/3ds/ModMoon/", "settings.txt");
 
@@ -200,6 +201,69 @@ void mainmenushiftinb()
 }
 
 const unsigned int codes[] = {
+	KEY_UP, KEY_UP, KEY_DOWN, KEY_DOWN, KEY_LEFT, KEY_RIGHT, KEY_LEFT, KEY_RIGHT, KEY_B, KEY_A, KEY_START
+};
+
+void secretcodedraw()
+{
+	draw.drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 255, 255));
+	//This secret is hidden from view in the spritesheet. It has only an alpha of 1 and no color.
+	//This is to prevent it from easily being seen in the source code. ;)
+	//Also because I'm a sucker for playing with graphics (as evidenced by my own rendering engine)
+	//and when this idea popped up I had to try it.
+	//If you're reading this, you won't understand what it is until you try it for yourself, seeing as you
+	//don't know what has an alpha in this subtexture.
+	//This code brings it back up to full alpha and gives it a color.
+	C3D_TexEnv* tev = C3D_GetTexEnv(0);
+	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
+	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
+	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
+	C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
+	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_ADD);
+	C3D_TexEnvColor(tev, RGBA8(255, 255, 0, 254));
+
+	C3D_AlphaTest(true, GPU_EQUAL, 255); //1 + 254 = 255, ignore everything else
+	draw.drawquad(secret, 0, 0);
+	C3D_AlphaTest(true, GPU_GREATER, 0); //sdraw's default behavior
+}
+
+//Returns if the main loop should be skipped or not due to an undesirable button press
+bool secretcodeadvance(u32 kDown)
+{
+	static int state = 0;
+	static int timeout = 0;
+	if (kDown & codes[state])
+	{
+		state++;
+		timeout = 0;
+		//A and B button's position, plus one, due to earlier increment
+		if(state == 9 || state == 10) return true;
+		if (state == 11)
+		{
+			state = 0;
+			error("Congrats! You have gained\n30 extra lives!");
+			draw.framestart();
+			draw.drawon(GFX_TOP);
+			secretcodedraw();
+			draw.drawon(GFX_BOTTOM);
+			secretcodedraw();
+			draw.frameend();
+			for (;;) {}
+		}
+	}
+	else
+	{
+		timeout++;
+		if (timeout >= 45)
+		{
+			timeout = 0;
+			state = 0;
+		}
+	}
+	return false;
+}
+
 void mainmenushiftout()
 {
 	//Opposite of shifting in (just some numbers changed)

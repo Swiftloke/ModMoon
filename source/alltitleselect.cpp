@@ -185,6 +185,7 @@ void activetitleselect()
 			updatecartridgedata();
 		hidScanInput();
 		u32 kDown = hidKeysDown();
+		if (secretcodeadvance(kDown)) continue;
 		if (kDown & KEY_LEFT)
 		{
 			int currow = (selectpos / 4) - scrollsubtractrows;
