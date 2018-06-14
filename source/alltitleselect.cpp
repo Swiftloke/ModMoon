@@ -111,7 +111,14 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			C3D_TexEnvInit(tev);
 		}
 		i++;
-		draw.drawSMDHicon((*iter).icon, x, y);
+		if (iter == allicons.begin()) //It's the cartridge
+		{
+			//sdraw::drawicon(cartridgeicon, x - 12, y - 12);
+			if (iter->titl == 0)
+				continue; //There's no cartridge inserted
+		}
+		if (iter->titl != 0) //Not a null cartridge
+			draw.drawSMDHicon((*iter).icon, x, y);
 	}
 	draw.drawtexture(titleselectionboxes, 26, 21);
 	draw.drawframebuffer(prevbotfb, 0, 0, false, 0, -240, fbinterpfactor);
@@ -174,6 +181,8 @@ void activetitleselect()
 	}
 	while (aptMainLoop())
 	{
+		if (cartridgeneedsupdating)
+			updatecartridgedata();
 		hidScanInput();
 		u32 kDown = hidKeysDown();
 		if (kDown & KEY_LEFT)
@@ -221,27 +230,30 @@ void activetitleselect()
 
 		if (kDown & KEY_A)
 		{
-			smdhdata& titleop = allicons.at(selectpos);
-			if (titleop.isactive)
+			if (selectpos != 0) //Not a cartridge, these rules don't apply to them
 			{
-				titleop.isactive = false;
-				//Remove the title ID from the global entries
-				vector<u64>::iterator i = std::find(titleids.begin(), titleids.end(), titleop.titl);
-				vector<int>::iterator j = slots.begin();
-				vector<smdhdata>::iterator k = getSMDHdata().begin();
-				std::advance(j, i - titleids.begin()); //Get raw index, the two are in the same position
-				std::advance(k, i - titleids.begin());
-				titleids.erase(i);
-				slots.erase(j);
-				getSMDHdata().erase(k);
-			}
-			else
-			{
-				titleop.isactive = true;
-				//Add it
-				titleids.push_back(titleop.titl);
-				slots.push_back(0); //Default
-				getSMDHdata().push_back(allicons[selectpos]);
+				smdhdata& titleop = allicons.at(selectpos);
+				if (titleop.isactive)
+				{
+					titleop.isactive = false;
+					//Remove the title ID from the global entries
+					vector<u64>::iterator i = std::find(titleids.begin(), titleids.end(), titleop.titl);
+					vector<int>::iterator j = slots.begin();
+					vector<smdhdata>::iterator k = getSMDHdata().begin();
+					std::advance(j, i - titleids.begin()); //Get raw index, the two are in the same position
+					std::advance(k, i - titleids.begin());
+					titleids.erase(i);
+					slots.erase(j);
+					getSMDHdata().erase(k);
+				}
+				else
+				{
+					titleop.isactive = true;
+					//Add it
+					titleids.push_back(titleop.titl);
+					slots.push_back(0); //Default
+					getSMDHdata().push_back(allicons[selectpos]);
+				}
 			}
 		}
 		if (kDown & KEY_B)

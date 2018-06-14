@@ -105,7 +105,8 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			C3D_TexEnvInit(tev);
 		}
 		i++;
-		draw.drawSMDHicon((*iter).icon, x, y);
+		if(iter->titl != 0) //Not a null cartridge
+			draw.drawSMDHicon((*iter).icon, x, y);
 	}
 	draw.drawtexture(titleselectionboxes, 26, 21);
 	draw.drawframebuffer(prevfb, 0, 0, false, 0, -240, fbinterpfactor);
@@ -138,6 +139,8 @@ void titleselect()
 	}
 	while (aptMainLoop())
 	{
+		if (cartridgeneedsupdating)
+			updatecartridgedata();
 		hidScanInput();
 		u32 kDown = hidKeysDown();
 		if (kDown & KEY_LEFT)

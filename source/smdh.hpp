@@ -9,7 +9,7 @@
 class smdhdata
 {
 	public:
-	void load(u64 title, int ingametype = -1);
+	bool load(u64 title, int ingametype = -1);
 	u64 titl;
 	string shortdesc, longdesc;
 	C3D_Tex icon;
@@ -24,6 +24,9 @@ vector<smdhdata>& getallSMDHdata();
 bool alltitlesareloaded();
 int getalltitlescount();
 int getalltitlesloadedcount();
+
+void updatecartridgedata();
+void cartridgesrvhook(u32 NotificationID);
 
 //Stuff to parse the SMDH data (from new-hbmenu)
 typedef struct

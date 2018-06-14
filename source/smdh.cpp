@@ -1,4 +1,6 @@
 #include "main.hpp" //Also includes smdh.hpp
+#include "utils.hpp"
+#include "error.hpp"
 #include <algorithm>
 
 vector<smdhdata> smdhvector;
@@ -18,7 +20,6 @@ void threadfunc_loadallsmdhdata(void* main)
 	//Now, load everything that's not already loaded to support selection of new titles
 	u64* alltids = new u64[alltitlescount];
 	AM_GetTitleList(NULL, MEDIATYPE_SD, alltitlescount, alltids);
-
 	for (unsigned int i = 0; i < alltitlescount; i++)
 	{
 		//Doesn't work, but that's OK, it's not *that* costly
@@ -38,6 +39,15 @@ void threadfunc_loadallsmdhdata(void* main)
 		alltitlesvector[i].load(alltids[i]);
 		alltitlesloadedcount++;
 	}
+	bool cardinserted;
+	FSUSER_CardSlotIsInserted(&cardinserted);
+	if (cardinserted)
+	{
+		alltitlescount += 1;
+		updatecartridgedata();
+	}
+	alltitlesloadedcount++;
+	//alltitlesvector.insert(alltitlesvector.begin(), smdhvector[0]); //Done by updatecartridgedata()
 	//Remove titles that aren't titles- extdata, updates, etc.
 	//Also determine if the title is active or not.
 	vector<smdhdata>::iterator remove = \
@@ -104,26 +114,36 @@ int getalltitlesloadedcount()
 	return alltitlesloadedcount;
 }
 
-void smdhdata::load(u64 title, int ingametype) //gametype is optional
+bool smdhdata::load(u64 title, int ingametype) //gametype is optional
 {
 	this->titl = title;
 	//Search the global active TIDs vector
 	if (std::find(titleids.begin(), titleids.end(), this->titl) != titleids.end())
 		this->isactive = true;
+	else
+		this->isactive = false;
 	smdh_s smdhstruct;
 	if (ingametype != -1) //Skip looping and checking
 	{
-		/*if (ingametype == 2) //Get the title ID from the cartridge
+		if (ingametype == 2) //Get the title ID from the cartridge
 		{
 			bool cardinserted;
 			FS_CardType type;
 			FSUSER_CardSlotIsInserted(&cardinserted);
 			FSUSER_GetCardType(&type);
-			if(cardinserted && type == CARD_CTR)
+			if (cardinserted && type == CARD_CTR)
+			{
 				AM_GetTitleList(NULL, MEDIATYPE_GAME_CARD, 1, &title);
+				this->titl = title; //Set the TID again; it isn't 0
+				this->isactive = true; //Cartridges are always active
+			}
 			else
-				this->isactive = false; //Holds a special meaning for the cartridge; see header
-		}*/
+			{
+				this->titl = 0; 
+				this->isactive = false; //Make sure we don't try to draw a null image
+				return false;
+			}
+		}
 		if(titlesLoadSmdh(&smdhstruct, ingametype, title))
 			this->gametype = ingametype;
 		else
@@ -135,7 +155,7 @@ void smdhdata::load(u64 title, int ingametype) //gametype is optional
 			this->shortdesc = tohex.str();
 			this->longdesc = "Couldn't find anything! If it's on a cartridge, is it inserted?";
 			this->titl = title;
-			return;
+			return false;
 		}
 	}
 	else
@@ -157,7 +177,7 @@ void smdhdata::load(u64 title, int ingametype) //gametype is optional
 				this->shortdesc = tohex.str();
 				this->longdesc = "Couldn't find anything! If it's on a cartridge, is it inserted?";
 				this->titl = title;
-				return;
+				return false;
 			}
 
 		}
@@ -177,6 +197,7 @@ void smdhdata::load(u64 title, int ingametype) //gametype is optional
 	safe_utf8_convert(buf, smdhstruct.applicationTitles[language].longDescription, 0x40 * 3); //Reusing the buffer isn't a problem.
 	this->longdesc = string(buf);
 	delete[] buf;
+	return true;
 }
 
 //This was straight copy-pasted from new-hbmenu. Give them props for it
@@ -213,7 +234,85 @@ void safe_utf8_convert(char* buf, const u16* input, size_t bufsize)
 	buf[units] = 0;
 }
 
-void smdhmenu()
+/*bool cardthreadstop = false;
+
+void threadfunc_checkforcartridgeinserted(void* args)
 {
-	
+	while(!cardthreadstop)
+	{
+		FSUSER_CardSlotIsInserted(&cardinserted);
+		FSUSER_GetCardType(&type);
+		svcSleepThread()
+	}
+}
+
+void cartridgethreadinit()
+{
+	s32 mainthreadpriority;
+	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
+	APT_SetAppCpuTimeLimit(30);
+	threadCreate(threadfunc_checkforcartridgeinserted, NULL, 8000, mainthreadpriority - 5, 1, true);
+}
+
+void cartridgethreadfinish()
+{
+	cardthreadstop = true;
+}*/
+
+void cartridgesrvhook(u32 NotificationID)
+{
+	cartridgeneedsupdating = true;
+}
+
+void updatecartridgedata()
+{
+	cartridgeneedsupdating = false;
+	vector<smdhdata>& icons = getSMDHdata();
+	//Title loading might be done when this is called, but what if the user has changed the cartridge? 
+	//Then we need to update it
+	//This will freeze, but only for a slight moment, and no animations are occurring- the user won't notice
+	u64 cartridgetitle;
+	bool cardinserted;
+	FS_CardType type = CARD_TWL;
+	FSUSER_GetCardType(&type);
+	FSUSER_CardSlotIsInserted(&cardinserted);
+	if (cardinserted && type == CARD_CTR)
+	{
+		AM_GetTitleList(NULL, MEDIATYPE_GAME_CARD, 1, &cartridgetitle);
+		if (cartridgetitle != icons[0].titl)
+		{
+			//Load the cartridge, it may take a few tries because FS may not be ready for us
+			while (!icons[0].load(0, 2)) {}
+			//if (icons[0].titl == 0) return; //It read out garbage
+			//Update related stuff as well
+			titleids[0] = icons[0].titl;
+			slots[0] = 0;
+			getallSMDHdata()[0] = icons[0];
+			if (currenttidpos == 0)
+			{
+				maxslot = maxslotcheck();
+				if (maxslot == 0)
+				{
+					error("Warning: Failed to find mods for\nthis game!");
+					error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nWhere X is a number starting at 1.");
+				}
+				mainmenuupdateslotname();
+			}
+			//return;
+		}
+	}
+	else if(icons[0].titl != 0)
+	{
+		icons[0].titl = 0;
+		icons[0].isactive = false;
+		//Update related stuff as well
+		titleids[0] = 0;
+		slots[0] = 0;
+		if (currenttidpos == 0)
+		{
+			maxslot = 0;
+			mainmenuupdateslotname();
+			config.write("ModsEnabled", false);
+		}
+	}
 }

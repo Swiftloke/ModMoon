@@ -556,7 +556,7 @@ void sDraw_interface::drawblendedtexture(sdraw_texture* texture1, sdraw_texture*
 	C3D_TexBind(1, texb);
 	//Configure the fragment shader to blend texture0 with texture1 based on the alpha of the constant
 	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
+	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
 	//One minus alpha to get it to be 0 -> all texture 0, 256 -> all texture1, whereas it would be the opposite otherwise
 	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
 	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_ONE_MINUS_SRC_ALPHA);
@@ -784,8 +784,6 @@ void sDraw_interface::drawtexture_replacealpha(sdraw_stex info, int x, int y, in
 		sDrawi_addTextVertex(x + info.width, y, rright, rtop); //right top
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
 	}
-	
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
 }
 
 void sDraw_interface::framestart()

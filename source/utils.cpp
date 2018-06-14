@@ -10,6 +10,7 @@
 #include "utils.hpp"
 #include "main.hpp"
 #include "error.hpp"
+#include "srv.hpp"
 
 using namespace std;
 
@@ -84,18 +85,19 @@ void launch(){
 	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
 	svcCreateEvent(&event_fadefinished, RESET_ONESHOT);
 	threadCreate(threadfunc_fade, rgb, 8000, mainthreadpriority + 1, -2, true);
+	titleids[0] = 0; //Prevent a potential issue with the reader finding this title on SD next boot when it's not inserted
 	config.u64multiwrite("ActiveTitleIDs", titleids, true);
 	config.intmultiwrite("TitleIDSlots", slots);
 	config.write("SelectedTitleIDPos", currenttidpos);
 	config.flush();
 	if(modsenabled)
 	{
-		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr;
+		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
 		string src = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
 		attemptrename:
 		if(rename(src.c_str(), dest.c_str()))
 		{
-			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!");
+			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto" + dest + '!');
 			error("Error code:\n" + to_string(errno));
 			if ((unsigned int)errno == 0xC82044BE) //Destination already exists
 			{
@@ -115,6 +117,7 @@ void launch(){
 	draw.drawrectangle(0, 0, 320, 240, 0);
 	draw.frameend();
 	draw.cleanup();
+	srv::exit();
 	u8 param[0x300];
 	u8 hmac[0x20];
 	memset(param, 0, sizeof(param));

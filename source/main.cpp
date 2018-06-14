@@ -17,6 +17,7 @@
 #include "main.hpp"
 #include "error.hpp"
 #include "titleselects.hpp"
+#include "srv.hpp"
 
 using namespace std;
 
@@ -59,6 +60,8 @@ vector<int> slots = config.intmultiread("TitleIDSlots");
 int currenttidpos = config.read("SelectedTitleIDPos", 0);
 
 int maxslot = maxslotcheck();
+
+bool cartridgeneedsupdating = false;
 
 string slotname = "";
 
@@ -107,6 +110,10 @@ int startup()
 	cfguInit(); //For system language
 	amInit(); //For getting all the installed titles + updating
 	initializeallSMDHdata(titleids);
+	updatecartridgedata();
+	srv::init();
+	srv::hook(0x208, cartridgesrvhook); //Notif 0x208: Game cartridge inserted
+	srv::hook(0x20A, cartridgesrvhook); //Notif 0x20A: Game cartridge removed
 	return renamefailed;
 }
 
@@ -125,6 +132,7 @@ void enablemods(bool isenabled)
 	{
 		string enable = isenabled ? "enable" : "disable";
 		error("Failed to " + enable + " mods!");
+		error("This may resolve itself\nthrough normal usage.");
 	}
 }
 
@@ -191,6 +199,7 @@ void mainmenushiftinb()
 	}
 }
 
+const unsigned int codes[] = {
 void mainmenushiftout()
 {
 	//Opposite of shifting in (just some numbers changed)
@@ -248,7 +257,10 @@ void drawtopscreen()
 	draw.drawtext(": Enable/Disable mods", 5, 240 - 40, 0.55, 0.55);
 	draw.drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
 	//Draw the current title
-	draw.drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
+	if (getSMDHdata()[currenttidpos].titl != 0) //This may be a cartridge that's not inserted, if it is, don't draw it
+	{
+		draw.drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
+	}
 	draw.drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
 }
 
@@ -283,8 +295,9 @@ int main(int argc, char **argv) {
 	if(renamefailed)
 	{
 		renamefailederror:
+		string source = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
 		string dest = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot); //Just copy/pasted
-		error("Failed to move slot file from\n/saltysd/smash to\n" + modsfolder + currenttitleidstr + "\n/Slot_" + to_string(currentslot) + '!');
+		error("Failed to move slot file from\n" + source + "\nto" + dest + '!');
 		error("Error code:\n" + to_string(errno));
 		if ((unsigned int)errno == 0xC82044BE) //Destination already exists
 		{
@@ -301,17 +314,20 @@ int main(int argc, char **argv) {
 			error("It will likely resolve itself\nthrough normal usage.");
 		}
 	}
-	if (maxslot == 0) //No mods
+	if (maxslot == 0 && titleids[currenttidpos] != 0) //No mods and it's not an empty cartridge
 	{
 		error("Warning: Failed to find mods for\nthis game!");
 		error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nWhere X is a number starting at 1.");
 	}
 	while (aptMainLoop()) {
+		if(cartridgeneedsupdating)
+			updatecartridgedata();
 		hidScanInput();
 		opos = tpos;
 		hidTouchRead(&tpos);
 		u32 kDown = hidKeysDown();
 		u32 kHeld = hidKeysHeld();
+		if (secretcodeadvance(kDown)) continue;
 		//So 0 is the launch button, 1 is the tools button,
 		//2 is the selector bar that, when pressed up, goes back to the launch button, and 3 is the same for the tools button.
 		if(kDown & KEY_A)
@@ -419,7 +435,7 @@ int main(int argc, char **argv) {
 		attemptrename:
 		if (rename(src.c_str(), dest.c_str()))
 		{
-			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto /saltysd/smash!");
+			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto " + dest + '!');
 			error("Error code:\n" + to_string(errno));
 			if ((unsigned int)errno == 0xC82044BE) //Destination already exists
 			{
@@ -432,6 +448,7 @@ int main(int argc, char **argv) {
 			}
 		}
 	}
+	titleids[0] = 0; //Prevent a potential issue with the reader finding this title on SD next boot when it's not inserted
 	config.u64multiwrite("ActiveTitleIDs", titleids, true);
 	config.intmultiwrite("TitleIDSlots", slots);
 	config.write("SelectedTitleIDPos", currenttidpos);
@@ -441,6 +458,7 @@ int main(int argc, char **argv) {
 	C3D_TexDelete(&(spritesheet->image));
 	freeSMDHdata();
 	draw.cleanup();
+	srv::exit();
 	romfsExit();
 	gfxExit();
 	cfguExit();

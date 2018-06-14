@@ -49,6 +49,7 @@ extern bool modsenabled;
 extern string modsfolder;
 extern string slotname;
 extern int maxslot;
+extern bool cartridgeneedsupdating;
 
 extern float minusy; //Needed for the fading function
 
