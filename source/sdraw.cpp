@@ -846,6 +846,25 @@ void sDraw_interface::frameend()
 	C3D_FrameEnd(0);
 }
 
+void sDraw_interface::retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb)
+{
+	framestart(); //Citro3D's rendering queue needs to be open for a TextureCopy
+	if(topfb)
+		GX_TextureCopy((u32*)lastfbtop.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)topfb->data, \
+			GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), 512 * 256 * 4, FRAMEBUFFER_TRANSFER_FLAGS);
+	if(botfb)
+		GX_TextureCopy((u32*)lastfbbot.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)botfb->data, \
+			GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), 512 * 256 * 4, FRAMEBUFFER_TRANSFER_FLAGS);
+	gspWaitForPPF();
+	//We need to do something with this frame so let's draw the last one
+	//There had BETTER be at least one framebuffer to draw, otherwise, I deserve the GPU freeze from drawing nothing
+	if(topfb)
+		drawframebuffer(*topfb, 0, 0, true);
+	drawon(GFX_BOTTOM);
+	if(botfb)
+		drawframebuffer(*botfb, 0, 0, false);
+	frameend();
+}
 
 void sDraw_interface::cleanup()
 {

@@ -1,11 +1,17 @@
 #include "error.hpp"
 #include "main.hpp"
 #include "sdraw.hpp"
+#include "utils.hpp"
 
 #include <cstring>
-
-#define ALPHAPLUSVALUE 5
 C3D_Tex prevtop, prevbot;
+
+ERRORMODE errormode;
+
+void errorsetmode(ERRORMODE mode)
+{
+	errormode = mode;
+}
 
 void drawerrorbox(string text, int alphapos, float expandpos)
 {
@@ -28,22 +34,40 @@ void drawerrorbox(string text, int alphapos, float expandpos)
 	draw.frameend();
 }
 
+void drawerrorfade(string text, int alphapos, float fadepos)
+{
+	draw.framestart();
+	//draw.usebasicshader();
+	draw.drawframebuffer(prevtop, 0, 0, true);
+	int fade = fadepos * 100;
+	draw.drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fade));
+	draw.drawon(GFX_BOTTOM);
+	draw.drawframebuffer(prevbot, 0, 0, false);
+	draw.drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, fade));
+	/*draw.useeventualshader();
+	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_baseloc, 320 / 2, 240 / 2, 0, 0);
+	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_expandloc, expandpos, 0, 0, 0);*/
+	draw.drawtexture(textbox, 10, 20);
+#define TEXTSCALE 0.7
+	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
+	draw.drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
+	draw.drawtexture(textboxokbutton, 112, 163);
+	//I did it this way before I wrote the stencil test highlighter, and besides which that wouldn't work because it uses
+	//The eventual shader itself so the popup wouldn't show properly for this
+	draw.drawtexture_replacealpha(textboxokbuttonhighlight, 111, 162, alphapos);
+	draw.frameend();
+}
+
 bool handleerror(float expandpos, string text)
 {
-	static int alphapos = 0;
+	static unsigned int alphapos = 0;
 	static bool alphaplus = true;
 	static touchPosition currentpos, lastpos;
-	if (alphaplus)
-	{
-		alphapos += ALPHAPLUSVALUE;
-		if (alphapos > 255) { alphapos -= ALPHAPLUSVALUE; alphaplus = false; }
-	}
-	else
-	{
-		alphapos -= ALPHAPLUSVALUE;
-		if (alphapos < 0) { alphapos += ALPHAPLUSVALUE; alphaplus = true; }
-	}
-	drawerrorbox(text, alphapos, expandpos);
+	highlighterhandle(alphapos, alphaplus);
+	if(errormode == MODE_POPUPBOX)
+		drawerrorbox(text, alphapos, expandpos);
+	else if(errormode == MODE_FADE)
+		drawerrorfade(text, alphapos, expandpos);
 	hidScanInput();
 	hidTouchRead(&currentpos);
 	//Button pressed and the text box has fully popped up (we do, after all, want the user to actually read this thing...)
@@ -58,16 +82,8 @@ void error(string text)
 	//Save the framebuffers from the previous menu
 	C3D_TexInit(&prevtop, 256, 512, GPU_RGBA8);
 	C3D_TexInit(&prevbot, 256, 512, GPU_RGBA8);
-	draw.framestart(); //Citro3D's rendering queue needs to be open for a TextureCopy
-	GX_TextureCopy((u32*)draw.lastfbtop.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)prevtop.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), 512 * 256 * 4, FRAMEBUFFER_TRANSFER_FLAGS);
-	//gspWaitForPPF(); Hangs?
-	GX_TextureCopy((u32*)draw.lastfbbot.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)prevbot.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), 512 * 256 * 4, FRAMEBUFFER_TRANSFER_FLAGS);
-	gspWaitForPPF();
-	//We need to do something with this frame so let's draw the last one
-	draw.drawframebuffer(prevtop, 0, 0, true);
-	draw.drawon(GFX_BOTTOM);
-	draw.drawframebuffer(prevbot, 0, 0, false);
-	draw.frameend();
+	draw.retrieveframebuffers(&prevtop, &prevbot);
+	//In the rare case that fade mode is used, this instead becomes the alpha of the fade
 	float expandpos = 0;
 
 	while (aptMainLoop())

@@ -36,6 +36,20 @@ int maxslotcheck(u64 optionaltid)
 	return currentFolderCount - 1;
 }
 
+void highlighterhandle(unsigned int& alphapos, bool& alphaplus)
+{
+#define PLUSVALUE 5
+	if (alphaplus)
+	{
+		alphapos += PLUSVALUE;
+		if (alphapos > 255) { alphapos -= PLUSVALUE; alphaplus = false; }
+	}
+	else
+	{
+		alphapos -= PLUSVALUE;
+		if (alphapos < 0) { alphapos += PLUSVALUE; alphaplus = true; }
+	}
+}
 
 void threadfunc_fade(void* main)
 {
@@ -47,11 +61,7 @@ void threadfunc_fade(void* main)
 	{
 		alpha += 3;
 		draw.framestart();
-		draw.drawtexture(backgroundtop, 0, 0);
-		int bannerx = 400/2 - banner.width/2;
-		float bannery = 240/2 - banner.height/2;
-		bannery += 6.0f*sinf(C3D_Angle(minusy)); //Wr're not moving it, but we are keeping it where it's at.
-		draw.drawtexture(banner, bannerx, bannery);
+		drawtopscreen();
 		draw.drawrectangle(0, 0, 400, 240, RGBA8(rgbvalues[0], rgbvalues[1], rgbvalues[2], alpha)); //Overlay an increasingly covering rectangle for a fade effect
 		draw.drawon(GFX_BOTTOM);
 		draw.drawtexture(backgroundbot, 0, 0);

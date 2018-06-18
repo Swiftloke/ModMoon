@@ -8,3 +8,5 @@ void initupdatechecker();
 bool isupdateavailable();
 void initdownloadandinstallupdate();
 void downloadsignalandwaitforcancel();
+unsigned int retrievedownloadprogress();
+Handle event_downloadthreadfinished;

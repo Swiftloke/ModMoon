@@ -61,7 +61,7 @@ void ss1xMigrate()
 	{
 		smdhdata data;
 		data.load(title, mediatype);
-		getSMDHdata()->push_back(data);
+		getSMDHdata().push_back(data);
 		titleids.push_back(title);
 		if(!pathExist("/3ds/data/ModMoon/" + tid2str(title)))
 			_mkdir(("/3ds/data/ModMoon/" + tid2str(title)).c_str());

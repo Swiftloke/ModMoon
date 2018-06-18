@@ -20,19 +20,10 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 	static int highlighteroldx = 0;
 	static int highlighteroldy = 0;
 	static bool highlighterismoving = false;
-	static int highlighteralpha = 0;
+	static unsigned int highlighteralpha = 0;
 	static bool highlighteralphaplus = true;
-	#define PLUSVALUE 5
-	if (highlighteralphaplus)
-	{
-		highlighteralpha += PLUSVALUE;
-		if (highlighteralpha > 255) { highlighteralpha -= PLUSVALUE; highlighteralphaplus = false; }
-	}
-	else
-	{
-		highlighteralpha -= PLUSVALUE;
-		if (highlighteralpha < 0) { highlighteralpha += PLUSVALUE; highlighteralphaplus = true; }
-	}
+
+	highlighterhandle(highlighteralpha, highlighteralphaplus);
 	y -= 70 * scrollsubtractrows;
 	for (vector<smdhdata>::iterator iter = icons.begin(); iter < icons.end(); iter++)
 	{
@@ -118,14 +109,7 @@ void titleselect()
 	C3D_Tex prevbot;
 	//Save the framebuffer from the previous menu
 	C3D_TexInit(&prevbot, 256, 512, GPU_RGBA8);
-	draw.framestart(); //Citro3D's rendering queue needs to be open for a TextureCopy
-	GX_TextureCopy((u32*)draw.lastfbbot.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)prevbot.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), 512 * 256 * 4, FRAMEBUFFER_TRANSFER_FLAGS);
-	gspWaitForPPF();
-	//Well we do need to do something with this frame so let's draw the last one
-	drawtopscreen();
-	draw.drawon(GFX_BOTTOM);
-	draw.drawframebuffer(prevbot, 0, 0, false);
-	draw.frameend();
+	draw.retrieveframebuffers(NULL, &prevbot);
 	icons = getSMDHdata();
 	static int selectpos = currenttidpos;
 	oldselectpos = selectpos;

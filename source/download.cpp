@@ -170,18 +170,17 @@ Result http_download(const char *url, string savelocation)
 }
 
 //Update checking will need to be changed to usage of ints like "30" and "31" for 3.0 and 3.1.
-//Another bonus is that old versions will detect this as greater even with the stupid idea of using stof for update checking.
+//Another bonus is that old versions will detect this as newer even with the stupid idea of using stof for update checking.
 //
 void threadfunc_updatechecker(void* unused)
 {
+	if(!osGetWifiStrength()) goto fail;
 	string URL = "http://swiftloke.github.io/ModMoon/ModMoonVersion.txt";
-	if (http_download(URL.c_str(), "TEXT"))
-	{
-		//error("Update checker failed!"); //Yeah this isn't going to work if from a thread. We need some other way
-	}
+	if (http_download(URL.c_str(), "TEXT")) goto fail;
 	int newversion = stoi(result);
 	if (newversion > config.read("ModMoonVersion", 0))
 		updateisavailable = true;
+	fail:
 	svcSignalEvent(event_downloadthreadfinished);
 }
 
@@ -194,7 +193,6 @@ void initupdatechecker()
 	threadCreate(threadfunc_updatechecker, NULL, 8000, mainthreadpriority + 1, -2, true);
 }
 
-//We need this because the main thread doesn't know if the downloading thread has finished checking
 bool isupdateavailable()
 {
 	return updateisavailable;

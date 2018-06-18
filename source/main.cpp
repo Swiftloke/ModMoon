@@ -242,6 +242,8 @@ bool secretcodeadvance(u32 kDown)
 		if (state == 11)
 		{
 			state = 0;
+			//An error call gets this thing to work properly? Something something massaging the GPU
+			//right? IDK. Not worth investigating, especially when I can just put in another meme :)
 			error("Congrats! You have gained\n30 extra lives!");
 			draw.framestart();
 			draw.drawon(GFX_TOP);
@@ -249,7 +251,7 @@ bool secretcodeadvance(u32 kDown)
 			draw.drawon(GFX_BOTTOM);
 			secretcodedraw();
 			draw.frameend();
-			for (;;) {}
+			for (;;) {} //Freeze! EVERYBODY CLAP YOUR HANDS
 		}
 	}
 	else
@@ -328,7 +330,7 @@ void drawtopscreen()
 	draw.drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
 }
 
-void mainmenudraw(int dpadpos, touchPosition tpos, int alphapos, bool highlighterblink)
+void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapos, bool highlighterblink)
 {
 	draw.drawtexture(backgroundbot, 0, 0);
 	if (dpadpos == 0)
@@ -349,9 +351,9 @@ int main(int argc, char **argv) {
 	int renamefailed = startup();
 	touchPosition tpos;
 	touchPosition opos;
-	int alphapos = 0;
+	unsigned int alphapos = 0;
 	bool alphaplus = true;
-	int dpadpos = 0;
+	unsigned int dpadpos = 0;
 	
 	mainmenushiftinb();
 	//So, uh, sdraw doesn't like it when I trigger an error before shifting in the menu, and freezes the GPU...
@@ -470,17 +472,7 @@ int main(int argc, char **argv) {
 		draw.framestart();
 		drawtopscreen();
 		draw.drawon(GFX_BOTTOM);
-		#define PLUSVALUE 5
-		if(alphaplus)
-		{
-			alphapos += PLUSVALUE;
-			if(alphapos > 255) {alphapos -= PLUSVALUE; alphaplus = false;}
-		}
-		else
-		{
-			alphapos -= PLUSVALUE;
-			if(alphapos < 0) {alphapos += PLUSVALUE; alphaplus = true;}
-		}
+		highlighterhandle(alphapos, alphaplus);
 		mainmenudraw(dpadpos, tpos, alphapos, false);
 		draw.frameend();
 	}
