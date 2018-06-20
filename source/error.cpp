@@ -39,17 +39,18 @@ void drawerrorfade(string text, int alphapos, float fadepos)
 	draw.framestart();
 	//draw.usebasicshader();
 	draw.drawframebuffer(prevtop, 0, 0, true);
-	int fade = fadepos * 100;
+	int fade = fadepos * 127;
 	draw.drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fade));
 	draw.drawon(GFX_BOTTOM);
 	draw.drawframebuffer(prevbot, 0, 0, false);
 	draw.drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, fade));
 	/*draw.useeventualshader();
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_baseloc, 320 / 2, 240 / 2, 0, 0);
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_expandloc, expandpos, 0, 0, 0);*/
-	draw.drawtexture(textbox, 10, 20);
+	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_expandloc, expandpos, 0, 0, 0);
+	draw.drawtexture(textbox, 10, 20);*/
 #define TEXTSCALE 0.7
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
+	draw.settextcolor(RGBA8(255, 255, 255, fade * 2));
 	draw.drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
 	draw.drawtexture(textboxokbutton, 112, 163);
 	//I did it this way before I wrote the stencil test highlighter, and besides which that wouldn't work because it uses
@@ -60,11 +61,11 @@ void drawerrorfade(string text, int alphapos, float fadepos)
 
 bool handleerror(float expandpos, string text)
 {
-	static unsigned int alphapos = 0;
+	static int alphapos = 0;
 	static bool alphaplus = true;
 	static touchPosition currentpos, lastpos;
 	highlighterhandle(alphapos, alphaplus);
-	if(errormode == MODE_POPUPBOX)
+	if(errormode == MODE_POPUP)
 		drawerrorbox(text, alphapos, expandpos);
 	else if(errormode == MODE_FADE)
 		drawerrorfade(text, alphapos, expandpos);
@@ -77,6 +78,7 @@ bool handleerror(float expandpos, string text)
 	return false;
 }
 
+//Optional arguments for providing the same framebuffer across
 void error(string text)
 {
 	//Save the framebuffers from the previous menu
@@ -101,6 +103,7 @@ void error(string text)
 		expandpos -= .06f;
 		handleerror(expandpos, text);
 	}
+	handleerror(0, text);
 	draw.usebasicshader();
 	C3D_TexDelete(&prevtop);
 	C3D_TexDelete(&prevbot);

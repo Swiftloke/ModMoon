@@ -174,13 +174,14 @@ Result http_download(const char *url, string savelocation)
 //
 void threadfunc_updatechecker(void* unused)
 {
-	if(!osGetWifiStrength()) goto fail;
+	if(!osGetWifiStrength())
+		{svcSignalEvent(event_downloadthreadfinished); return; }
 	string URL = "http://swiftloke.github.io/ModMoon/ModMoonVersion.txt";
-	if (http_download(URL.c_str(), "TEXT")) goto fail;
+	if (http_download(URL.c_str(), "TEXT"))
+		{svcSignalEvent(event_downloadthreadfinished); return; }
 	int newversion = stoi(result);
 	if (newversion > config.read("ModMoonVersion", 0))
 		updateisavailable = true;
-	fail:
 	svcSignalEvent(event_downloadthreadfinished);
 }
 

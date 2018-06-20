@@ -68,11 +68,6 @@ string slotname = "";
 
 float minusy = 0;
 
-inline bool pathExist(const string filename){ //The compiler doesn't like me defining this via a forward definition, so copy/paste. Thanks GCC
-    struct stat buffer;
-    return (stat (filename.c_str(),& buffer)==0);
-}
-
 string tid2str(u64 in)
 {
 	stringstream out;
@@ -111,7 +106,9 @@ int startup()
 	cfguInit(); //For system language
 	amInit(); //For getting all the installed titles + updating
 	initializeallSMDHdata(titleids);
-	updatecartridgedata();
+	//This is called again later, but I don't see a way around calling it twice, because it HAS
+	//To be loaded first, and it HAS to not overwrite something in the all titles vector.
+	updatecartridgedata(); 
 	srv::init();
 	srv::hook(0x208, cartridgesrvhook); //Notif 0x208: Game cartridge inserted
 	srv::hook(0x20A, cartridgesrvhook); //Notif 0x20A: Game cartridge removed
@@ -345,13 +342,12 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	draw.settextcolor(RGBA8(0, 0, 0, 255));
 	draw.drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
 }
-
 int main(int argc, char **argv) {
 
 	int renamefailed = startup();
 	touchPosition tpos;
 	touchPosition opos;
-	unsigned int alphapos = 0;
+	int alphapos = 0;
 	bool alphaplus = true;
 	unsigned int dpadpos = 0;
 	

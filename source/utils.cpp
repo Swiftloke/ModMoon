@@ -16,11 +16,6 @@ using namespace std;
 
 Handle event_fadefinished;
 
-inline bool pathExist(const string filename){ //The compiler doesn't like me defining this via a forward definition, so copy/paste. Thanks GCC
-    struct stat buffer;
-    return (stat (filename.c_str(),& buffer)==0);
-}
-
 int maxslotcheck(u64 optionaltid)
 {
 	int currentFolderCount = 0;
@@ -36,7 +31,7 @@ int maxslotcheck(u64 optionaltid)
 	return currentFolderCount - 1;
 }
 
-void highlighterhandle(unsigned int& alphapos, bool& alphaplus)
+void highlighterhandle(int& alphapos, bool& alphaplus)
 {
 #define PLUSVALUE 5
 	if (alphaplus)

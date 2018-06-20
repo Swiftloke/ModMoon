@@ -25,7 +25,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 	static int highlighteroldx = 0;
 	static int highlighteroldy = 0;
 	static bool highlighterismoving = false;
-	static unsigned int highlighteralpha = 0;
+	static int highlighteralpha = 0;
 	static bool highlighteralphaplus = true;
 
 	highlighterhandle(highlighteralpha, highlighteralphaplus);

@@ -5,7 +5,7 @@ using namespace std;
 
 enum ERRORMODE
 {
-	MODE_POPUPBOX,
+	MODE_POPUP,
 	MODE_FADE
 };
 

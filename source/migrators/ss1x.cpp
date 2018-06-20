@@ -5,11 +5,7 @@
 #include "../main.hpp"
 #include "../utils.hpp"
 #include <sys/stat.h>
-
-inline bool pathExist(const string filename) { //The compiler doesn't like me defining this via a forward definition, so copy/paste. Thanks GCC
-	struct stat buffer;
-	return (stat(filename.c_str(), &buffer) == 0);
-}
+#include <algorithm>
 
 //Thanks to Cydget for this code from SS 2.x!
 int checkOldMods(int startFolderNum, int maxslot, string destfolder)

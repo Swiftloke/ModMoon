@@ -68,6 +68,7 @@ void enablemods(bool enabled); //Vestigial from Smash-Selector 3.0
 void mainmenushiftout();
 void mainmenushiftin();
 void mainmenuupdateslotname();
+void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapos, bool highlighterblink);
 bool touched(sdraw_stex button, int dx, int dy, touchPosition tpos);
 bool touched(int x, int y, int width, int height, touchPosition tpos);
 bool buttonpressed(sdraw_stex button, int bx, int by, touchPosition lastpos, u32 kHeld);

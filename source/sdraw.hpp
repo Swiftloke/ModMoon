@@ -86,12 +86,12 @@ class sDraw_interface
 	
 	int expand_baseloc, expand_expandloc;
 	int twocds_interploc, twocds_baseloc, twocds_baseinterploc;
+	int sdrawTwoCdsVtxArrayPos;
+	int sdrawVtxArrayPos;
 	
 	private:
 	C3D_Tex lastfbtop;
 	C3D_Tex lastfbbot;
-	int sdrawTwoCdsVtxArrayPos;
-	int sdrawVtxArrayPos;
 	gfxScreen_t currentoutput = GFX_TOP;
 	void sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text);
 };

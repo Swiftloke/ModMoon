@@ -44,6 +44,8 @@ void threadfunc_loadallsmdhdata(void* main)
 	if (cardinserted)
 	{
 		alltitlescount += 1;
+		//Push the existing first title to the back so it doesn't get entirely overwritten by the cartridge
+		alltitlesvector.push_back(alltitlesvector[0]);
 		updatecartridgedata();
 	}
 	alltitlesloadedcount++;
