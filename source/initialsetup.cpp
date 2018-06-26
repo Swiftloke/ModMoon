@@ -6,13 +6,17 @@
 #include "titleselects.hpp"
 
 string progresstext;
-unsigned int progress;
-unsigned int total;
-float expandpos;
+unsigned int progress = 0;
+unsigned int total = 0;
+float expandpos = 0;
 C3D_Tex dummy; //We need a texture for the framebuffer, but we're against a black background.
 bool progressrunning = true;
 bool doprogressdraw = true;
+bool dopopup = false;
+bool dopopdown = false;
 Handle progressthreaddone;
+Handle popupdone;
+Handle popdowndone;
 
 void threadfunc_drawinitialsetupprogress(void* args)
 {
@@ -21,7 +25,32 @@ void threadfunc_drawinitialsetupprogress(void* args)
 	{
 		if(!doprogressdraw)
 			continue;
-		drawprogresserror(progresstext, expandpos, (float)progress / total, dummy, dummy);
+		if (dopopup)
+		{
+			while (expandpos < 1) //Let it stay at max once we're done
+			{
+				expandpos += .06f;
+				drawprogresserror(progresstext, expandpos, (float)progress / total, dummy, dummy);
+				if (expandpos >= 1) expandpos = 1; //Prevent it from going overboard
+			}
+			dopopup = false;
+			svcSignalEvent(popupdone);
+		}
+		else if (dopopdown)
+		{
+			while (expandpos > 0)
+			{
+				expandpos -= .06f;
+				if (expandpos <= 0) expandpos = 0;
+				drawprogresserror(progresstext, expandpos, (float)progress / total, dummy, dummy);
+			}
+			dopopdown = false;
+			svcSignalEvent(popdowndone);
+		}
+		else
+		{
+			drawprogresserror(progresstext, expandpos, (float)progress / total, dummy, dummy);
+		}
 	}
 	svcSignalEvent(progressthreaddone);
 }
@@ -51,15 +80,21 @@ void initialsetup()
 	s32 mainthreadpriority;
 	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
 	svcCreateEvent(&progressthreaddone, RESET_ONESHOT);
+	svcCreateEvent(&popupdone, RESET_ONESHOT);
+	svcCreateEvent(&popdowndone, RESET_ONESHOT);
 	threadCreate(threadfunc_drawinitialsetupprogress, NULL, 20000, mainthreadpriority + 1, -2, true);
-	if (pathExist("/saltysd/smash/card.txt"))
+	bool migrationwasdone = false;
+	if (pathExist("/saltysd/card.txt"))
 	{
-		progresstext = "Moving Smash Selector 1.0 mods...";
+		progresstext = "Migrating mods from\nSmash Selector 1.0...";
 		progress = 1; //It'll move too fast to be worth the animation
 		total = 1;
-		progresspopup();
+		dopopup = true;
+		//svcWaitSynchronization(popupdone, U64_MAX);
 		ss1xMigrate();
-		progresspopdown();
+		dopopdown = true;
+		//svcWaitSynchronization(popdowndone, U64_MAX);
+		migrationwasdone = true;
 	}
 	if (pathExist("/3ds/data/smash_selector/settings.txt"))
 	{
@@ -69,6 +104,7 @@ void initialsetup()
 		progresspopup();
 		//ss2xMigrate();
 		progresspopdown();
+		migrationwasdone = true;
 	}
 	//Lasagna migrator? Maybe I should poll GBATemp to find out if it's worth my time to make it.
 	//It seems like it's going to be quite annoying to pull off.
@@ -102,6 +138,7 @@ void initialsetup()
 		error("Update complete. The system\nwill now reboot.");
 		//nsrebootsystemclean();
 	}
+	progressrunning = false;
 	//A quick tutorial?
 	mainmenushiftin();
 	//threadfunc_fade(colorvalues);
@@ -136,8 +173,10 @@ void initialsetup()
 	//Navigate through the tools menu that doesn't yet exist...
 	//
 	//
-	error("Select the titles you\nwant to use by tapping on them\nor using the Circle Pad and .");
-	error("The cartridge is always selected.\nSelected titles will glow blue.");
+	error("Select the titles you\nwant to activate for use by tapping on\nthem or using the Circle Pad and .");
+	error("The cartridge is always active.\nActivated titles will glow blue.");
+	if(migrationwasdone)
+		error("As part of migration, titles you\nused previously will already\nbe activated.");
 	errorsetmode(MODE_POPUP); //activetitleselect can call errors
 	activetitleselect();
 	errorsetmode(MODE_FADE);
@@ -174,5 +213,6 @@ void initialsetup()
 	mainmenudraw(0, tpos, 0, false);
 	draw.frameend();
 	error("You're all set! Have fun,\nand happy modding!");
+	errorsetmode(MODE_POPUP);
 	config.write("InitialSetupDone", true);
 }

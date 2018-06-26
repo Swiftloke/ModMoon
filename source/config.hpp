@@ -3,7 +3,7 @@
 #include <vector>
 #include <3ds/types.h>
 
-#define CONFIG_FILE_VERSION 13
+#define CONFIG_FILE_VERSION 14
 using namespace std;
 
 class Config

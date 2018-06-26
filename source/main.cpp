@@ -97,6 +97,12 @@ int movemodsin()
 
 int startup()
 {
+	//Draw a blank frame to allow error calls to retrieve a valid framebuffer
+	draw.framestart();
+	draw.drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
+	draw.drawon(GFX_BOTTOM);
+	draw.drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
+	draw.frameend();
 	int renamefailed = 0;
 	if(modsenabled)
 	{
@@ -106,8 +112,7 @@ int startup()
 	cfguInit(); //For system language
 	amInit(); //For getting all the installed titles + updating
 	initializeallSMDHdata(titleids);
-	//This is called again later, but I don't see a way around calling it twice, because it HAS
-	//To be loaded first, and it HAS to not overwrite something in the all titles vector.
+	//Do this in the main thread, because it may throw error calls
 	updatecartridgedata(); 
 	srv::init();
 	srv::hook(0x208, cartridgesrvhook); //Notif 0x208: Game cartridge inserted

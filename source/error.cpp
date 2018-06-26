@@ -4,6 +4,9 @@
 #include "utils.hpp"
 
 #include <cstring>
+
+#define TEXTSCALE 0.65
+
 C3D_Tex prevtop, prevbot;
 
 ERRORMODE errormode;
@@ -24,7 +27,6 @@ void drawerrorbox(string text, int alphapos, float expandpos)
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_baseloc, 320 / 2, 240 / 2, 0, 0);
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_expandloc, expandpos, 0, 0, 0);
 	draw.drawtexture(textbox, 10, 20);
-#define TEXTSCALE 0.7
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
 	draw.drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
 	draw.drawtexture(textboxokbutton, 112, 163);
@@ -48,7 +50,6 @@ void drawerrorfade(string text, int alphapos, float fadepos)
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_baseloc, 320 / 2, 240 / 2, 0, 0);
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_expandloc, expandpos, 0, 0, 0);
 	draw.drawtexture(textbox, 10, 20);*/
-#define TEXTSCALE 0.7
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
 	draw.settextcolor(RGBA8(255, 255, 255, fade * 2));
 	draw.drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
@@ -128,7 +129,6 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_baseloc, 320 / 2, 240 / 2, 0, 0);
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_expandloc, expandpos, 0, 0, 0);
 	draw.drawtexture(textbox, 10, 20);
-#define TEXTSCALE 0.7
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
 	draw.drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
 	//Progress bar
