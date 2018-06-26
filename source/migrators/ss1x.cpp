@@ -1,19 +1,20 @@
-// /saltysd/smash/card.txt contains the game type
-// /saltysd/smash/select.txt contains the current slot
+// /saltysd/card.txt contains the game type
+// /saltysd/select.txt contains the current slot
 
 #include <fstream>
 #include "../main.hpp"
 #include "../utils.hpp"
 #include <sys/stat.h>
 #include <algorithm>
+#include "../error.hpp"
 
-//Thanks to Cydget for this code from SS 2.x!
-int checkOldMods(int startFolderNum, int maxslot, string destfolder)
+//Thanks to Cydget for this code from Smash Selector 2.x!
+int checkOldMods(int startFolderNum, string destfolder, u64 title)
 {
-	//initially call this funciton at 0
+	//initially call this function at 0
 	//this is better than before, because it makes sure there are no blanks if they deleted some mod folders, and it also will check up to 10 gaps between the folders.
 	int currentFolderCount = startFolderNum;
-	int freeFolderNum = maxslot + 1;
+	int freeFolderNum = maxslotcheck(title) + 1;
 	stringstream freeFolder;
 	stringstream path2Check;
 	freeFolder << destfolder << "Slot_" << freeFolderNum << "/";
@@ -36,7 +37,7 @@ int checkOldMods(int startFolderNum, int maxslot, string destfolder)
 
 void ss1xMigrate()
 {
-	ifstream card("/saltysd/smash/card.txt");
+	ifstream card("/saltysd/card.txt");
 	//For as garbage as C++'s file IO is, it works well in this one edge case
 	int gametype;
 	card >> gametype;
@@ -52,27 +53,27 @@ void ss1xMigrate()
 		case 4: title = 0x00040000000B8B00; gametype = 1; break;
 		case 5: title = 0x00040000000B8B00; gametype = 2; break;
 	}
-	int maxslot;
 	if (std::find(titleids.begin(), titleids.end(), title) == titleids.end()) //We don't already have it
 	{
 		smdhdata data;
 		data.load(title, mediatype);
 		getSMDHdata().push_back(data);
 		titleids.push_back(title);
-		if(!pathExist("/3ds/data/ModMoon/" + tid2str(title)))
-			_mkdir(("/3ds/data/ModMoon/" + tid2str(title)).c_str());
-		//There aren't any slots yet as this title is new in the database
-		maxslot = 0;
+		slots.push_back(0);
+		if(!pathExist(modsfolder + tid2str(title)))
+			_mkdir((modsfolder + tid2str(title)).c_str());
 	}
-	else
-	{
-		maxslot = maxslotcheck(title);
-	}
+	int premigratemaxslot = maxslotcheck(title);
+	//What's currently in /saltysd/smash? Let's keep the order
+	ifstream missingmodin("/saltysd/select.txt");
+	int missingmod;
+	missingmodin >> missingmod;
+	missingmodin.close();
+	rename("/saltysd/smash", ("saltysd/smash" + to_string(missingmod)).c_str());
 	//Copy slots
-	int modsChecked = 0;
+	int modsChecked = 1;
 	while (modsChecked != -1)
 	{
-		modsChecked = checkOldMods(modsChecked, maxslot, "/3ds/data/ModMoon/" + tid2str(title));
+		modsChecked = checkOldMods(modsChecked, modsfolder + tid2str(title) + '/', title);
 	}
-
 }

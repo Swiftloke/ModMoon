@@ -183,12 +183,13 @@ sDraw_interface::sDraw_interface()
 	
 	// Initialize the render targets
 	top = C3D_RenderTargetCreate(240, 400, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
-	C3D_RenderTargetClear(top, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	C3D_RenderTargetSetOutput(top, GFX_TOP, GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
 
 	bottom = C3D_RenderTargetCreate(240, 320, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
-	C3D_RenderTargetClear(bottom, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	C3D_RenderTargetSetOutput(bottom, GFX_BOTTOM, GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
+
+	C3D_RenderTargetClear(top, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
+	C3D_RenderTargetClear(bottom, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	
 	// Load the vertex shader, create a shader program and bind it
 	basicvshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
@@ -825,21 +826,24 @@ void sDraw_interface::framestart()
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	sdrawVtxArrayPos = 0; //Reset the vertex arrays
 	sdrawTwoCdsVtxArrayPos = 0;
+	//Of all things, this is what breaks the framebuffer copy.
+	//Well, OK, I don't really need or use this functionality anyway.
+	//C3D_RenderTargetClear(top, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
+	//C3D_RenderTargetClear(bottom, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	drawon(GFX_TOP); //Reset default output to the top screen
 }
 
 void sDraw_interface::frameend()
 {
 	//Get the final framebuffer of this frame and save it
-	C3D_FrameSplit(0); //Wait for all rendering operations to complete
 	//So the ctrulib docs have lies, GX_BUFFER_DIM is not width and height, but rather what 16-byte blocks to copy
 	//And what 16-byte blocks to skip copying. Also >>4 because "that's how it works".
 	//Other than that, self-explanatory if you stare at the numbers long enough.
-	GX_TextureCopy(
+	C3D_SyncTextureCopy(
     (u32*)top->frameBuf.colorBuf, GX_BUFFER_DIM((240*8*4)>>4, 0),
     (u32*)lastfbtop.data + (512-400)*256, GX_BUFFER_DIM((240*8*4)>>4, ((256-240)*8*4)>>4),
     240*400*4, FRAMEBUFFER_TRANSFER_FLAGS);
-	GX_TextureCopy(
+	C3D_SyncTextureCopy(
     (u32*)bottom->frameBuf.colorBuf, GX_BUFFER_DIM((240*8*4)>>4, 0),
     (u32*)lastfbbot.data + (512-320)*256, GX_BUFFER_DIM((240*8*4)>>4, ((256-240)*8*4)>>4),
     240*320*4, FRAMEBUFFER_TRANSFER_FLAGS);
@@ -850,12 +854,11 @@ void sDraw_interface::retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb)
 {
 	framestart(); //Citro3D's rendering queue needs to be open for a TextureCopy
 	if(topfb)
-		GX_TextureCopy((u32*)lastfbtop.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)topfb->data, \
+		C3D_SyncTextureCopy((u32*)lastfbtop.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)topfb->data, \
 			GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), 512 * 256 * 4, FRAMEBUFFER_TRANSFER_FLAGS);
 	if(botfb)
-		GX_TextureCopy((u32*)lastfbbot.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)botfb->data, \
+		C3D_SyncTextureCopy((u32*)lastfbbot.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)botfb->data, \
 			GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), 512 * 256 * 4, FRAMEBUFFER_TRANSFER_FLAGS);
-	gspWaitForPPF();
 	//We need to do something with this frame so let's draw the last one
 	//There had BETTER be at least one framebuffer to draw, otherwise, I deserve the GPU freeze from drawing nothing
 	if(topfb)

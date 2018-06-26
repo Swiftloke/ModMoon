@@ -14,7 +14,8 @@ bool alltitlesloaded = false;
 void threadfunc_loadallsmdhdata(void* main)
 {
 	//smdhvector[0].load(0, 2); //MEDIATYPE_GAME_CARD; Always load the cartridge in the first position
-	for(unsigned int i = 0; i < tidstoload.size(); i++)
+	//The cartridge was loaded from the main thread, so we don't need to worry about it. This is because updatecartridgedata() may use the rendering queue through error calls
+	for(unsigned int i = 1; i < tidstoload.size(); i++)
 		smdhvector[i].load(tidstoload[i]);
 
 	//Now, load everything that's not already loaded to support selection of new titles
@@ -36,18 +37,21 @@ void threadfunc_loadallsmdhdata(void* main)
 		}
 		//Well, it hasn't already been loaded, so let's load it!
 		if(!alreadyloaded)*/
-		alltitlesvector[i].load(alltids[i]);
+		if (i == 0) //The cartridge goes here- load this at the back instead
+			alltitlesvector.back().load(alltids[i]);
+		else
+			alltitlesvector[i].load(alltids[i]);
 		alltitlesloadedcount++;
 	}
-	bool cardinserted;
+	/*bool cardinserted;
 	FSUSER_CardSlotIsInserted(&cardinserted);
 	if (cardinserted)
 	{
 		alltitlescount += 1;
 		//Push the existing first title to the back so it doesn't get entirely overwritten by the cartridge
-		alltitlesvector.push_back(alltitlesvector[0]);
+		//alltitlesvector.push_back(alltitlesvector[0]);
 		updatecartridgedata();
-	}
+	}*/
 	alltitlesloadedcount++;
 	//alltitlesvector.insert(alltitlesvector.begin(), smdhvector[0]); //Done by updatecartridgedata()
 	//Remove titles that aren't titles- extdata, updates, etc.
@@ -71,8 +75,8 @@ void initializeallSMDHdata(vector<u64> intitleids)
 
 	//Initialize the all-titles vector in the same way
 	AM_GetTitleCount(MEDIATYPE_SD, &alltitlescount);
-	alltitlesvector.resize(alltitlescount);
-	for (unsigned int i = 0; i < alltitlesvector.size(); i++)
+	alltitlesvector.resize(alltitlescount + 1);
+	for (unsigned int i = 0; i < alltitlesvector.size() + 1; i++)
 		C3D_TexInit(&(alltitlesvector[i].icon), 64, 64, GPU_RGB565);
 
 	CFGU_GetSystemLanguage(&language);
@@ -84,11 +88,13 @@ void initializeallSMDHdata(vector<u64> intitleids)
 
 void freeSMDHdata()
 {
-	for(unsigned int i = 0; i < smdhvector.size(); i++)
+	/*for(unsigned int i = 0; i < smdhvector.size(); i++)
 	{
 		//Get a pointer to the icon by dereferencing the vector and going by array count. Quite a handful of operators.
 		C3D_TexDelete(&(smdhvector[i].icon));
-	}
+	}*/
+	for(vector<smdhdata>::iterator iter = smdhvector.begin(); iter != smdhvector.end(); iter++)
+		C3D_TexDelete(&(iter->icon));
 }
 
 vector<smdhdata>& getSMDHdata()

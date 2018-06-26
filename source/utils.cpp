@@ -16,17 +16,21 @@ using namespace std;
 
 Handle event_fadefinished;
 
-int maxslotcheck(u64 optionaltid)
+//The code to deal with a missing slot due to it being in the destination is outdated,
+//but I've left it in in case it comes in handy later; there's no read penalty to keeping
+//it anyway
+int maxslotcheck(u64 optionaltid, int optionalslot)
 {
 	int currentFolderCount = 0;
 	stringstream path2Check;
 	stringstream NewPath2Check;
 	string tid2check = optionaltid != 1 ? tid2str(optionaltid) : currenttitleidstr;
+	int slottoskip = (optionalslot != -1) ? optionalslot : currentslot;
 	do {
 		currentFolderCount++;
 		path2Check.str("");
 		path2Check << modsfolder + tid2check << '/' << "Slot_" << currentFolderCount << '/';
-	} while (pathExist(path2Check.str()) || currentFolderCount == currentslot);
+	} while (pathExist(path2Check.str()) || currentFolderCount == slottoskip);
 	//the minus 1 is due to it returning the folder number that doesnt exist.
 	return currentFolderCount - 1;
 }

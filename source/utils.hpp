@@ -4,7 +4,8 @@
 #include <string>
 using namespace std;
 
-int maxslotcheck(u64 optionaltid = 1); //When not provided this simply checks the current tid
+//When title is not provided this simply checks the current tid.
+int maxslotcheck(u64 optionaltid = 1, int optionalslot = -1);
 void launch();
 void threadfunc_fade(void* main);
 int countEntriesInDir(const char* dirname);
