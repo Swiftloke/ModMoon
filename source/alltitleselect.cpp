@@ -237,6 +237,9 @@ void activetitleselect()
 					titleids.push_back(titleop.titl);
 					slots.push_back(0); //Default
 					getSMDHdata().push_back(allicons[selectpos]);
+					//Add the folder if it doesn't exist
+					if(!pathExist(modsfolder + tid2str(titleop.titl)))
+						_mkdir((modsfolder + tid2str(titleop.titl)).c_str());
 				}
 			}
 		}
