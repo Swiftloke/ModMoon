@@ -7,6 +7,15 @@
 #include <sys/stat.h>
 #include <algorithm>
 #include "../error.hpp"
+#include "../titleselects.hpp"
+
+int modsChecked = 1;
+bool isdone = false;
+
+std::pair<int, bool> ss1xretrieveinfo()
+{
+	return std::make_pair(modsChecked, isdone);
+}
 
 //Thanks to Cydget for this code from Smash Selector 2.x!
 int checkOldMods(int startFolderNum, string destfolder, u64 title)
@@ -35,15 +44,14 @@ int checkOldMods(int startFolderNum, string destfolder, u64 title)
 	return -1;
 }
 
-void ss1xMigrate()
+void ss1xMigrate(void* null)
 {
 	ifstream card("/saltysd/card.txt");
 	//For as garbage as C++'s file IO is, it works well in this one edge case
 	int gametype;
 	card >> gametype;
 	card.close();
-	u64 title;
-	int mediatype;
+	u64 title = 0;
 	switch (gametype)
 	{
 		case 0: title = 0x00040000000EDF00; gametype = 1; break;
@@ -53,17 +61,10 @@ void ss1xMigrate()
 		case 4: title = 0x00040000000B8B00; gametype = 1; break;
 		case 5: title = 0x00040000000B8B00; gametype = 2; break;
 	}
-	if (std::find(titleids.begin(), titleids.end(), title) == titleids.end()) //We don't already have it
-	{
-		smdhdata data;
-		data.load(title, mediatype);
-		getSMDHdata().push_back(data);
-		titleids.push_back(title);
-		slots.push_back(0);
-		if(!pathExist(modsfolder + tid2str(title)))
-			_mkdir((modsfolder + tid2str(title)).c_str());
-	}
-	int premigratemaxslot = maxslotcheck(title);
+	queuetitleforactivationwithinmenu(title, gametype);
+	if (!pathExist(modsfolder + tid2str(title)))
+		_mkdir((modsfolder + tid2str(title)).c_str());
+
 	//What's currently in /saltysd/smash? Let's keep the order
 	ifstream missingmodin("/saltysd/select.txt");
 	int missingmod;
@@ -71,9 +72,11 @@ void ss1xMigrate()
 	missingmodin.close();
 	rename("/saltysd/smash", ("saltysd/smash" + to_string(missingmod)).c_str());
 	//Copy slots
-	int modsChecked = 1;
 	while (modsChecked != -1)
 	{
 		modsChecked = checkOldMods(modsChecked, modsfolder + tid2str(title) + '/', title);
 	}
+	remove("/saltysd/select.txt");
+	remove("/saltysd/card.txt");
+	isdone = true;
 }

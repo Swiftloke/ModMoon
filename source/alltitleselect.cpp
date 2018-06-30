@@ -6,12 +6,20 @@
 #include "utils.hpp"
 #include "error.hpp"
 #include <algorithm>
+#include <queue>
+#include <utility>
 
 //Actually initialized later, we can't use it before SMDH data is loaded
 //but we can't declare a reference without initializing it.
 //We're sure to wait until it's finished loading...
 vector<smdhdata>& allicons = getallSMDHdata();
 int alloldselectpos;
+std::queue<std::pair<u64, int>> queueforactivation;
+
+void queuetitleforactivationwithinmenu(u64 titleid, int mediatype)
+{
+	queueforactivation.push(std::make_pair(titleid, mediatype));
+}
 
 void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsubtractrows, int selectpos)
 {
@@ -152,6 +160,32 @@ void activetitleselect()
 		}
 	}
 	allicons = getallSMDHdata();
+	//Was having some seriously crazy bugs with this bit, not totally sure if it's fixed
+	//so I'm leaving the debugging code here
+	/*string isem = queueforactivation.empty() == true ? "true" : "false";
+	error(isem);*/
+
+	//We may need to add some titles to the list. Done here since loading is finished here
+	while (!queueforactivation.empty())
+	{
+		u64 title = queueforactivation.front().first;
+		int mediatype = queueforactivation.front().second;
+		//We don't already have it, and it's not a cartridge.
+		if (std::find(titleids.begin(), titleids.end(), title) == titleids.end() && mediatype == 1)
+		{
+			//It won't be active in the all titles vector so we've got to do that now
+			vector<smdhdata>::iterator activepos = std::find_if(\
+				getallSMDHdata().begin(), getallSMDHdata().end(), \
+				[title](const smdhdata& data) {return data.titl == title; });
+			if (!activepos->isactive && activepos != getallSMDHdata().end())
+				activepos->isactive = true;
+			getSMDHdata().push_back(*activepos);
+			titleids.push_back(title);
+			slots.push_back(1);
+		}
+		queueforactivation.pop();
+	}
+
 	static int selectpos = 0;
 	alloldselectpos = selectpos;
 	static int scrollsubtractrows = 0;
@@ -235,7 +269,7 @@ void activetitleselect()
 					titleop.isactive = true;
 					//Add it
 					titleids.push_back(titleop.titl);
-					slots.push_back(0); //Default
+					slots.push_back(1); //Default
 					getSMDHdata().push_back(allicons[selectpos]);
 					//Add the folder if it doesn't exist
 					if(!pathExist(modsfolder + tid2str(titleop.titl)))

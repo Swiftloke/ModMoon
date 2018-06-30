@@ -122,9 +122,15 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	texcoordplus += 0.005;
 	draw.framestart();
 	draw.usebasicshader();
-	draw.drawframebuffer(topfb, 0, 0, true);
+	if(topfb.height)
+		draw.drawframebuffer(topfb, 0, 0, true);
+	else
+		draw.drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
 	draw.drawon(GFX_BOTTOM);
-	draw.drawframebuffer(botfb, 0, 0, false);
+	if (botfb.height)
+		draw.drawframebuffer(botfb, 0, 0, true);
+	else
+		draw.drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
 	draw.useeventualshader();
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_baseloc, 320 / 2, 240 / 2, 0, 0);
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_expandloc, expandpos, 0, 0, 0);

@@ -347,6 +347,8 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	draw.settextcolor(RGBA8(0, 0, 0, 255));
 	draw.drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
 }
+void initialsetup();
+void controlsmodifier();
 int main(int argc, char **argv) {
 
 	int renamefailed = startup();
@@ -355,7 +357,11 @@ int main(int argc, char **argv) {
 	int alphapos = 0;
 	bool alphaplus = true;
 	unsigned int dpadpos = 0;
-	
+	if (!config.read("InitialSetupDone", false))
+	{
+		initialsetup();
+		config.write("InitialSetupDone", true);
+	}
 	mainmenushiftinb();
 	//So, uh, sdraw doesn't like it when I trigger an error before shifting in the menu, and freezes the GPU...
 	//I don't like this at all, it fragments the code and forces me to do bad things

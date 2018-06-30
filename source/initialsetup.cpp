@@ -57,55 +57,75 @@ void threadfunc_drawinitialsetupprogress(void* args)
 
 void progresspopup()
 {
-	while (expandpos < 1) //Let it stay at max once we're done
-	{
-		expandpos += .06f;
-		if (expandpos >= 1) expandpos = 1; //Prevent it from going overboard
-	}
+	expandpos += .06f;
+	if (expandpos >= 1) expandpos = 1; //Prevent it from going overboard
 }
 
 void progresspopdown()
 {
-	while (expandpos > 0)
-	{
-		expandpos -= .06f;
-		if (expandpos <= 1) expandpos = 0;
-	}
+	expandpos -= .06f;
+	if (expandpos <= 0) expandpos = 0;
 }
 
 void initialsetup()
 {
 	error("Welcome! Let's get you set up.");
-	C3D_TexInit(&dummy, 32, 32, GPU_RGBA8);
+	//Signal the progress drawer to simply draw a black rectangle for the background. See error.hpp
+	dummy.height = 0;
 	s32 mainthreadpriority;
 	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
-	svcCreateEvent(&progressthreaddone, RESET_ONESHOT);
-	svcCreateEvent(&popupdone, RESET_ONESHOT);
-	svcCreateEvent(&popdowndone, RESET_ONESHOT);
-	threadCreate(threadfunc_drawinitialsetupprogress, NULL, 20000, mainthreadpriority + 1, -2, true);
+	//svcCreateEvent(&progressthreaddone, RESET_ONESHOT);
+	//svcCreateEvent(&popupdone, RESET_ONESHOT);
+	//svcCreateEvent(&popdowndone, RESET_ONESHOT);
+	//threadCreate(threadfunc_drawinitialsetupprogress, NULL, 20000, mainthreadpriority - 2, -2, true);
 	bool migrationwasdone = false;
 	if (pathExist("/saltysd/card.txt"))
 	{
 		progresstext = "Migrating mods from\nSmash Selector 1.0...";
-		progress = 1; //It'll move too fast to be worth the animation
-		total = 1;
-		dopopup = true;
 		//svcWaitSynchronization(popupdone, U64_MAX);
-		ss1xMigrate();
-		dopopdown = true;
+		threadCreate(ss1xMigrate, NULL, 20000, mainthreadpriority + 1, -2, true);
+		int ss1xprogress;
+		bool ss1xdone;
+		do
+		{
+			std::tie(ss1xprogress, ss1xdone) = ss1xretrieveinfo();
+			progresspopup();
+			//I honestly have no idea how I would implement checking the max slot of SS 1.0, so "?" it is.
+			drawprogresserror("Moving Smash Selector 1.0 mods...\nMod " + to_string(ss1xprogress) + " / ?",\
+				expandpos, (float)1, dummy, dummy);
+		} while (!ss1xdone);
+		while (expandpos > 0)
+		{
+			progresspopdown();
+			drawprogresserror("Moving Smash Selector 1.0 mods...\nMod " + to_string(ss1xprogress) + " / ?", \
+				expandpos, (float)1, dummy, dummy);
+		}
 		//svcWaitSynchronization(popdowndone, U64_MAX);
 		migrationwasdone = true;
 	}
 	if (pathExist("/3ds/data/smash_selector/settings.txt"))
 	{
-		progresstext = "Moving Smash Selector 2.x mods...";
-		progress = 1; //Ditto. If I had some smoothing code for the progress bar it would be fine, but I don't.
-		total = 1;
-		progresspopup();
-		//ss2xMigrate();
-		progresspopdown();
+		threadCreate(ss2xMigrate, NULL, 20000, mainthreadpriority + 1, -2, true);
+		int ss2xprogress, ss2xtotal;
+		bool ss2xdone;
+		do
+		{
+			std::tie(ss2xprogress, ss2xtotal, ss2xdone) = ss2xretriveinfo();
+			progresspopup();
+			drawprogresserror("Moving Smash Selector 2.x mods...\nMod " + to_string(ss2xprogress) + " / " + to_string(ss2xtotal), \
+				expandpos, (float)ss2xprogress / ss2xtotal, dummy, dummy);
+		} while(!ss2xdone);
+		while (expandpos > 0)
+		{
+			progresspopdown();
+			drawprogresserror("Moving Smash Selector 2.x mods...\nMod " + to_string(ss2xprogress) + " / " + to_string(ss2xtotal), \
+				expandpos, (float)ss2xprogress / ss2xtotal, dummy, dummy);
+		}
 		migrationwasdone = true;
 	}
+
+	//Remove or update code.bin/code.ips files here.
+
 	//Lasagna migrator? Maybe I should poll GBATemp to find out if it's worth my time to make it.
 	//It seems like it's going to be quite annoying to pull off.
 	//
