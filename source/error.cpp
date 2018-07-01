@@ -82,6 +82,9 @@ bool handleerror(float expandpos, string text)
 //Optional arguments for providing the same framebuffer across
 void error(string text)
 {
+	//Fade mode HAS to be used, no matter what, seeing as it's used in the tutorial
+	if(shoulddisableerrors && errormode != MODE_FADE)
+		return;
 	//Save the framebuffers from the previous menu
 	C3D_TexInit(&prevtop, 256, 512, GPU_RGBA8);
 	C3D_TexInit(&prevbot, 256, 512, GPU_RGBA8);

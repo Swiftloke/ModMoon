@@ -52,6 +52,9 @@ extern string slotname;
 extern int maxslot;
 extern bool cartridgeneedsupdating;
 
+extern bool shoulddisableerrors;
+extern bool shoulddisableupdater;
+
 extern float minusy; //Needed for the fading function
 
 extern vector<u64> titleids;

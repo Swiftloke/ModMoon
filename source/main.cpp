@@ -64,6 +64,9 @@ int maxslot = maxslotcheck();
 
 bool cartridgeneedsupdating = false;
 
+bool shoulddisableerrors = config.read("DisableErrors", true);
+bool shoulddisableupdater = config.read("DisableUpdater", true);
+
 string slotname = "";
 
 float minusy = 0;
@@ -103,6 +106,9 @@ int startup()
 	draw.drawon(GFX_BOTTOM);
 	draw.drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
 	draw.frameend();
+	//Configure dark mode
+	draw.darkmodeshouldactivate = config.read("DarkModeEnabled", false);
+	//Rename mods
 	int renamefailed = 0;
 	if(modsenabled)
 	{

@@ -45,7 +45,7 @@ void Config::createfile()
 {
 	ofstream out(filepath, ios::trunc);
 	//out << "Enabled{True}\r\nGameType{Cia}\r\nGameRegion{Usa}\r\nLastSSDHash{}\r\nModsFolder{/saltysdMODS/}\r\nSmashSelectorVersion{3.0}\r\nConfigFileVersion{008}\r\nSelectedModSlot{1}\r\n\r\nMainCodeFolder{/luma/titles/}\r\nSplitCodeTextFolder{/corbenik/exe/text/}\r\nSplitCodeRoFolder{/corbenik/exe/ro/}\r\nSplitCodeDataFolder{/corbenik/exe/data/}\r\n\r\nConfigWorking{TRUE}\r\nInitialSetup{NotDone}\r\nHitboxDisplayActive{False}\r\n#When putting in the path make sure you use / and NOT \\ Also make sure the path ends in a /. \r\n#If you made a change to this file and smash selector no longer works, just delete this file.";
-	out << "ModMoonVersion{30}\nModsEnabled{False}\nConfigFileVersion{" + to_string(CONFIG_FILE_VERSION) + "}\nInitialSetupDone{False}\nModsFolder{/3ds/ModMoon/}\nActiveTitleIDs{0}\nTitleIDSlots{0}\nSelectedTitleIDPos{0}\nThis file saves config info for ModMoon.\nYou shouldn't really mess with this unless you want to have a custom path for mod slots.\nIf you do and ModMoon breaks, just delete this file.";
+	out << "ModMoonVersion{30}\nModsEnabled{False}\nConfigFileVersion{" + to_string(CONFIG_FILE_VERSION) + "}\nInitialSetupDone{False}\nModsFolder{/3ds/ModMoon/}\nActiveTitleIDs{0}\nTitleIDSlots{0}\nSelectedTitleIDPos{0}\nDarkModeEnabled{False}\nDisableErrors{False}\nDisableUpdater{False}\nThis file saves config info for ModMoon.\nYou shouldn't really mess with this unless you want to have a custom path for mod slots.\nIf you do and ModMoon breaks, just delete this file.\nBy enabling DisableError or DisableUpdate, you are disqualifying yourself from\nrecieving aid with ModMoon; these functions are critical in troubleshooting.";
 	out.close();
 }
 

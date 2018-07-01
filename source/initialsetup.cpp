@@ -133,7 +133,7 @@ void initialsetup()
 
 	initupdatechecker();
 	svcWaitSynchronization(event_downloadthreadfinished, U64_MAX);
-	if (isupdateavailable())
+	if (isupdateavailable() && !shoulddisableupdater)
 	{
 		doprogressdraw = false;
 		error("An update is available.\nIt will be installed now.");
