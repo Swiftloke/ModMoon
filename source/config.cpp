@@ -55,7 +55,7 @@ Config::Config(string path, string filename)
 	filepath = path + filename;
 	ifstream in(filepath.c_str(), ifstream::binary);
 	if(!in)
-	{in.close(); createfile();}
+	{in.close(); createfile(); in.open(filepath.c_str(), ifstream::binary);}
 	in.seekg(0, in.end);
 	int size = in.tellg();
 	in.seekg(0);
