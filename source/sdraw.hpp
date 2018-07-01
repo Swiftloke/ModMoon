@@ -44,9 +44,11 @@ struct sdraw_texture
 
 struct sdraw_stex
 {
-	sdraw_stex(sdraw_texture* inputsheet, int posx, int posy, int width, int height);
+	sdraw_stex(sdraw_texture* inputsheet, int posx, int posy, int width, int height, bool optionalusesdarkmode = false);
 	sdraw_texture* spritesheet;
 	float x, y, width, height;
+	//Many UI elements need this disabled; most that don't are in the spritesheet, so this is a sane place to put it.
+	bool usesdarkmode;
 };
 
 
@@ -65,7 +67,7 @@ class sDraw_interface
 	void drawtext(const char* text, float x, float y, float sizeX, float sizeY);
 	void drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley);
 	void drawcenteredtext(const char* text, float scaleX, float scaleY, float y);
-	void drawrectangle(int x, int y, int width, int height, u32 color);
+	void drawrectangle(int x, int y, int width, int height, u32 color, bool shouldusedarkmode = false);
 	void frameend();
 	void settextcolor(u32 color);
 	float gettextheight(const char* text, float sizeY);
@@ -83,6 +85,12 @@ class sDraw_interface
 
 	//Copies last frame to provided textures of 256x512 dimensions.
 	void retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb);
+
+	//Sets up "dark mode". This inverts all colors of the UI, except pieces that need
+	//to be displayed normally. The bool mentions whether dark mode is enabled at all,
+	//the function enables it (if it needs to be, based on the bool).
+	bool darkmodeshouldactivate = false;
+	void enabledarkmode(bool enabled);
 	
 	int expand_baseloc, expand_expandloc;
 	int twocds_interploc, twocds_baseloc, twocds_baseinterploc;

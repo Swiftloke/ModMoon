@@ -26,22 +26,22 @@ sDraw_interface draw;
 
 sdraw_texture* spritesheet = loadpng("romfs:/spritesheet.png"); //Texture conversion for this doesn't fucking work >:(
 sdraw_texture* progressfiller = loadbin("romfs:/progress.bin", 32, 32); //This needs to be in its own texture due to usage of wrapping for animation
-sdraw_stex leftbutton(spritesheet, 0, 324, 152, 134);
-sdraw_stex leftbuttonenabled(spritesheet, 0, 458, 152, 134);
-sdraw_stex rightbutton(spritesheet, 153, 324, 151, 134);
-sdraw_stex selector(spritesheet, 0, 241, 320, 81);
-sdraw_stex backgroundbot(spritesheet, 0, 0, 320, 240);
-sdraw_stex backgroundtop(spritesheet, 320, 129, 400, 240);
-sdraw_stex banner(spritesheet, 320, 0, 256, 128);
-sdraw_stex textbox(spritesheet, 0, 592, 300, 200);
-sdraw_stex textboxokbutton(spritesheet, 152, 458, 87, 33);
-sdraw_stex textboxokbuttonhighlight(spritesheet, 152, 491, 89, 35);
-sdraw_stex titleselectionboxes(spritesheet, 0, 792, 268, 198);
-sdraw_stex titleselectionsinglebox(spritesheet, 0, 792, 58, 58);
-sdraw_stex titleselecthighlighter(spritesheet, 268, 792, 65, 65);
-sdraw_stex progressbar(spritesheet, 720, 240, 260, 35);
-sdraw_stex progressbarstenciltex(spritesheet, 720, 275, 260, 35);
-sdraw_stex secret(spritesheet, 320, 369, 114, 113);
+sdraw_stex leftbutton(spritesheet, 0, 324, 152, 134, true);
+sdraw_stex leftbuttonenabled(spritesheet, 0, 458, 152, 134, true);
+sdraw_stex rightbutton(spritesheet, 153, 324, 151, 134, true);
+sdraw_stex selector(spritesheet, 0, 241, 320, 81, true);
+sdraw_stex backgroundbot(spritesheet, 0, 0, 320, 240, true);
+sdraw_stex backgroundtop(spritesheet, 320, 129, 400, 240, true);
+sdraw_stex banner(spritesheet, 320, 0, 256, 128, false);
+sdraw_stex textbox(spritesheet, 0, 592, 300, 200, true);
+sdraw_stex textboxokbutton(spritesheet, 152, 458, 87, 33, true);
+sdraw_stex textboxokbuttonhighlight(spritesheet, 152, 491, 89, 35, false);
+sdraw_stex titleselectionboxes(spritesheet, 0, 792, 268, 198, true);
+sdraw_stex titleselectionsinglebox(spritesheet, 0, 792, 58, 58, true);
+sdraw_stex titleselecthighlighter(spritesheet, 268, 792, 65, 65, false);
+sdraw_stex progressbar(spritesheet, 720, 240, 260, 35, true);
+sdraw_stex progressbarstenciltex(spritesheet, 720, 275, 260, 35, true);
+sdraw_stex secret(spritesheet, 320, 369, 114, 113, false);
 
 Config config("/3ds/ModMoon/", "settings.txt");
 
@@ -408,7 +408,7 @@ int main(int argc, char **argv) {
 			switch(dpadpos)
 			{
 				case 0: launch(); break;
-				case 1: mainmenushiftout(); activetitleselect(); mainmenushiftin(); break;
+				case 1: mainmenushiftout(); controlsmodifier(); mainmenushiftin(); break;
 			}
 		}
 		if(kDown & KEY_LEFT)

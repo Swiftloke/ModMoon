@@ -87,8 +87,8 @@ unsigned int nextPow2(unsigned int v)
     return (v >= TEX_MIN_SIZE ? v : TEX_MIN_SIZE);
 }
 
-sdraw_stex::sdraw_stex(sdraw_texture* inputsheet, int posx, int posy, int inwidth, int inheight) : spritesheet(inputsheet), x(posx), y(posy), width(inwidth), height(inheight)
-{}
+sdraw_stex::sdraw_stex(sdraw_texture* inputsheet, int posx, int posy, int inwidth, int inheight, bool optionalusesdarkmode) : \
+	spritesheet(inputsheet), x(posx), y(posy), width(inwidth), height(inheight), usesdarkmode(optionalusesdarkmode) {}
 
 //Take note that this can only load images with dimensions of powers of 2
 sdraw_texture* loadpng(string filepath)
@@ -178,7 +178,6 @@ sDraw_interface::sDraw_interface()
 {
 	gfxInitDefault();
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
-	
 	fontEnsureMapped();
 	
 	// Initialize the render targets
@@ -272,7 +271,12 @@ sDraw_interface::sDraw_interface()
 		tex->border = 0;
 		tex->lodParam = 0;
 	}
-
+	/*
+	C3D_TexEnv* tev = C3D_GetTexEnv(5);
+	C3D_TexEnvSrc(tev, C3D_Both, GPU_PREVIOUS);
+	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_ONE_MINUS_SRC_COLOR);
+	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
+	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);*/
 }
 
 void sDraw_interface::drawon(gfxScreen_t output)
@@ -287,7 +291,10 @@ void sDraw_interface::drawon(gfxScreen_t output)
 
 void sDraw_interface::drawtext(const char* text, float x, float y, float sizeX, float sizeY)
 {
+	//Always enable dark mode for text.
+	this->enabledarkmode(true);
 	sDrawi_renderText(x, y, sizeX, sizeY, false, text);
+	this->enabledarkmode(false);
 }
 
 void sDraw_interface::settextcolor(u32 color)
@@ -302,8 +309,10 @@ void sDraw_interface::settextcolor(u32 color)
 	C3D_TexEnvColor(env, color);
 }
 
-void sDraw_interface::drawrectangle(int x, int y, int width, int height, u32 color)
+void sDraw_interface::drawrectangle(int x, int y, int width, int height, u32 color, bool shouldusedarkmode)
 {
+	if(shouldusedarkmode)
+		this->enabledarkmode(true);
 	//Override the color entirely
 	C3D_TexEnv *env = C3D_GetTexEnv(0);
 	C3D_TexEnvSrc(env, C3D_Both, GPU_CONSTANT, GPU_CONSTANT);
@@ -317,8 +326,9 @@ void sDraw_interface::drawrectangle(int x, int y, int width, int height, u32 col
 	sDrawi_addTextVertex(x, y , 0, 0);
 	sDrawi_addTextVertex(x + width, y, 0, 0);
 	
-	
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
+	if(shouldusedarkmode)
+		this->enabledarkmode(false);
 }
 
 void sDraw_interface::sDrawi_addTextVertex(float vx, float vy, float tx, float ty)
@@ -456,6 +466,8 @@ float sDraw_interface::gettextmaxwidth(const char* text, float sizeX, float size
 // (screenwidth/2) - (stringwidth / 2)
 void sDraw_interface::drawcenteredtext(const char* text, float scaleX, float scaleY, float y)
 {
+	//Always enable dark mode for text.
+	this->enabledarkmode(true);
 	vector<float> widths = gettextwidths(text, scaleX, scaleY);
 	vector<float>::iterator widthiterator = widths.begin();
 	float x = (((currentoutput == GFX_TOP) ? 400 : 320) / 2 - (*widthiterator / 2)) - 5; //-5 to make it look a bit better
@@ -509,10 +521,13 @@ void sDraw_interface::drawcenteredtext(const char* text, float scaleX, float sca
 
 		}
 	} while (code > 0);
+	this->enabledarkmode(false);
 }
 
 void sDraw_interface::drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley)
 {
+	//Always enable dark mode for text.
+	this->enabledarkmode(true);
 	float textwidth = gettextmaxwidth(text, scalex, scaley);
 	float finalsizex;
 	if(textwidth > width)
@@ -525,6 +540,7 @@ void sDraw_interface::drawtextinrec(const char* text, int x, int y, int width, f
 	float finalx = ((currentoutput == GFX_TOP ? 400 : 320) - finalsizex) / 2;
 	finalx -= 3; //Make it look better
 	drawtext(text, finalx, y, scalex, scaley);
+	this->enabledarkmode(false);
 }
 
 void sDraw_interface::drawtexture(sdraw_texture* tex, int x, float y)
@@ -613,6 +629,8 @@ void sDraw_interface::usetwocoordsshader()
 
 void sDraw_interface::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
 {
+	if(info.usesdarkmode)
+		this->enabledarkmode(true);
 	C3D_TexBind(0, &(info.spritesheet->image));
 	
 	C3D_TexEnv	*env = C3D_GetTexEnv(0);
@@ -650,6 +668,8 @@ void sDraw_interface::drawtexture(sdraw_stex info, int x, int y, int x1, int y1,
 		sDrawi_addTextVertex(x + info.width, y, rright, rtop); //right top
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
 	}
+	if(info.usesdarkmode)
+		enabledarkmode(false);
 }
 
 //Draw a framebuffer, it's tilted sideways and stuffed into a larger texture and flipped so we need some extra maths for this
@@ -694,6 +714,8 @@ void sDraw_interface::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, i
 
 void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, int alpha)
 {
+	if (info.usesdarkmode)
+		this->enabledarkmode(true);
 	//Enable writing to the stencil buffer and draw the texture
 	C3D_StencilTest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
 	C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
@@ -720,6 +742,8 @@ void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, in
 	//TODO: Ensure previous shader state is kept instead of switching back to the basic shader
 	usebasicshader();
 	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0);
+	if (info.usesdarkmode)
+		this->enabledarkmode(false);
 }
 
 //Draw with 0.75 texcoords as it's a 48x48 icon in a 64x64 texture (Power of two limits...)
@@ -781,6 +805,8 @@ void sDraw_interface::drawquad(sdraw_stex info, int x, int y, int x1, int y1, fl
 //It's really getting out of hand and not making sense to repeat all this code.
 void sDraw_interface::drawtexture_replacealpha(sdraw_stex info, int x, int y, int alpha, int x1, int y1, float interpfactor)
 {
+	if (info.usesdarkmode)
+		this->enabledarkmode(true);
 	C3D_TexBind(0, &(info.spritesheet->image));
 	
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
@@ -819,6 +845,17 @@ void sDraw_interface::drawtexture_replacealpha(sdraw_stex info, int x, int y, in
 		sDrawi_addTextVertex(x + info.width, y, rright, rtop); //right top
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
 	}
+	if (info.usesdarkmode)
+		this->enabledarkmode(false);
+}
+
+void sDraw_interface::enabledarkmode(bool isenabled)
+{
+	if(!this->darkmodeshouldactivate)
+		return;
+	C3D_TexEnv* tev = C3D_GetTexEnv(5);
+	//Invert colors...
+	C3D_TexEnvOpRgb(tev, isenabled ? GPU_TEVOP_RGB_ONE_MINUS_SRC_COLOR : GPU_TEVOP_RGB_SRC_COLOR);
 }
 
 void sDraw_interface::framestart()

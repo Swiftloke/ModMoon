@@ -45,7 +45,7 @@ void drawerrorfade(string text, int alphapos, float fadepos)
 	draw.drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fade));
 	draw.drawon(GFX_BOTTOM);
 	draw.drawframebuffer(prevbot, 0, 0, false);
-	draw.drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, fade));
+	draw.drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, fade), true);
 	/*draw.useeventualshader();
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_baseloc, 320 / 2, 240 / 2, 0, 0);
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, draw.expand_expandloc, expandpos, 0, 0, 0);

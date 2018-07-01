@@ -100,7 +100,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
 			C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS);
 			C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-			C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
+			C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
 			C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 			C3D_TexEnvFunc(tev, C3D_Alpha, GPU_REPLACE);
 			C3D_TexEnvColor(tev, RGBA8(0, 0, 255, 255));
