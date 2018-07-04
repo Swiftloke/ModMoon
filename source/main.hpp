@@ -44,6 +44,8 @@ extern sdraw_stex titleselecthighlighter;
 extern sdraw_stex progressbar;
 extern sdraw_stex progressbarstenciltex;
 extern sdraw_stex secret;
+extern sdraw_stex toolsmenuhighlighter;
+extern sdraw_stex controlsmodifierbutton;
 
 extern Config config;
 extern bool modsenabled;

@@ -4,6 +4,7 @@
 #include "migrators/migrators.hpp"
 #include "download.hpp"
 #include "titleselects.hpp"
+#include "toolsmenu.hpp"
 
 string progresstext;
 unsigned int progress = 0;
@@ -67,17 +68,10 @@ void progresspopdown()
 	if (expandpos <= 0) expandpos = 0;
 }
 
-void initialsetup()
+bool doallmigration()
 {
-	error("Welcome! Let's get you set up.");
-	//Signal the progress drawer to simply draw a black rectangle for the background. See error.hpp
-	dummy.height = 0;
 	s32 mainthreadpriority;
 	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
-	//svcCreateEvent(&progressthreaddone, RESET_ONESHOT);
-	//svcCreateEvent(&popupdone, RESET_ONESHOT);
-	//svcCreateEvent(&popdowndone, RESET_ONESHOT);
-	//threadCreate(threadfunc_drawinitialsetupprogress, NULL, 20000, mainthreadpriority - 2, -2, true);
 	bool migrationwasdone = false;
 	if (pathExist("/saltysd/card.txt"))
 	{
@@ -91,7 +85,7 @@ void initialsetup()
 			std::tie(ss1xprogress, ss1xdone) = ss1xretrieveinfo();
 			progresspopup();
 			//I honestly have no idea how I would implement checking the max slot of SS 1.0, so "?" it is.
-			drawprogresserror("Moving Smash Selector 1.0 mods...\nMod " + to_string(ss1xprogress) + " / ?",\
+			drawprogresserror("Moving Smash Selector 1.0 mods...\nMod " + to_string(ss1xprogress) + " / ?", \
 				expandpos, (float)1, dummy, dummy);
 		} while (!ss1xdone);
 		while (expandpos > 0)
@@ -114,7 +108,7 @@ void initialsetup()
 			progresspopup();
 			drawprogresserror("Moving Smash Selector 2.x mods...\nMod " + to_string(ss2xprogress) + " / " + to_string(ss2xtotal), \
 				expandpos, (float)ss2xprogress / ss2xtotal, dummy, dummy);
-		} while(!ss2xdone);
+		} while (!ss2xdone);
 		while (expandpos > 0)
 		{
 			progresspopdown();
@@ -130,35 +124,11 @@ void initialsetup()
 	//It seems like it's going to be quite annoying to pull off.
 	//
 	//
+	return migrationwasdone;
+}
 
-	initupdatechecker();
-	svcWaitSynchronization(event_downloadthreadfinished, U64_MAX);
-	if (isupdateavailable() && !shoulddisableupdater)
-	{
-		doprogressdraw = false;
-		error("An update is available.\nIt will be installed now.");
-		doprogressdraw = true; //This may cause issues...
-		initdownloadandinstallupdate();
-		progress = 0;
-		total = 100;
-		progresstext = "Downloading update...\n[progress]% complete";
-		progresspopup();
-		do
-		{
-			progress = retrievedownloadprogress();
-			if (progress == 101)
-			{
-				progresstext = "Installing update...";
-				progress = 100;
-			}
-		} while(progress != 102);
-		progresspopdown();
-		progressrunning = false; //Another point of conflict?
-		svcWaitSynchronization(progressthreaddone, U64_MAX);
-		error("Update complete. The system\nwill now reboot.");
-		//nsrebootsystemclean();
-	}
-	progressrunning = false;
+void tutorial(bool migrationwasdone)
+{
 	//A quick tutorial?
 	mainmenushiftin();
 	//threadfunc_fade(colorvalues);
@@ -190,20 +160,54 @@ void initialsetup()
 		draw.frameend();
 		opos = tpos;
 	}
-	//Navigate through the tools menu that doesn't yet exist...
-	//
-	//
+	error("Tap on the Active Title Selection\nbutton.");
+	alphapos = 0;
+	alphaplus = true;
+	tpos = touchPosition();
+	opos = touchPosition();
+	toolsmenushiftin();
+	while (aptMainLoop())
+	{
+		highlighterhandle(alphapos, alphaplus);
+		toolsmenudraw(1.0, 0, alphapos, false);
+		hidScanInput();
+		kDown = hidKeysDown();
+		kHeld = hidKeysHeld();
+		hidTouchRead(&tpos);
+		if (buttonpressed(controlsmodifierbutton, 18, 6, opos, kHeld) || kDown & KEY_A)
+		{
+			toolsmenushiftout();
+			break;
+		}
+		opos = tpos;
+	}
 	error("Select the titles you\nwant to activate for use by tapping on\nthem or using the Circle Pad and .");
 	error("The cartridge is always active.\nActivated titles will glow blue.");
-	if(migrationwasdone)
+	if (migrationwasdone)
 		error("As part of migration, titles you\nused previously will already\nbe activated.");
 	errorsetmode(MODE_POPUP); //activetitleselect can call errors
 	activetitleselect();
 	errorsetmode(MODE_FADE);
 	error("You can always select new titles\nor deactivate existing ones by\nentering this menu.");
-	//Go back through the tools menu...
-	//
-	//
+	toolsmenushiftin();
+	error("Press B to return to the main menu.");
+	alphapos = 0;
+	alphaplus = true;
+	while (aptMainLoop())
+	{
+		highlighterhandle(alphapos, alphaplus);
+		toolsmenudraw(1.0, 0, alphapos, false);
+		hidScanInput();
+		kDown = hidKeysDown();
+		kHeld = hidKeysHeld();
+		hidTouchRead(&tpos);
+		if (kDown & KEY_B)
+		{
+			toolsmenushiftout();
+			break;
+		}
+		opos = tpos;
+	}
 	mainmenushiftin();
 	error("Now press  to enter the title\nselection menu.");
 	//Blah, duplicated code that I can't do anything about.
@@ -234,5 +238,47 @@ void initialsetup()
 	draw.frameend();
 	error("You're all set! Have fun,\nand happy modding!");
 	errorsetmode(MODE_POPUP);
+}
+
+void initialsetup()
+{
+	error("Welcome! Let's get you set up.");
+	//Signal the progress drawer to simply draw a black rectangle for the background. See error.hpp
+	dummy.height = 0;
+	//svcCreateEvent(&progressthreaddone, RESET_ONESHOT);
+	//svcCreateEvent(&popupdone, RESET_ONESHOT);
+	//svcCreateEvent(&popdowndone, RESET_ONESHOT);
+	//threadCreate(threadfunc_drawinitialsetupprogress, NULL, 20000, mainthreadpriority - 2, -2, true);
+	bool migrationwasdone = doallmigration();
+
+	initupdatechecker();
+	svcWaitSynchronization(event_downloadthreadfinished, U64_MAX);
+	if (isupdateavailable() && !shoulddisableupdater)
+	{
+		doprogressdraw = false;
+		error("An update is available.\nIt will be installed now.");
+		doprogressdraw = true; //This may cause issues...
+		initdownloadandinstallupdate();
+		progress = 0;
+		total = 100;
+		progresstext = "Downloading update...\n[progress]% complete";
+		progresspopup();
+		do
+		{
+			progress = retrievedownloadprogress();
+			if (progress == 101)
+			{
+				progresstext = "Installing update...";
+				progress = 100;
+			}
+		} while(progress != 102);
+		progresspopdown();
+		progressrunning = false; //Another point of conflict?
+		svcWaitSynchronization(progressthreaddone, U64_MAX);
+		error("Update complete. The system\nwill now reboot.");
+		//nsrebootsystemclean();
+	}
+	progressrunning = false;
+	tutorial(migrationwasdone);
 	config.write("InitialSetupDone", true);
 }

@@ -62,7 +62,8 @@ class sDraw_interface
 	void drawtexture(sdraw_texture* tex, int x, float y);
 	void drawtexture(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0); //Second coords are optional
 	void drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1 = -1, int y1 = -1, float interpfactor = 0);
-	void drawtexturewithhighlight(sdraw_stex info, int x, int y, int alpha);
+	//Second coords functionality of this is broken
+	void drawtexturewithhighlight(sdraw_stex info, int x, int y, int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void drawSMDHicon(C3D_Tex icon, int x, int y);
 	void drawtext(const char* text, float x, float y, float sizeX, float sizeY);
 	void drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley);

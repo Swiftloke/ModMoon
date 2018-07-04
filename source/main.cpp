@@ -42,6 +42,8 @@ sdraw_stex titleselecthighlighter(spritesheet, 268, 792, 65, 65, false);
 sdraw_stex progressbar(spritesheet, 720, 240, 260, 35, true);
 sdraw_stex progressbarstenciltex(spritesheet, 720, 275, 260, 35, true);
 sdraw_stex secret(spritesheet, 320, 369, 114, 113, false);
+sdraw_stex toolsmenuhighlighter(spritesheet, 706, 369, 319, 60);
+sdraw_stex controlsmodifierbutton(spritesheet, 720, 310, 289, 45);
 
 Config config("/3ds/ModMoon/", "settings.txt");
 
@@ -355,6 +357,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 }
 void initialsetup();
 void controlsmodifier();
+void toolsmenu();
 int main(int argc, char **argv) {
 
 	int renamefailed = startup();
@@ -414,7 +417,7 @@ int main(int argc, char **argv) {
 			switch(dpadpos)
 			{
 				case 0: launch(); break;
-				case 1: mainmenushiftout(); controlsmodifier(); mainmenushiftin(); break;
+				case 1: mainmenushiftout(); toolsmenu(); mainmenushiftin(); break;
 			}
 		}
 		if(kDown & KEY_LEFT)
@@ -480,7 +483,7 @@ int main(int argc, char **argv) {
 			updateslots(true);
 		if (touched(rightbutton, 169, 13, opos) && !(kHeld & KEY_TOUCH))
 		{
-			mainmenushiftout(); activetitleselect(); mainmenushiftin();
+			mainmenushiftout(); toolsmenu(); mainmenushiftin();
 		}
 		draw.framestart();
 		drawtopscreen();

@@ -712,22 +712,31 @@ void sDraw_interface::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, i
 	
 }
 
-void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, int alpha)
+void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, int alpha, int x1, int y1, float interpfactor)
 {
 	if (info.usesdarkmode)
 		this->enabledarkmode(true);
 	//Enable writing to the stencil buffer and draw the texture
 	C3D_StencilTest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
 	C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
-	drawtexture(info, x, y);
+	drawtexture(info, x, y, x1, y1, interpfactor);
 	
 	float middlex = x + info.width/2;
 	float middley = y + info.height/2;
-	useeventualshader(); //We can also use this to extrapolate beyond the eventual value, allowing us to make a highlighter
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_baseloc, middlex, middley, 0, 0);
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_expandloc, 1.10, 0, 0, 0);
+	if (x1 != -1)
+	{
+		usetwocoordsshader();
+		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1.10, 0, 0, 0);
+		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseloc, middlex, middley, 0, 0);
+		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
+	}
+	else
+	{
+		useeventualshader(); //We can also use this to extrapolate beyond the eventual value, allowing us to make a highlighter
+		C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_baseloc, middlex, middley, 0, 0);
+		C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_expandloc, 1.10, 0, 0, 0);
+	}
 	C3D_StencilTest(true, GPU_NOTEQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it hasn't been set
-	
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
 	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
 	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
@@ -737,7 +746,8 @@ void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, in
 	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
 	C3D_TexEnvColor(tev, RGBA8(255, 0, 0, alpha));
 	
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4); //No need to add these vertices again
+	//No need to add these vertices again
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, x1 != -1 ? sdrawTwoCdsVtxArrayPos - 4 : sdrawVtxArrayPos - 4, 4);
 	
 	//TODO: Ensure previous shader state is kept instead of switching back to the basic shader
 	usebasicshader();
