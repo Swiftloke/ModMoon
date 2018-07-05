@@ -62,8 +62,8 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 		drawtopscreen();
 		draw.drawon(GFX_BOTTOM);
 		draw.drawtexture(backgroundbot, 0, 0);
-		draw.drawtexture_replacealpha(toolsmenuhighlighter, initialxvals[position] - 15, toolsyvals[position] - 7,\
-			highlighteralpha, 18 - 15, toolsyvals[position] - 7, interpfactor);
+		draw.drawhighlighter(toolsmenuhighlighter, initialxvals[position] - 13, toolsyvals[position] - 7,\
+			highlighteralpha, 18 - 13, toolsyvals[position] - 7, interpfactor);
 		draw.drawtexture(controlsmodifierbutton, initialxvals[0], toolsyvals[0], 18, toolsyvals[0], interpfactor);
 		draw.drawtexture(controlsmodifierbutton, initialxvals[1], toolsyvals[1], 18, toolsyvals[1], interpfactor);
 		draw.drawtexture(controlsmodifierbutton, initialxvals[2], toolsyvals[2], 18, toolsyvals[2], interpfactor);

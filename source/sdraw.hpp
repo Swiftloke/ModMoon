@@ -51,6 +51,15 @@ struct sdraw_stex
 	bool usesdarkmode;
 };
 
+struct sdraw_highlighter : public sdraw_stex
+{
+	u32 highlightercolor;
+
+	sdraw_highlighter(sdraw_texture* inputsheet, int posx, int posy, int width, int height, u32 incolor, \
+		bool optionalusesdarkmode = false) : sdraw_stex(inputsheet, posx, posy, width, height, optionalusesdarkmode), \
+		highlightercolor(incolor) {};
+};
+
 
 class sDraw_interface
 {
@@ -63,7 +72,7 @@ class sDraw_interface
 	void drawtexture(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0); //Second coords are optional
 	void drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	//Second coords functionality of this is broken
-	void drawtexturewithhighlight(sdraw_stex info, int x, int y, int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0);
+	void drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void drawSMDHicon(C3D_Tex icon, int x, int y);
 	void drawtext(const char* text, float x, float y, float sizeX, float sizeY);
 	void drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley);
@@ -76,7 +85,7 @@ class sDraw_interface
 	float gettextmaxwidth(const char* text, float sizeX, float sizeY);
 	
 	void drawblendedtexture(sdraw_texture* texture1, sdraw_texture* texture2, int x, int y, int blendfactor);
-	void drawtexture_replacealpha(sdraw_stex info, int x, int y, int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0);
+	void drawhighlighter(sdraw_highlighter info, int x, int y, int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void usebasicshader();
 	void useeventualshader();

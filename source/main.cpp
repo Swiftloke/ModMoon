@@ -24,6 +24,14 @@ using namespace std;
 Result res = romfsInit(); //Preinit romfs so we can load the spritesheet
 sDraw_interface draw;
 
+Config config("/3ds/ModMoon/", "settings.txt");
+
+//Due to their usage in globals construction, these need to be read immediately.
+vector<int> mainmenuhighlightcolors = config.intmultiread("MainMenuHighlightColors");
+vector<int> errorhighlightcolors = config.intmultiread("ErrorHighlightColors");
+vector<int> titleselecthighlightcolors = config.intmultiread("TitleSelectHighlightColors");
+vector<int> toolsmenuhighlightcolors = config.intmultiread("ToolsMenuHighlightColors");
+
 sdraw_texture* spritesheet = loadpng("romfs:/spritesheet.png"); //Texture conversion for this doesn't fucking work >:(
 sdraw_texture* progressfiller = loadbin("romfs:/progress.bin", 32, 32); //This needs to be in its own texture due to usage of wrapping for animation
 sdraw_stex leftbutton(spritesheet, 0, 324, 152, 134, true);
@@ -35,17 +43,18 @@ sdraw_stex backgroundtop(spritesheet, 320, 129, 400, 240, true);
 sdraw_stex banner(spritesheet, 320, 0, 256, 128, false);
 sdraw_stex textbox(spritesheet, 0, 592, 300, 200, true);
 sdraw_stex textboxokbutton(spritesheet, 152, 458, 87, 33, true);
-sdraw_stex textboxokbuttonhighlight(spritesheet, 152, 491, 89, 35, false);
+sdraw_highlighter textboxokbuttonhighlight(spritesheet, 152, 491, 89, 35, \
+	RGBA8(errorhighlightcolors[0], errorhighlightcolors[1], errorhighlightcolors[2], 0), false);
 sdraw_stex titleselectionboxes(spritesheet, 0, 792, 268, 198, true);
 sdraw_stex titleselectionsinglebox(spritesheet, 0, 792, 58, 58, true);
-sdraw_stex titleselecthighlighter(spritesheet, 268, 792, 65, 65, false);
+sdraw_highlighter titleselecthighlighter(spritesheet, 268, 792, 65, 65, \
+	RGBA8(titleselecthighlightcolors[0], titleselecthighlightcolors[1], titleselecthighlightcolors[2], 0), false);
 sdraw_stex progressbar(spritesheet, 720, 240, 260, 35, true);
 sdraw_stex progressbarstenciltex(spritesheet, 720, 275, 260, 35, true);
 sdraw_stex secret(spritesheet, 320, 369, 114, 113, false);
-sdraw_stex toolsmenuhighlighter(spritesheet, 706, 369, 319, 60);
+sdraw_highlighter toolsmenuhighlighter(spritesheet, 706, 369, 319, 60, \
+	RGBA8(toolsmenuhighlightcolors[0], toolsmenuhighlightcolors[1], toolsmenuhighlightcolors[2], 0), false);
 sdraw_stex controlsmodifierbutton(spritesheet, 720, 310, 289, 45);
-
-Config config("/3ds/ModMoon/", "settings.txt");
 
 bool modsenabled = config.read("ModsEnabled", true);
 
@@ -344,13 +353,16 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 {
 	draw.drawtexture(backgroundbot, 0, 0);
 	if (dpadpos == 0)
-		draw.drawtexturewithhighlight(touched(leftbutton, 0, 13, tpos) ? leftbuttonenabled : leftbutton, 0, 13, alphapos);
+		draw.drawtexturewithhighlight(touched(leftbutton, 0, 13, tpos) ? leftbuttonenabled : leftbutton, 0, 13, \
+			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else draw.drawtexture(touched(leftbutton, 0, 13, tpos) ? leftbuttonenabled : leftbutton, 0, 13);
 	if (dpadpos == 1)
-		draw.drawtexturewithhighlight(rightbutton, 169, 13, alphapos);
+		draw.drawtexturewithhighlight(rightbutton, 169, 13, \
+			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else draw.drawtexture(rightbutton, 169, 13);
 	if (dpadpos == 2 || dpadpos == 3)
-		draw.drawtexturewithhighlight(selector, 0, 159, alphapos);
+		draw.drawtexturewithhighlight(selector, 0, 159, \
+			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else draw.drawtexture(selector, 0, 159);
 	draw.settextcolor(RGBA8(0, 0, 0, 255));
 	draw.drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);

@@ -37,14 +37,14 @@ extern sdraw_stex backgroundbot;
 extern sdraw_stex banner;
 extern sdraw_stex textbox;
 extern sdraw_stex textboxokbutton;
-extern sdraw_stex textboxokbuttonhighlight;
+extern sdraw_highlighter textboxokbuttonhighlight;
 extern sdraw_stex titleselectionboxes;
 extern sdraw_stex titleselectionsinglebox;
-extern sdraw_stex titleselecthighlighter;
+extern sdraw_highlighter titleselecthighlighter;
 extern sdraw_stex progressbar;
 extern sdraw_stex progressbarstenciltex;
 extern sdraw_stex secret;
-extern sdraw_stex toolsmenuhighlighter;
+extern sdraw_highlighter toolsmenuhighlighter;
 extern sdraw_stex controlsmodifierbutton;
 
 extern Config config;

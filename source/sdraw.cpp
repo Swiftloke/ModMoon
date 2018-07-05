@@ -712,7 +712,7 @@ void sDraw_interface::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, i
 	
 }
 
-void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, int alpha, int x1, int y1, float interpfactor)
+void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1, int y1, float interpfactor)
 {
 	if (info.usesdarkmode)
 		this->enabledarkmode(true);
@@ -744,7 +744,7 @@ void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, in
 	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
-	C3D_TexEnvColor(tev, RGBA8(255, 0, 0, alpha));
+	C3D_TexEnvColor(tev, (color & 0xFFFFFF) | ((alpha & 0xFF) << 24));
 	
 	//No need to add these vertices again
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, x1 != -1 ? sdrawTwoCdsVtxArrayPos - 4 : sdrawVtxArrayPos - 4, 4);
@@ -813,18 +813,18 @@ void sDraw_interface::drawquad(sdraw_stex info, int x, int y, int x1, int y1, fl
 
 //TODO: have all these different functions for individual texenv stuff configure their texenvs then call a drawquad() function.
 //It's really getting out of hand and not making sense to repeat all this code.
-void sDraw_interface::drawtexture_replacealpha(sdraw_stex info, int x, int y, int alpha, int x1, int y1, float interpfactor)
+void sDraw_interface::drawhighlighter(sdraw_highlighter info, int x, int y, int alpha, int x1, int y1, float interpfactor)
 {
 	if (info.usesdarkmode)
 		this->enabledarkmode(true);
 	C3D_TexBind(0, &(info.spritesheet->image));
 	
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0);
+	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
 	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
 	C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
-	C3D_TexEnvColor(tev, RGBA8(0, 0, 0, alpha));
+	C3D_TexEnvColor(tev, (info.highlightercolor & 0xFFFFFF) | ((alpha & 0xFF) << 24));
 	
 	float rleft = info.x/info.spritesheet->width;
 	float rright = (info.x + info.width) /info.spritesheet->width;

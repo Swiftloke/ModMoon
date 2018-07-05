@@ -32,7 +32,7 @@ void drawerrorbox(string text, int alphapos, float expandpos)
 	draw.drawtexture(textboxokbutton, 112, 163);
 	//I did it this way before I wrote the stencil test highlighter, and besides which that wouldn't work because it uses
 	//The eventual shader itself so the popup wouldn't show properly for this
-	draw.drawtexture_replacealpha(textboxokbuttonhighlight, 111, 162, alphapos);
+	draw.drawhighlighter(textboxokbuttonhighlight, 111, 162, alphapos);
 	draw.frameend();
 }
 
@@ -56,7 +56,7 @@ void drawerrorfade(string text, int alphapos, float fadepos)
 	draw.drawtexture(textboxokbutton, 112, 163);
 	//I did it this way before I wrote the stencil test highlighter, and besides which that wouldn't work because it uses
 	//The eventual shader itself so the popup wouldn't show properly for this
-	draw.drawtexture_replacealpha(textboxokbuttonhighlight, 111, 162, alphapos);
+	draw.drawhighlighter(textboxokbuttonhighlight, 111, 162, alphapos);
 	draw.frameend();
 }
 

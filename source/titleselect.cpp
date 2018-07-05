@@ -68,11 +68,11 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 				C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 				C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 				C3D_TexEnvFunc(tev, C3D_Alpha, GPU_REPLACE);
-				C3D_TexEnvColor(tev, RGBA8(0, 0, 255, 255));
+				C3D_TexEnvColor(tev, RGBA8(0, 0, 255, 0));
 			}
 			//Apply the highlighter fade. There's an sdraw function for this but it shouldn't really exist,
 			//configuring tev1 is the way it should be done.
-			else 
+			/*else 
 			{
 				C3D_TexEnv* tev = C3D_GetTexEnv(1);
 				C3D_TexEnvSrc(tev, C3D_RGB, GPU_PREVIOUS);
@@ -82,18 +82,23 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 				C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
 				C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
 				C3D_TexEnvColor(tev, RGBA8(0, 0, 0, highlighteralpha));
-				/*C3D_TexEnv* tev = C3D_GetTexEnv(1);
-				C3D_TexEnvSrc(tev, C3D_RGB, GPU_PREVIOUS, GPU_CONSTANT, GPU_CONSTANT);
-				C3D_TexEnvOp(tev, C3D_RGB, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
-				C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, 0, 0);
-				C3D_TexEnvFunc(tev, C3D_RGB, GPU_INTERPOLATE);
-				C3D_TexEnvFunc(tev, C3D_Alpha, GPU_REPLACE);
-				C3D_TexEnvColor(tev, RGBA8(0, 0, 255, highlighteralpha));*/
-			}
-			draw.drawtexture(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, x - 9, y - 9, highlighterinterpfactor);
+				//C3D_TexEnv* tev = C3D_GetTexEnv(1);
+				//C3D_TexEnvSrc(tev, C3D_RGB, GPU_PREVIOUS, GPU_CONSTANT, GPU_CONSTANT);
+				//C3D_TexEnvOp(tev, C3D_RGB, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
+				//C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, 0, 0);
+				//C3D_TexEnvFunc(tev, C3D_RGB, GPU_INTERPOLATE);
+				//C3D_TexEnvFunc(tev, C3D_Alpha, GPU_REPLACE);
+				/C3D_TexEnvColor(tev, RGBA8(0, 0, 255, highlighteralpha));
+			}*/
+			//If the highlighter blink is active, we need to give a full alpha, seeing as it's "blinking"
+			draw.drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, \
+				highlighterblink ? 255 : highlighteralpha, x - 9, y - 9, highlighterinterpfactor);
 			//Now we need to reset stage 1
-			C3D_TexEnv* tev = C3D_GetTexEnv(1);
-			C3D_TexEnvInit(tev);
+			if (highlighterblink)
+			{
+				C3D_TexEnv* tev = C3D_GetTexEnv(1);
+				C3D_TexEnvInit(tev);
+			}
 		}
 		i++;
 		if(iter->titl != 0) //Not a null cartridge

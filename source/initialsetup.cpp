@@ -190,7 +190,7 @@ void tutorial(bool migrationwasdone)
 	errorsetmode(MODE_FADE);
 	error("You can always select new titles\nor deactivate existing ones by\nentering this menu.");
 	toolsmenushiftin();
-	error("Press B to return to the main menu.");
+	error("Press  to return to the main menu.");
 	alphapos = 0;
 	alphaplus = true;
 	while (aptMainLoop())
