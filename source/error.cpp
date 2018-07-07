@@ -11,9 +11,16 @@ C3D_Tex prevtop, prevbot;
 
 ERRORMODE errormode;
 
+bool startwaspressed = false;
+
 void errorsetmode(ERRORMODE mode)
 {
 	errormode = mode;
+}
+
+bool errorwasstartpressed()
+{
+	return startwaspressed;
 }
 
 void drawerrorbox(string text, int alphapos, float expandpos)
@@ -71,17 +78,23 @@ bool handleerror(float expandpos, string text)
 	else if(errormode == MODE_FADE)
 		drawerrorfade(text, alphapos, expandpos);
 	hidScanInput();
+	u32 kDown = hidKeysDown();
 	hidTouchRead(&currentpos);
 	//Button pressed and the text box has fully popped up (we do, after all, want the user to actually read this thing...)
-	if ((buttonpressed(textboxokbutton, 112, 163, lastpos, hidKeysHeld()) || hidKeysDown() & KEY_A) && expandpos >= 1)
+	if ((buttonpressed(textboxokbutton, 112, 163, lastpos, hidKeysHeld()) || kDown & KEY_A) && expandpos >= 1)
 		return true;
+	if (kDown & KEY_START)
+	{
+		startwaspressed = true;
+		return true;
+	}
 	lastpos = currentpos;
 	return false;
 }
 
-//Optional arguments for providing the same framebuffer across
 void error(string text)
 {
+	startwaspressed = false;
 	//Fade mode HAS to be used, no matter what, seeing as it's used in the tutorial
 	if(shoulddisableerrors && errormode != MODE_FADE)
 		return;

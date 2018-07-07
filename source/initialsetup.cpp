@@ -134,6 +134,9 @@ void tutorial(bool migrationwasdone)
 	//threadfunc_fade(colorvalues);
 	errorsetmode(MODE_FADE);
 	error("Let's get you acquainted\nwith ModMoon.");
+	error("Press Start now to skip\nthis tutorial.");
+	if(errorwasstartpressed())
+		return;
 	error("First, let's select the\ngames you want to use.");
 	error("Touch the tools button.");
 	//Most of the same logic as the real main menu, but only the tools button is selectable

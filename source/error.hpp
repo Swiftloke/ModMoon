@@ -9,6 +9,7 @@ enum ERRORMODE
 	MODE_FADE
 };
 
+bool errorwasstartpressed();
 void errorsetmode(ERRORMODE mode);
 void error(string text);
 //This can't have a complete function because the user still needs to feed it a progress value.

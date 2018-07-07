@@ -72,7 +72,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 				}
 			}
 			draw.drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, highlighteralpha, x - 9, y - 9, highlighterinterpfactor);
-			}
+		}
 		else if (iter->isactive)
 		{
 			//Configure TexEnv stage 1 to "blink" the texture by making it all blue
