@@ -92,10 +92,11 @@ string tid2str(u64 in)
 	return out.str();
 }
 
-bool issaltysdtitle()
+bool issaltysdtitle(u64 optionaltitleid)
 {
-	return currenttitleid == 0x00040000000EDF00 || currenttitleid ==  0x00040000000EE000 \
-	|| currenttitleid == 0x00040000000B8B00;
+	u64 titleop = optionaltitleid != 0 ? optionaltitleid : currenttitleid;
+	return titleop == 0x00040000000EDF00 || titleop ==  0x00040000000EE000 \
+	|| titleop == 0x00040000000B8B00;
 }
 
 int movemodsin()
@@ -339,7 +340,8 @@ void drawtopscreen()
 	draw.drawtexture(banner, bannerx, bannery);
 	//Draw the title selection text
 	draw.settextcolor(RGBA8(165, 165, 165, 255));
-	draw.drawtext(": Enable/Disable mods", 5, 240 - 40, 0.55, 0.55);
+	//Not implemented...
+	//draw.drawtext(": Enable/Disable mods", 5, 240 - 40, 0.55, 0.55);
 	draw.drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
 	//Draw the current title
 	if (getSMDHdata()[currenttidpos].titl != 0) //This may be a cartridge that's not inserted, if it is, don't draw it

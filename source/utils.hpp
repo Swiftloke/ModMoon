@@ -13,6 +13,8 @@ int countEntriesInDir(const char* dirname);
 //Extremely common logic used in rendering code, but it doesn't feel right to be in sDraw
 void highlighterhandle(int& alphapos, bool& alphaplus);
 
+void writeSaltySD(u64 titleid);
+
 inline bool pathExist(const string filename) {
 	struct stat buffer;
 	return (stat(filename.c_str(), &buffer) == 0);

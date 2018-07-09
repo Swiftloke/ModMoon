@@ -69,7 +69,7 @@ string tid2str(u64 in);
 
 
 int startup();
-void enablemods(bool enabled); //Vestigial from Smash-Selector 3.0
+void enablemods(bool enabled);
 void mainmenushiftout();
 void mainmenushiftin();
 void mainmenuupdateslotname();
@@ -77,6 +77,6 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 bool touched(sdraw_stex button, int dx, int dy, touchPosition tpos);
 bool touched(int x, int y, int width, int height, touchPosition tpos);
 bool buttonpressed(sdraw_stex button, int bx, int by, touchPosition lastpos, u32 kHeld);
-bool issaltysdtitle();
+bool issaltysdtitle(u64 optionaltitleid = 0);
 void drawtopscreen();
 bool secretcodeadvance(u32 kDown);

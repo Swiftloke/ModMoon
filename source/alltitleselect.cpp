@@ -254,6 +254,8 @@ void activetitleselect()
 					//Add the folder if it doesn't exist
 					if(!pathExist(modsfolder + tid2str(titleop.titl)))
 						_mkdir((modsfolder + tid2str(titleop.titl)).c_str());
+					if(issaltysdtitle(titleop.titl) && !pathExist("/luma/titles/" + tid2str(titleop.titl) + "/code.ips"))
+						writeSaltySD(titleop.titl);
 				}
 			}
 		}

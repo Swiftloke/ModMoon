@@ -194,6 +194,7 @@ void titleselect()
 			}
 			mainmenuupdateslotname();
 			config.write("SelectedTitleIDPos", currenttidpos);
+			modsenabled = currentslot != 0;
 			break;
 		}
 		if (kDown & KEY_B)

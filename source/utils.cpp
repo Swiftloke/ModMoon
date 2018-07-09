@@ -6,6 +6,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include <dirent.h>
+#include <fstream>
 
 #include "utils.hpp"
 #include "main.hpp"
@@ -84,6 +85,51 @@ int countEntriesInDir(const char* dirname)
 	while ((d = readdir(dir)) != NULL) n++;
 	closedir(dir);
 	return n;
+}
+
+
+//Straight out of Smash Selector.
+
+void fcopy(string input, string output)
+{
+	ifstream in(input, ios::binary);
+	ofstream out(output, ios::binary);
+	if(!in) { error("Failed to open input!\n" + input); return;}
+	if(!out) { error("Failed to open output!\n" + output); return; }
+	out << in.rdbuf();
+	in.close();
+	out.close();
+}
+
+void writeSaltySD(u64 titleid)
+{
+	string regionmodifier;
+	switch (titleid)
+	{
+		case 0x00040000000EDF00: {regionmodifier = "USA"; break; }
+		case 0x00040000000EE000: {regionmodifier = "EUR"; break; }
+		case 0x00040000000B8B00: {regionmodifier = "JAP"; break; }
+	}
+	string outputpath = "/luma/titles/" + tid2str(titleid) + "/code.ips";
+	//In this implementation, we expect that mods are enabled.
+	//This may change if hitbox display is implemented
+
+	//if (!saltySDEnabled) { outputpath.insert(13, ".Disabled"); }
+	/*if (!pathExist(outputpath.c_str()))
+	{
+		string attempt2 = outputpath;
+		attempt2.insert(13, "Disabled");
+		if(pathExist(attempt2.c_str()))
+			outputpath = attempt2;
+		else
+			
+	}*/
+	string inputpath = "romfs:/code.ips";
+	inputpath.insert(7, regionmodifier);
+	//if (hitboxdisplay) { inputpath.insert(7, "Hitbox"); }
+	//else { inputpath.insert(7, "Normal"); }
+	if (pathExist(outputpath)) { remove(outputpath.c_str()); }
+	fcopy(inputpath, outputpath);
 }
 
 void launch(){
