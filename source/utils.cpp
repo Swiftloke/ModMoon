@@ -110,7 +110,10 @@ void writeSaltySD(u64 titleid)
 		case 0x00040000000EE000: {regionmodifier = "EUR"; break; }
 		case 0x00040000000B8B00: {regionmodifier = "JAP"; break; }
 	}
-	string outputpath = "/luma/titles/" + tid2str(titleid) + "/code.ips";
+	string outputpath = "/luma/titles/" + tid2str(titleid);
+	if(!pathExist(outputpath.c_str()))
+		_mkdir(outputpath.c_str());
+	outputpath.append("/code.ips");
 	//In this implementation, we expect that mods are enabled.
 	//This may change if hitbox display is implemented
 
