@@ -1,10 +1,7 @@
-#include <utility>
-#include <tuple>
+#include "../workerfunction.hpp"
 
-void ss1xMigrate(void* null);
-//Current mod, whether it's done or not
-std::pair<int, bool> ss1xretrieveinfo();
+void ss1xMigrate(WorkerFunction* notthis);
+extern WorkerFunction ss1xworker;
 
-void ss2xMigrate(void* null);
-//Current mod being moved, total folder count, and whether it's done or not
-std::tuple<int, int, bool> ss2xretriveinfo();
+void ss2xMigrate(WorkerFunction* notthis);
+extern WorkerFunction ss2xworker;

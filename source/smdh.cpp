@@ -5,16 +5,21 @@
 
 vector<smdhdata> smdhvector;
 vector<smdhdata> alltitlesvector;
-u32 alltitlesloadedcount = 0;
+//u32 alltitlesloadedcount = 0;
 u32 alltitlescount = 0;
 u8 language = 0;
 vector<u64> tidstoload;
-bool alltitlesloaded = false;
+//bool alltitlesloaded = false;
 
-void threadfunc_loadallsmdhdata(void* main)
+WorkerFunction SMDHworker(worker_loadallsmdhdata, \
+	"Waiting for titles to be loaded...\n Title [progress] / [total]");
+
+void worker_loadallsmdhdata(WorkerFunction* notthis)
 {
 	//smdhvector[0].load(0, 2); //MEDIATYPE_GAME_CARD; Always load the cartridge in the first position
 	//The cartridge was loaded from the main thread, so we don't need to worry about it. This is because updatecartridgedata() may use the rendering queue through error calls
+	notthis->functiontotal = alltitlescount;
+
 	for(unsigned int i = 1; i < tidstoload.size(); i++)
 		smdhvector[i].load(tidstoload[i]);
 
@@ -41,7 +46,7 @@ void threadfunc_loadallsmdhdata(void* main)
 			alltitlesvector.back().load(alltids[i]);
 		else
 			alltitlesvector[i].load(alltids[i]);
-		alltitlesloadedcount++;
+		notthis->functionprogress++;
 	}
 	/*bool cardinserted;
 	FSUSER_CardSlotIsInserted(&cardinserted);
@@ -52,7 +57,7 @@ void threadfunc_loadallsmdhdata(void* main)
 		//alltitlesvector.push_back(alltitlesvector[0]);
 		updatecartridgedata();
 	}*/
-	alltitlesloadedcount++;
+	//this->functionprogress++;
 	//alltitlesvector.insert(alltitlesvector.begin(), smdhvector[0]); //Done by updatecartridgedata()
 	//Remove titles that aren't titles- extdata, updates, etc.
 	//Also determine if the title is active or not.
@@ -60,7 +65,7 @@ void threadfunc_loadallsmdhdata(void* main)
 		std::remove_if(alltitlesvector.begin(), alltitlesvector.end(), \
 		[](const smdhdata& data) {return tid2str(data.titl)[7] != '0';});
 	alltitlesvector.erase(remove, alltitlesvector.end());
-	alltitlesloaded = true;
+	notthis->functiondone = true;
 }
 
 void initializeallSMDHdata(vector<u64> intitleids)
@@ -81,9 +86,7 @@ void initializeallSMDHdata(vector<u64> intitleids)
 
 	CFGU_GetSystemLanguage(&language);
 	//Create the thread
-	s32 mainthreadpriority;
-	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
-	threadCreate(threadfunc_loadallsmdhdata, 0, 24000, mainthreadpriority + 1, -2, true);
+	SMDHworker.startworker();
 }
 
 void freeSMDHdata()
@@ -107,7 +110,7 @@ vector<smdhdata>& getallSMDHdata()
 	return alltitlesvector;
 }
 
-bool alltitlesareloaded()
+/*bool alltitlesareloaded()
 {
 	return alltitlesloaded;
 }
@@ -120,7 +123,7 @@ int getalltitlescount()
 int getalltitlesloadedcount()
 {
 	return alltitlesloadedcount;
-}
+}*/
 
 bool smdhdata::load(u64 title, int ingametype) //gametype is optional
 {
@@ -302,7 +305,7 @@ void updatecartridgedata()
 				if (maxslot == 0)
 				{
 					error("Warning: Failed to find mods for\nthis game!");
-					error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nWhere X is a number starting at 1.");
+					error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nwhere X is a number starting at 1.");
 				}
 				mainmenuupdateslotname();
 			}

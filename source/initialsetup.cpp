@@ -75,7 +75,7 @@ bool doallmigration()
 	bool migrationwasdone = false;
 	if (pathExist("/saltysd/card.txt"))
 	{
-		progresstext = "Migrating mods from\nSmash Selector 1.0...";
+		/*progresstext = "Migrating mods from\nSmash Selector 1.0...";
 		//svcWaitSynchronization(popupdone, U64_MAX);
 		threadCreate(ss1xMigrate, NULL, 20000, mainthreadpriority + 1, -2, true);
 		int ss1xprogress;
@@ -94,12 +94,14 @@ bool doallmigration()
 			drawprogresserror("Moving Smash Selector 1.0 mods...\nMod " + to_string(ss1xprogress) + " / ?", \
 				expandpos, (float)1, dummy, dummy);
 		}
-		//svcWaitSynchronization(popdowndone, U64_MAX);
+		//svcWaitSynchronization(popdowndone, U64_MAX);*/
+		ss1xworker.startworker();
+		ss1xworker.displayprogress();
 		migrationwasdone = true;
 	}
 	if (pathExist("/3ds/data/smash_selector/settings.txt"))
 	{
-		threadCreate(ss2xMigrate, NULL, 20000, mainthreadpriority + 1, -2, true);
+		/*threadCreate(ss2xMigrate, NULL, 20000, mainthreadpriority + 1, -2, true);
 		int ss2xprogress, ss2xtotal;
 		bool ss2xdone;
 		do
@@ -114,7 +116,9 @@ bool doallmigration()
 			progresspopdown();
 			drawprogresserror("Moving Smash Selector 2.x mods...\nMod " + to_string(ss2xprogress) + " / " + to_string(ss2xtotal), \
 				expandpos, (float)ss2xprogress / ss2xtotal, dummy, dummy);
-		}
+		}*/
+		ss2xworker.startworker();
+		ss2xworker.displayprogress();
 		migrationwasdone = true;
 	}
 
@@ -257,13 +261,16 @@ void initialsetup()
 	//threadCreate(threadfunc_drawinitialsetupprogress, NULL, 20000, mainthreadpriority - 2, -2, true);
 	bool migrationwasdone = doallmigration();
 
-	initupdatechecker();
+	//initupdatechecker();
+	updatecheckworker.startworker();
 	svcWaitSynchronization(event_downloadthreadfinished, U64_MAX);
 	if (isupdateavailable() && !shoulddisableupdater)
 	{
-		doprogressdraw = false;
+		//doprogressdraw = false;
 		error("An update is available.\nIt will be installed now.");
-		doprogressdraw = true; //This may cause issues...
+		updateinstallworker.startworker();
+		updateinstallworker.displayprogress();
+		/*doprogressdraw = true; //This may cause issues...
 		initdownloadandinstallupdate();
 		progress = 0;
 		total = 100;
@@ -280,9 +287,9 @@ void initialsetup()
 		} while(progress != 102);
 		progresspopdown();
 		progressrunning = false; //Another point of conflict?
-		svcWaitSynchronization(progressthreaddone, U64_MAX);
+		svcWaitSynchronization(progressthreaddone, U64_MAX);*/
 		error("Update complete. The system\nwill now reboot.");
-		//nsrebootsystemclean();
+		nsRebootSystemClean();
 	}
 	progressrunning = false;
 	tutorial(migrationwasdone);

@@ -144,7 +144,7 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 		draw.drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
 	draw.drawon(GFX_BOTTOM);
 	if (botfb.height)
-		draw.drawframebuffer(botfb, 0, 0, true);
+		draw.drawframebuffer(botfb, 0, 0, false);
 	else
 		draw.drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
 	draw.useeventualshader();

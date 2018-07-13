@@ -2,6 +2,7 @@
 //(It conflicted with the define, but "title" doesn't explain a whole lot)
 
 #include "sdraw.hpp"
+#include "workerfunction.hpp"
 #include <string>
 #include <vector>
 #include <sstream>
@@ -17,13 +18,15 @@ class smdhdata
 	bool isactive = false; //Calculated in the loading function
 };
 
+//Used below
+void worker_loadallsmdhdata(WorkerFunction* notthis);
+
+extern WorkerFunction SMDHworker;
+
 void initializeallSMDHdata(vector<u64> intitleids);
 void freeSMDHdata();
 vector<smdhdata>& getSMDHdata();
 vector<smdhdata>& getallSMDHdata();
-bool alltitlesareloaded();
-int getalltitlescount();
-int getalltitlesloadedcount();
 
 void updatecartridgedata();
 void cartridgesrvhook(u32 NotificationID);

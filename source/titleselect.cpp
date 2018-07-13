@@ -190,7 +190,7 @@ void titleselect()
 			if (maxslot == 0)
 			{
 				error("Warning: Failed to find mods for\nthis game!");
-				error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nWhere X is a number starting at 1.");
+				error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nwhere X is a number starting at 1.");
 			}
 			mainmenuupdateslotname();
 			config.write("SelectedTitleIDPos", currenttidpos);

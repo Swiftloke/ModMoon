@@ -8,14 +8,18 @@
 #include <algorithm>
 #include "../error.hpp"
 #include "../titleselects.hpp"
+#include "migrators.hpp"
 
-int modsChecked = 1;
+/*int modsChecked = 1;
 bool isdone = false;
 
 std::pair<int, bool> ss1xretrieveinfo()
 {
 	return std::make_pair(modsChecked, isdone);
-}
+}*/
+
+WorkerFunction ss1xworker(ss1xMigrate, \
+	"Moving Smash Selector 1.0 mods...\nMod [progress] / ?");
 
 //Thanks to Cydget for this code from Smash Selector 2.x!
 int checkOldMods(int startFolderNum, string destfolder, u64 title)
@@ -44,7 +48,7 @@ int checkOldMods(int startFolderNum, string destfolder, u64 title)
 	return -1;
 }
 
-void ss1xMigrate(void* null)
+void ss1xMigrate(WorkerFunction* notthis)
 {
 	ifstream card("/saltysd/card.txt");
 	//For as garbage as C++'s file IO is, it works well in this one edge case
@@ -72,11 +76,14 @@ void ss1xMigrate(void* null)
 	missingmodin.close();
 	rename("/saltysd/smash", ("saltysd/smash" + to_string(missingmod)).c_str());
 	//Copy slots
-	while (modsChecked != -1)
+	while (notthis->functionprogress != -1)
 	{
-		modsChecked = checkOldMods(modsChecked, modsfolder + tid2str(title) + '/', title);
+		notthis->functionprogress = checkOldMods(notthis->functionprogress, \
+			modsfolder + tid2str(title) + '/', title);
+		//We don't have a total, this is to ensure that the progress bar is at 100%
+		notthis->functiontotal = notthis->functionprogress;
 	}
 	remove("/saltysd/select.txt");
 	remove("/saltysd/card.txt");
-	isdone = true;
+	notthis->functiondone = true;
 }

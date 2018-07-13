@@ -13,13 +13,23 @@
 #include "main.hpp"
 using namespace std;
 
+DownloadWorker updatecheckworker(threadfunc_updatechecker, "Checking for updates... [progress]% complete");
+DownloadWorker updateinstallworker(threadfunc_downloadandinstallupdate, \
+	"Downloading update...\n[progress]% complete");
+
 bool cancel = false;
 bool updateisavailable = false;
 string result;
-unsigned int downloadprogress = 0;
+//unsigned int downloadprogress = 0;
 Handle event_downloadthreadfinished;
 
-Result http_download(const char *url, string savelocation)
+void DownloadWorker::startworker()
+{
+	svcCreateEvent(&event_downloadthreadfinished, RESET_ONESHOT);
+	this->WorkerFunction::startworker();
+}
+
+Result http_download(const char *url, string savelocation, WorkerFunction* notthis)
 {
 	Result ret = 0;
 	httpcContext context;
@@ -98,7 +108,7 @@ Result http_download(const char *url, string savelocation)
 
 	do {
 		// This download loop resizes the buffer as data is read.
-		downloadprogress = (size * 100) / contentsize;
+		notthis->functionprogress = (size * 100) / contentsize;
 		ret = httpcDownloadData(&context, buf + size, 0x1000, &readsize);
 		size += readsize;
 		if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING) {
@@ -138,16 +148,10 @@ Result http_download(const char *url, string savelocation)
 		buf[contentsize] = '\0';
 		result = string((char*)buf);
 	}
-	else if(savelocation == "FILE")
-	{
-		ofstream out(savelocation, ios::trunc);
-		out << buf;
-		out.close();
-	}
 	else if (savelocation == "INSTALL")
 	{
 		romfsExit(); //One cannot have an open handle to their romFS while they are updating it
-		downloadprogress = 101; //Signal we're currently installing
+		notthis->functionprogress = 101; //Signal we're currently installing
 		if (BUILDIS3DSX)
 		{
 			ofstream out(savelocation, ios::trunc);
@@ -162,7 +166,13 @@ Result http_download(const char *url, string savelocation)
 			FSFILE_Write(cia, NULL, 0, buf, contentsize, 0);
 			AM_FinishCiaInstall(cia);
 		}
-		downloadprogress = 102; //Signal that we're all done
+		notthis->functionprogress = 102; //Signal that we're all done
+	}
+	else //It's a file
+	{
+		ofstream out(savelocation, ios::trunc);
+		out << buf;
+		out.close();
 	}
 	free(buf);
 	if (newurl != NULL) free(newurl);
@@ -172,12 +182,12 @@ Result http_download(const char *url, string savelocation)
 //Update checking will need to be changed to usage of ints like "30" and "31" for 3.0 and 3.1.
 //Another bonus is that old versions will detect this as newer even with the stupid idea of using stof for update checking.
 //
-void threadfunc_updatechecker(void* unused)
+void threadfunc_updatechecker(WorkerFunction* notthis)
 {
 	if(!osGetWifiStrength())
 		{svcSignalEvent(event_downloadthreadfinished); return; }
 	string URL = "http://swiftloke.github.io/ModMoon/ModMoonVersion.txt";
-	if (http_download(URL.c_str(), "TEXT"))
+	if (http_download(URL.c_str(), "TEXT", notthis))
 		{svcSignalEvent(event_downloadthreadfinished); return; }
 	int newversion = stoi(result);
 	if (newversion > config.read("ModMoonVersion", 0))
@@ -185,31 +195,31 @@ void threadfunc_updatechecker(void* unused)
 	svcSignalEvent(event_downloadthreadfinished);
 }
 
-void initupdatechecker()
+/*void initupdatechecker()
 {
 	if (!osGetWifiStrength()) return; //We're not connected
 	s32 mainthreadpriority;
 	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
 	svcCreateEvent(&event_downloadthreadfinished, RESET_ONESHOT);
 	threadCreate(threadfunc_updatechecker, NULL, 8000, mainthreadpriority + 1, -2, true);
-}
+}*/
 
 bool isupdateavailable()
 {
 	return updateisavailable;
 }
 
-void threadfunc_downloadandinstallupdate(void* unused)
+void threadfunc_downloadandinstallupdate(WorkerFunction* notthis)
 {
 	string URL = "http://swiftloke.github.io/ModMoon/ModMoonBin";
 	if (BUILDIS3DSX)
 		URL.append(".3dsx");
 	else
 		URL.append(".cia");
-	http_download(URL.c_str(), "INSTALL");
+	http_download(URL.c_str(), "INSTALL", notthis);
 }
 
-void initdownloadandinstallupdate()
+/*void initdownloadandinstallupdate()
 {
 	if (!osGetWifiStrength()) return; //We're not connected
 	s32 mainthreadpriority;
@@ -220,7 +230,7 @@ void initdownloadandinstallupdate()
 unsigned int retrievedownloadprogress()
 {
 	return downloadprogress;
-}
+}*/
 
 void downloadsignalandwaitforcancel()
 {

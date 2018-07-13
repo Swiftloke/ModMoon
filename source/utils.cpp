@@ -17,8 +17,19 @@ using namespace std;
 
 Handle event_fadefinished;
 
+Result nsRebootSystemClean()
+{
+	static Handle nsHandle;
+	srvGetServiceHandle(&nsHandle, "ns:s");
+	u32 *cmdbuf = getThreadCommandBuffer();
+	cmdbuf[0] = IPC_MakeHeader(0x16, 0, 0); // 0x00160000
+	Result ret;
+	if (R_FAILED(ret = svcSendSyncRequest(nsHandle)))return ret;
+	return (Result)cmdbuf[1];
+}
+
 //The code to deal with a missing slot due to it being in the destination is outdated,
-//but I've left it in in case it comes in handy later; there's no read penalty to keeping
+//but I've left it in in case it comes in handy later; there's no real penalty to keeping
 //it anyway
 int maxslotcheck(u64 optionaltid, int optionalslot)
 {
@@ -143,7 +154,6 @@ void launch(){
 	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
 	svcCreateEvent(&event_fadefinished, RESET_ONESHOT);
 	threadCreate(threadfunc_fade, rgb, 8000, mainthreadpriority + 1, -2, true);
-	titleids[0] = 0; //Prevent a potential issue with the reader finding this title on SD next boot when it's not inserted
 	config.u64multiwrite("ActiveTitleIDs", titleids, true);
 	config.intmultiwrite("TitleIDSlots", slots);
 	config.write("SelectedTitleIDPos", currenttidpos);
@@ -182,6 +192,5 @@ void launch(){
 	memset(hmac, 0, sizeof(hmac));
 
 	APT_PrepareToDoApplicationJump(0, currenttitleid, getSMDHdata()[currenttidpos].gametype);
-
 	APT_DoApplicationJump(param, sizeof(param), hmac);
 }

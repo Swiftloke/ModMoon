@@ -35,6 +35,15 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 	static bool highlighterismoving = false;
 	static int highlighteralpha = 0;
 	static bool highlighteralphaplus = true;
+	//Configure TexEnv stage 1 to "blink" the texture by making it all blue
+	C3D_TexEnv coloroverride;
+	C3D_TexEnvSrc(&coloroverride, C3D_RGB, GPU_CONSTANT);
+	C3D_TexEnvSrc(&coloroverride, C3D_Alpha, GPU_PREVIOUS);
+	C3D_TexEnvOpRgb(&coloroverride, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(&coloroverride, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
+	C3D_TexEnvFunc(&coloroverride, C3D_RGB, GPU_REPLACE);
+	C3D_TexEnvFunc(&coloroverride, C3D_Alpha, GPU_REPLACE);
+	C3D_TexEnvColor(&coloroverride, RGBA8(0, 0, 255, 255));
 
 	highlighterhandle(highlighteralpha, highlighteralphaplus);
 	y -= 70 * scrollsubtractrows;
@@ -71,23 +80,18 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 					highlighterinterpfactor = 0;
 				}
 			}
+			if(iter->isactive)
+				C3D_SetTexEnv(1, &coloroverride);
 			draw.drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, highlighteralpha, x - 9, y - 9, highlighterinterpfactor);
+			if(iter->isactive)
+				C3D_TexEnvInit(C3D_GetTexEnv(1));
 		}
 		else if (iter->isactive)
 		{
-			//Configure TexEnv stage 1 to "blink" the texture by making it all blue
-			C3D_TexEnv* tev = C3D_GetTexEnv(1);
-			C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
-			C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS);
-			C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-			C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
-			C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
-			C3D_TexEnvFunc(tev, C3D_Alpha, GPU_REPLACE);
-			C3D_TexEnvColor(tev, RGBA8(0, 0, 255, 255));
+			C3D_SetTexEnv(1, &coloroverride);
 			draw.drawtexture(titleselecthighlighter, x - 9, y - 9);
 			//Now we need to reset stage 1
-			tev = C3D_GetTexEnv(1);
-			C3D_TexEnvInit(tev);
+			C3D_TexEnvInit(C3D_GetTexEnv(1));
 		}
 		i++;
 		if (iter == allicons.begin()) //It's the cartridge
@@ -111,8 +115,10 @@ void activetitleselect()
 	C3D_TexInit(&prevtop, 256, 512, GPU_RGBA8);
 	C3D_TexInit(&prevbot, 256, 512, GPU_RGBA8);
 	draw.retrieveframebuffers(&prevtop, &prevbot);
+	//A while after this was written, it was revamped...
 	//Wait on the other thread to finish title loading
-	float popup = 0;
+	SMDHworker.displayprogress();
+	/*float popup = 0;
 	if (!alltitlesareloaded())
 	{
 		//Unforunately we can't just have an "error" call because we still need to feed it the progress value
@@ -138,7 +144,8 @@ void activetitleselect()
 				break;
 			}
 		}
-	}
+	}*/
+
 	allicons = getallSMDHdata();
 	//Was having some seriously crazy bugs with this bit, not totally sure if it's fixed
 	//so I'm leaving the debugging code here

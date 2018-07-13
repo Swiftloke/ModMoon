@@ -7,14 +7,17 @@
 #include "../error.hpp"
 #include "../titleselects.hpp"
 
-int foldercount = 0; //Immediately incremented to 1 in migration
+/*int foldercount = 0; //Immediately incremented to 1 in migration
 int totalslots = 0; //Calculated later
 bool isitdone = false;
 
 std::tuple<int, int, bool> ss2xretriveinfo()
 {
 	return std::make_tuple(foldercount, totalslots, isitdone);
-}
+}*/
+
+WorkerFunction ss2xworker(ss2xMigrate, \
+	"Moving Smash Selector 2.x mods...\nMod [progress] / [total]");
 
 int ss2xmaxSlotCheck(string ss2xmodsfolder)
 {
@@ -30,20 +33,20 @@ int ss2xmaxSlotCheck(string ss2xmodsfolder)
 	return currentFolderCount - 1;
 }
 
-void ss2xmovemods(string srcmodsfolder, u64 title, int premigratemaxslot)
+void ss2xmovemods(string srcmodsfolder, u64 title, int premigratemaxslot, WorkerFunction* notthis)
 {
 	string src, dest;
 	while (true)
 	{
-		foldercount++;
-		src = srcmodsfolder + "Slot_" + to_string(foldercount);
-		dest = modsfolder + tid2str(title) + "/Slot_" + to_string(foldercount + premigratemaxslot);
+		notthis->functionprogress++;
+		src = srcmodsfolder + "Slot_" + to_string(notthis->functionprogress);
+		dest = modsfolder + tid2str(title) + "/Slot_" + to_string(notthis->functionprogress + premigratemaxslot);
 		if(!pathExist(src)) break;
 		rename(src.c_str(), dest.c_str());
 	}
 }
 
-void ss2xMigrate(void* null)
+void ss2xMigrate(WorkerFunction* notthis)
 {
 	Config ss2xconfig("/3ds/data/smash_selector/", "settings.txt");
 	int gametype = ss2xconfig.read("GameType") == "Cia" ? 1 : 2;
@@ -58,8 +61,8 @@ void ss2xMigrate(void* null)
 	//What's currently in /saltysd/smash? Keep the order.
 	rename("/saltysd/smash", (ss2xmodsfolder + "Slot_" + to_string(missingmod)).c_str());
 	int premigratemaxslot = maxslotcheck(title);
-	totalslots = ss2xmaxSlotCheck(ss2xmodsfolder);
-	ss2xmovemods(ss2xmodsfolder, title, premigratemaxslot);
+	notthis->functiontotal = ss2xmaxSlotCheck(ss2xmodsfolder);
+	ss2xmovemods(ss2xmodsfolder, title, premigratemaxslot, notthis);
 	remove("/3ds/data/smash_selector/settings.txt");
-	isitdone = true;
+	notthis->functiondone = true;
 }
