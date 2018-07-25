@@ -16,9 +16,12 @@ using namespace std;
 DownloadWorker updatecheckworker(threadfunc_updatechecker, "Checking for updates... [progress]% complete");
 DownloadWorker updateinstallworker(threadfunc_downloadandinstallupdate, \
 	"Downloading update...\n[progress]% complete");
+DownloadWorker saltysdupdaterworker(threadfunc_updatesaltysd, \
+	"Updating SaltySD... Byte [progress] of [total]");
 
 bool cancel = false;
 bool updateisavailable = false;
+bool saltysdupdateavailable = false;
 string result;
 //unsigned int downloadprogress = 0;
 Handle event_downloadthreadfinished;
@@ -30,6 +33,7 @@ void DownloadWorker::startworker()
 }
 
 Result http_download(const char *url, string savelocation, WorkerFunction* notthis)
+Result http_download(const char *url, string savelocation, WorkerFunction* notthis, string fileout = "")
 {
 	Result ret = 0;
 	httpcContext context;
@@ -171,6 +175,7 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 	else //It's a file
 	{
 		ofstream out(savelocation, ios::trunc);
+		ofstream out(fileout, ios::trunc | ios::binary);
 		out << buf;
 		out.close();
 	}
@@ -192,6 +197,30 @@ void threadfunc_updatechecker(WorkerFunction* notthis)
 	int newversion = stoi(result);
 	if (newversion > config.read("ModMoonVersion", 0))
 		updateisavailable = true;
+
+	//SaltySD... if we need it.
+	if (!issaltysdtitle())
+		{svcSignalEvent(event_downloadthreadfinished); return; }
+	URL = baseURL + currenttitleidstr + "Hash.txt";
+	res = http_download(URL.c_str(), "TEXT", notthis);
+	if(res) 
+		{svcSignalEvent(event_downloadthreadfinished); return; }
+	string file = "/luma/titles/" + currenttitleidstr + '/';
+	if (!pathExist(file)) //Maybe it's disabled?
+	{
+		file.insert(13, "Disabled");
+		if(!pathExist(file))
+			{svcSignalEvent(event_downloadthreadfinished); return; }
+	}
+	file.append("code.ips");
+	unsigned int hash = genHash(file);
+	unsigned int serverhash = stoul(result);
+	//We're under the assumption that if the hash is different, there must be an update...
+	//This, however, does not account for the problem of potential downgrades.
+	//IPS files do not embed version information so this isn't a solvable problem...
+	if(hash != serverhash)
+		saltysdupdateavailable = true;
+
 	svcSignalEvent(event_downloadthreadfinished);
 }
 
@@ -209,6 +238,11 @@ bool isupdateavailable()
 	return updateisavailable;
 }
 
+bool issaltysdupdateavailable()
+{
+	return saltysdupdateavailable;
+}
+
 void threadfunc_downloadandinstallupdate(WorkerFunction* notthis)
 {
 	string URL = "http://swiftloke.github.io/ModMoon/ModMoonBin";
@@ -217,6 +251,22 @@ void threadfunc_downloadandinstallupdate(WorkerFunction* notthis)
 	else
 		URL.append(".cia");
 	http_download(URL.c_str(), "INSTALL", notthis);
+}
+
+void threadfunc_updatesaltysd(WorkerFunction* notthis)
+{
+	string URL = baseURL + "SaltySD" + currenttitleidstr + ".ips";
+	string out = "/luma/titles/" + currenttitleidstr + '/';
+	if (!pathExist(out)) //Maybe it's disabled?
+	{
+		out.insert(13, "Disabled");
+		if (!pathExist(out))
+		{
+			svcSignalEvent(event_downloadthreadfinished); return;
+		}
+	}
+	http_download(URL.c_str(), "FILE", notthis, out);
+	svcSignalEvent(event_downloadthreadfinished);
 }
 
 /*void initdownloadandinstallupdate()

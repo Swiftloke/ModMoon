@@ -22,4 +22,7 @@ inline bool pathExist(const string filename) {
 	return (stat(filename.c_str(), &buffer) == 0);
 }
 
+//Calculates the Murmur Hash 2 algorithm on a file.
+unsigned int genHash(string filepath);
+
 extern Handle event_fadefinished;
