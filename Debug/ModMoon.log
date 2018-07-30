@@ -1,103 +1,17 @@
-﻿  smdh.cpp
-  arm-none-eabi-g++ -MMD -MP -MF /home/qwe/Documents/GitHub/ModMoon/build/smdh.d -g -Wall -Og -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/home/qwe/Documents/GitHub/ModMoon/include -I/c/devkitPro/libctru/include -I/home/qwe/Documents/GitHub/ModMoon/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -c /home/qwe/Documents/GitHub/ModMoon/source/smdh.cpp -o smdh.o 
-  In file included from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_algobase.h:67:0,
-                   from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\vector:60,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/sdraw.hpp:5,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/main.hpp:20,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/smdh.cpp:1:
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h: In function '_Iterator std::__niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container>) [with _Iterator = const long long unsigned int*; _Container = std::vector<long long unsigned int>]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h:983:5: note: parameter passing for argument of type '__gnu_cxx::__normal_iterator<const long long unsigned int*, std::vector<long long unsigned int> >' changed in GCC 7.1
-       __niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container> __it)
-       ^~~~~~~~~~~~
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h: In function '_Iterator std::__niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container>) [with _Iterator = long long unsigned int*; _Container = std::vector<long long unsigned int>]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h:983:5: note: parameter passing for argument of type '__gnu_cxx::__normal_iterator<long long unsigned int*, std::vector<long long unsigned int> >' changed in GCC 7.1
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h: In function '_Iterator std::__niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container>) [with _Iterator = smdhdata*; _Container = std::vector<smdhdata>]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h:983:5: note: parameter passing for argument of type '__gnu_cxx::__normal_iterator<smdhdata*, std::vector<smdhdata> >' changed in GCC 7.1
-  In file included from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\vector:69:0,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/sdraw.hpp:5,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/main.hpp:20,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/smdh.cpp:1:
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\vector.tcc: In member function 'std::vector<_Tp, _Alloc>::iterator std::vector<_Tp, _Alloc>::_M_erase(std::vector<_Tp, _Alloc>::iterator) [with _Tp = smdhdata; _Alloc = std::allocator<smdhdata>]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\vector.tcc:153:5: note: parameter passing for argument of type 'std::vector<smdhdata>::iterator {aka __gnu_cxx::__normal_iterator<smdhdata*, std::vector<smdhdata> >}' changed in GCC 7.1
-       vector<_Tp, _Alloc>::
-       ^~~~~~~~~~~~~~~~~~~
-  In file included from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\vector:64:0,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/sdraw.hpp:5,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/main.hpp:20,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/smdh.cpp:1:
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_vector.h: In function 'void threadfunc_loadallsmdhdata(void*)':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_vector.h:1180:58: note: parameter passing for argument of type '__gnu_cxx::__normal_iterator<smdhdata*, std::vector<smdhdata> >' changed in GCC 7.1
-         { return _M_erase(begin() + (__position - cbegin())); }
-                                                            ^
-  main.cpp
-  arm-none-eabi-g++ -MMD -MP -MF /home/qwe/Documents/GitHub/ModMoon/build/main.d -g -Wall -Og -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/home/qwe/Documents/GitHub/ModMoon/include -I/c/devkitPro/libctru/include -I/home/qwe/Documents/GitHub/ModMoon/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -c /home/qwe/Documents/GitHub/ModMoon/source/main.cpp -o main.o 
-  In file included from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_algobase.h:67:0,
-                   from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\char_traits.h:39,
-                   from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\string:40,
+﻿  main.cpp
+  arm-none-eabi-g++ -MMD -MP -MF /home/qwe/Documents/GitHub/ModMoon/build/main.d -g -Wall -Og -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/home/qwe/Documents/GitHub/ModMoon/include -I/c/devkitPro/libctru/include -I/home/qwe/Documents/GitHub/ModMoon/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -DBUILTFROM3DSX -c /home/qwe/Documents/GitHub/ModMoon/source/main.cpp -o main.o 
+  In file included from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\8.1.0\bits\stl_algobase.h:67,
+                   from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\8.1.0\bits\char_traits.h:39,
+                   from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\8.1.0\string:40,
                    from C:/Users/qwe/Documents/GitHub/ModMoon/source/main.cpp:4:
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h: In function '_Iterator std::__niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container>) [with _Iterator = const long long unsigned int*; _Container = std::vector<long long unsigned int>]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h:983:5: note: parameter passing for argument of type '__gnu_cxx::__normal_iterator<const long long unsigned int*, std::vector<long long unsigned int> >' changed in GCC 7.1
+  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\8.1.0\bits\stl_iterator.h: In function '_Iterator std::__niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container>) [with _Iterator = const long long unsigned int*; _Container = std::vector<long long unsigned int>]':
+  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\8.1.0\bits\stl_iterator.h:984:5: note: parameter passing for argument of type '__gnu_cxx::__normal_iterator<const long long unsigned int*, std::vector<long long unsigned int> >' changed in GCC 7.1
        __niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container> __it)
        ^~~~~~~~~~~~
-  download.cpp
-  arm-none-eabi-g++ -MMD -MP -MF /home/qwe/Documents/GitHub/ModMoon/build/download.d -g -Wall -Og -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/home/qwe/Documents/GitHub/ModMoon/include -I/c/devkitPro/libctru/include -I/home/qwe/Documents/GitHub/ModMoon/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -c /home/qwe/Documents/GitHub/ModMoon/source/download.cpp -o download.o 
-  titleselect.cpp
-  arm-none-eabi-g++ -MMD -MP -MF /home/qwe/Documents/GitHub/ModMoon/build/titleselect.d -g -Wall -Og -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/home/qwe/Documents/GitHub/ModMoon/include -I/c/devkitPro/libctru/include -I/home/qwe/Documents/GitHub/ModMoon/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -c /home/qwe/Documents/GitHub/ModMoon/source/titleselect.cpp -o titleselect.o 
-  C:/Users/qwe/Documents/GitHub/ModMoon/source/titleselect.cpp: In function 'void titleselectdraw(C3D_Tex, float, int, unsigned int, bool)':
-C:/Users/qwe/Documents/GitHub/ModMoon/source/titleselect.cpp(41,9): warning G2A2880C6: comparison between signed and unsigned integer expressions [-Wsign-compare]
-     if (i == selectpos)
-         ~~^~~~~~~~~~~~
-  C:/Users/qwe/Documents/GitHub/ModMoon/source/titleselect.cpp: In function 'void titleselect()':
-C:/Users/qwe/Documents/GitHub/ModMoon/source/titleselect.cpp(150,18): warning G2A2880C6: comparison between signed and unsigned integer expressions [-Wsign-compare]
-      if (selectpos >= icons.size())
-          ~~~~~~~~~~^~~~~~~~~~~~~~~
-C:/Users/qwe/Documents/GitHub/ModMoon/source/titleselect.cpp(171,18): warning G2A2880C6: comparison between signed and unsigned integer expressions [-Wsign-compare]
-      if (selectpos >= icons.size())
-          ~~~~~~~~~~^~~~~~~~~~~~~~~
-  In file included from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_algobase.h:67:0,
-                   from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\vector:60,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/sdraw.hpp:5,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/main.hpp:20,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/titleselect.cpp:1:
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h: In function '_Iterator std::__niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container>) [with _Iterator = const smdhdata*; _Container = std::vector<smdhdata>]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h:983:5: note: parameter passing for argument of type '__gnu_cxx::__normal_iterator<const smdhdata*, std::vector<smdhdata> >' changed in GCC 7.1
-       __niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container> __it)
-       ^~~~~~~~~~~~
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h: In function '_Iterator std::__niter_base(__gnu_cxx::__normal_iterator<_Iterator, _Container>) [with _Iterator = smdhdata*; _Container = std::vector<smdhdata>]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h:983:5: note: parameter passing for argument of type '__gnu_cxx::__normal_iterator<smdhdata*, std::vector<smdhdata> >' changed in GCC 7.1
-  config.cpp
-  arm-none-eabi-g++ -MMD -MP -MF /home/qwe/Documents/GitHub/ModMoon/build/config.d -g -Wall -Og -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/home/qwe/Documents/GitHub/ModMoon/include -I/c/devkitPro/libctru/include -I/home/qwe/Documents/GitHub/ModMoon/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -c /home/qwe/Documents/GitHub/ModMoon/source/config.cpp -o config.o 
-  In file included from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_algobase.h:67:0,
-                   from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\vector:60,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/sdraw.hpp:5,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/main.hpp:20,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/config.cpp:1:
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h: In function 'decltype (std::__miter_base(__it.base())) std::__miter_base(std::move_iterator<_IteratorL>) [with _Iterator = long long unsigned int*]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\stl_iterator.h:1241:5: note: parameter passing for argument of type 'std::move_iterator<long long unsigned int*>' changed in GCC 7.1
-       __miter_base(move_iterator<_Iterator> __it)
-       ^~~~~~~~~~~~
-  In file included from c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\vector:69:0,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/sdraw.hpp:5,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/main.hpp:20,
-                   from C:/Users/qwe/Documents/GitHub/ModMoon/source/config.cpp:1:
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\vector.tcc: In member function 'void std::vector<_Tp, _Alloc>::_M_realloc_insert(std::vector<_Tp, _Alloc>::iterator, _Args&& ...) [with _Args = {long long unsigned int}; _Tp = long long unsigned int; _Alloc = std::allocator<long long unsigned int>]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\vector.tcc:394:7: note: parameter passing for argument of type 'std::vector<long long unsigned int>::iterator {aka __gnu_cxx::__normal_iterator<long long unsigned int*, std::vector<long long unsigned int> >}' changed in GCC 7.1
-         vector<_Tp, _Alloc>::
-         ^~~~~~~~~~~~~~~~~~~
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\vector.tcc: In member function 'void std::vector<_Tp, _Alloc>::emplace_back(_Args&& ...) [with _Args = {long long unsigned int}; _Tp = long long unsigned int; _Alloc = std::allocator<long long unsigned int>]':
-  c:\devkitpro\devkitarm\arm-none-eabi\include\c++\7.1.0\bits\vector.tcc:105:21: note: parameter passing for argument of type '__gnu_cxx::__normal_iterator<long long unsigned int*, std::vector<long long unsigned int> >' changed in GCC 7.1
-      _M_realloc_insert(end(), std::forward<_Args>(__args)...);
-      ~~~~~~~~~~~~~~~~~^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-  error.cpp
-  arm-none-eabi-g++ -MMD -MP -MF /home/qwe/Documents/GitHub/ModMoon/build/error.d -g -Wall -Og -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/home/qwe/Documents/GitHub/ModMoon/include -I/c/devkitPro/libctru/include -I/home/qwe/Documents/GitHub/ModMoon/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -c /home/qwe/Documents/GitHub/ModMoon/source/error.cpp -o error.o 
-  utils.cpp
-  arm-none-eabi-g++ -MMD -MP -MF /home/qwe/Documents/GitHub/ModMoon/build/utils.d -g -Wall -Og -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/home/qwe/Documents/GitHub/ModMoon/include -I/c/devkitPro/libctru/include -I/home/qwe/Documents/GitHub/ModMoon/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -c /home/qwe/Documents/GitHub/ModMoon/source/utils.cpp -o utils.o 
-  C:/Users/qwe/Documents/GitHub/ModMoon/source/utils.cpp: In function 'int maxslotcheck(u64)':
-C:/Users/qwe/Documents/GitHub/ModMoon/source/utils.cpp(26,33): warning G2A2880C6: comparison between signed and unsigned integer expressions [-Wsign-compare]
-    string tid2check = optionaltid != -1 ? tid2str(optionaltid) : currenttitleidstr;
-                       ~~~~~~~~~~~~^~~~~
+  srv.cpp
+  arm-none-eabi-g++ -MMD -MP -MF /home/qwe/Documents/GitHub/ModMoon/build/srv.d -g -Wall -Og -mword-relocations -fomit-frame-pointer -ffunction-sections -march=armv6k -mtune=mpcore -mfloat-abi=hard -mtp=soft -I/home/qwe/Documents/GitHub/ModMoon/include -I/c/devkitPro/libctru/include -I/home/qwe/Documents/GitHub/ModMoon/build -DARM11 -D_3DS -fno-rtti -fno-exceptions -std=gnu++11 -DBUILTFROM3DSX -c /home/qwe/Documents/GitHub/ModMoon/source/srv.cpp -o srv.o 
   linking ModMoon.elf
   built ... ModMoon.3dsx
   3dslink ModMoon.3dsx
-  Sending ModMoon.3dsx, 960628 bytes
-  520686 sent (54.20%), 52 blocks
+  Sending ModMoon.3dsx, 973760 bytes
+  539662 sent (55.42%), 54 blocks

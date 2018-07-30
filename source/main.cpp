@@ -18,6 +18,7 @@
 #include "error.hpp"
 #include "titleselects.hpp"
 #include "srv.hpp"
+#include "download.hpp"
 
 using namespace std;
 
@@ -99,6 +100,18 @@ bool issaltysdtitle(u64 optionaltitleid)
 	|| titleop == 0x00040000000B8B00;
 }
 
+string saltysdtidtoregion(u64 optionaltitleid)
+{
+	u64 titleop = optionaltitleid != 0 ? optionaltitleid : currenttitleid;
+	switch (titleop)
+	{
+	case 0x00040000000EDF00: return "USA";
+	case 0x00040000000EE000: return "EUR";
+	case 0x00040000000B8B00: return "JPN";
+	}
+	return "???";
+}
+
 int movemodsin()
 {
 	string source = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
@@ -126,6 +139,8 @@ int startup()
 	{
 		renamefailed = movemodsin();
 	}
+	if(issaltysdtitle())
+		movecustomsaltysdout();
 	mainmenuupdateslotname();
 	cfguInit(); //For system language
 	amInit(); //For getting all the installed titles + updating
@@ -516,6 +531,8 @@ int main(int argc, char **argv) {
 	
 	if (modsenabled)
 	{
+		if(issaltysdtitle())
+			movecustomsaltysdin();
 		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr;
 		string src = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
 		attemptrename:

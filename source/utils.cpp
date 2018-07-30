@@ -201,6 +201,50 @@ unsigned int genHash(string filepath) {//give this function three arguments main
 	return hashoffile;
 }
 
+//As far as I can tell, there's no really good way to do this... The idea is to move around the original
+//SaltySD file to make room for the custom one...
+
+void movecustomsaltysdin()
+{
+	if (pathExist((modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot) + "/codes"))) //A custom code.ips needs to be moved.
+	{
+		//string regions[] = { "USA", "EUR", "JAP" };
+		string originalmoveout = "/luma/titles/" + currenttitleidstr + "/code.ips";
+		string originalmovein = "/3ds/ModMoon/" + saltysdtidtoregion() + "code.ips";
+		if ((originalmoveout.c_str(), originalmovein.c_str()))
+		{
+			error("Custom SaltySD code.ips move\nfailed! (original move)");
+		}
+		string custommoveout = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot) + "/codes/" + saltysdtidtoregion() + "code.ips";
+		string custommovein = "/luma/titles/" + currenttitleidstr + "/code.ips";
+		if (rename(custommoveout.c_str(), custommovein.c_str()))
+		{
+			error("Custom SaltySD code.ips move\nfailed! (custom move)");
+		}
+	}
+}
+
+void movecustomsaltysdout()
+{
+	if (pathExist((modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot) + "/codes"))) //A custom code.ips needs to be moved.
+	{
+		//string regions[] = { "USA", "EUR", "JAP" };
+		string custommoveout = "/luma/titles/" + currenttitleidstr + "/code.ips";
+		string custommovein = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot) + "/codes/" + saltysdtidtoregion() + "code.ips";
+		if (rename(custommoveout.c_str(), custommovein.c_str()))
+		{
+			error("Custom SaltySD code.ips move\nfailed! (custom move)");
+		}
+
+		string originalmoveout = "/3ds/ModMoon/" + saltysdtidtoregion() + "code.ips";
+		string originalmovein = "/luma/titles/" + currenttitleidstr + "/code.ips";
+		if ((originalmoveout.c_str(), originalmovein.c_str()))
+		{
+			error("Custom SaltySD code.ips move\nfailed! (original move)");
+		}
+	}
+}
+
 void launch(){
 
 	int rgb[3] = {0, 0, 0}; //Fade to black
@@ -215,6 +259,8 @@ void launch(){
 	config.flush();
 	if(modsenabled)
 	{
+		if(issaltysdtitle())
+			movecustomsaltysdin();
 		string dest = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
 		string src = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
 		attemptrename:

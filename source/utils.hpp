@@ -25,4 +25,8 @@ inline bool pathExist(const string filename) {
 //Calculates the Murmur Hash 2 algorithm on a file.
 unsigned int genHash(string filepath);
 
+//Custom SaltySD files provided by modpacks
+void movecustomsaltysdout();
+void movecustomsaltysdin();
+
 extern Handle event_fadefinished;

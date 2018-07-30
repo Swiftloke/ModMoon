@@ -78,5 +78,7 @@ bool touched(sdraw_stex button, int dx, int dy, touchPosition tpos);
 bool touched(int x, int y, int width, int height, touchPosition tpos);
 bool buttonpressed(sdraw_stex button, int bx, int by, touchPosition lastpos, u32 kHeld);
 bool issaltysdtitle(u64 optionaltitleid = 0);
+//Returns "USA", "EUR" or "JPN"
+string saltysdtidtoregion(u64 optionaltitleid = 0);
 void drawtopscreen();
 bool secretcodeadvance(u32 kDown);

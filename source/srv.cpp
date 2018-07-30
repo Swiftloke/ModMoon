@@ -69,7 +69,7 @@ void srv::lock ()
 {
     RecursiveLock_Lock(&rlock);
 }
-//Crash here???
+
 void srv::unlock ()
 {
     RecursiveLock_Unlock(&rlock);
