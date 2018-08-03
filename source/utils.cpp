@@ -211,15 +211,17 @@ void movecustomsaltysdin()
 		//string regions[] = { "USA", "EUR", "JAP" };
 		string originalmoveout = "/luma/titles/" + currenttitleidstr + "/code.ips";
 		string originalmovein = "/3ds/ModMoon/" + saltysdtidtoregion() + "code.ips";
-		if ((originalmoveout.c_str(), originalmovein.c_str()))
+		if (rename(originalmoveout.c_str(), originalmovein.c_str()))
 		{
 			error("Custom SaltySD code.ips move\nfailed! (original move)");
+			error("Error code: " + to_string(errno));
 		}
 		string custommoveout = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot) + "/codes/" + saltysdtidtoregion() + "code.ips";
 		string custommovein = "/luma/titles/" + currenttitleidstr + "/code.ips";
 		if (rename(custommoveout.c_str(), custommovein.c_str()))
 		{
 			error("Custom SaltySD code.ips move\nfailed! (custom move)");
+			error("Error code: " + to_string(errno));
 		}
 	}
 }
@@ -234,13 +236,15 @@ void movecustomsaltysdout()
 		if (rename(custommoveout.c_str(), custommovein.c_str()))
 		{
 			error("Custom SaltySD code.ips move\nfailed! (custom move)");
+			error("Error code: " + to_string(errno));
 		}
 
 		string originalmoveout = "/3ds/ModMoon/" + saltysdtidtoregion() + "code.ips";
 		string originalmovein = "/luma/titles/" + currenttitleidstr + "/code.ips";
-		if ((originalmoveout.c_str(), originalmovein.c_str()))
+		if (rename(originalmoveout.c_str(), originalmovein.c_str()))
 		{
 			error("Custom SaltySD code.ips move\nfailed! (original move)");
+			error("Error code: " + to_string(errno));
 		}
 	}
 }
