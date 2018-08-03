@@ -4,6 +4,7 @@
 #include <3ds/types.h>
 
 #define CONFIG_FILE_VERSION 16
+#define MODMOON_VERSION 30
 using namespace std;
 
 class Config
@@ -25,12 +26,13 @@ class Config
 	void write(string configsetting, u64 newvalue, u64 null);
 	void u64multiwrite(string configsetting, vector<u64>& newvalue, bool parseashex);
 	void intmultiwrite(string configsetting, vector<int>& newvalue);
-	void createfile();
 	bool isflushed = true;
 	
 	private:
 	string filepath;
 	string configfile;
+	void createfile();
+	void updateconfig();
 };
 
 void _mkdir(const char* path);
