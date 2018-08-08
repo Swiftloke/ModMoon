@@ -20,7 +20,7 @@ DownloadWorker updatecheckworker(threadfunc_updatechecker, "Checking for updates
 DownloadWorker updateinstallworker(threadfunc_downloadandinstallupdate, \
 	"Downloading update...\nByte [progress] of [total]");
 DownloadWorker saltysdupdaterworker(threadfunc_updatesaltysd, \
-	"Updating SaltySD... Byte [progress] of [total]");
+	"Updating SaltySD...\nByte [progress] of [total]");
 bool updateisavailable = false;
 bool saltysdupdateavailable = false;
 string result;
@@ -174,7 +174,6 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 			FSFILE_Write(cia, NULL, 0, buf, contentsize, 0);
 			AM_FinishCiaInstall(cia);
 #endif
-		notthis->functiondone = true;
 	}
 	else //It's a file
 	{
@@ -203,29 +202,43 @@ void threadfunc_updatechecker(WorkerFunction* notthis)
 		updateisavailable = true;
 
 	//SaltySD... if we need it.
-	if (!issaltysdtitle())
-		{svcSignalEvent(event_downloadthreadfinished); return; }
-	URL = baseURL + currenttitleidstr + "Hash.txt";
-	res = http_download(URL.c_str(), "TEXT", notthis);
-	if(res) 
-		{svcSignalEvent(event_downloadthreadfinished); return; }
-	string file = "/luma/titles/" + currenttitleidstr + '/';
-	if (!pathExist(file)) //Maybe it's disabled?
+	//This sets it so that if one title needs an update, all 3 titles need an update (if those titles exist)
+	//as one SaltySD update means 3 code.ips files to download.
+	//See the actual updater, threadfunc_updatesaltysd()
+	for (vector<u64>::iterator iter = titleids.begin(); iter != titleids.end(); iter++)
 	{
-		file.insert(13, "Disabled");
-		if(!pathExist(file))
-			{svcSignalEvent(event_downloadthreadfinished); return; }
+		if(!issaltysdtitle(*iter))
+			continue;
+		URL = baseURL + tid2str(*iter) + "Hash.txt";
+		res = http_download(URL.c_str(), "TEXT", notthis);
+		if (res)
+		{
+			svcSignalEvent(event_downloadthreadfinished); return;
+		}
+		string file = "/luma/titles/" + tid2str(*iter) + '/';
+		if (!pathExist(file)) //Maybe it's disabled?
+		{
+			file.insert(13, "Disabled");
+			if (!pathExist(file))
+			{
+				svcSignalEvent(event_downloadthreadfinished); return;
+			}
+		}
+		file.append("code.ips");
+		unsigned int hash = genHash(file);
+		unsigned int serverhash = stoul(result);
+		//We're under the assumption that if the hash is different, there must be an update...
+		//This, however, does not account for the problem of potential downgrades.
+		//IPS files do not embed version information so this isn't a solvable problem...
+		if (hash != serverhash)
+		{
+			saltysdupdateavailable = true;
+			break;
+		}
 	}
-	file.append("code.ips");
-	unsigned int hash = genHash(file);
-	unsigned int serverhash = stoul(result);
-	//We're under the assumption that if the hash is different, there must be an update...
-	//This, however, does not account for the problem of potential downgrades.
-	//IPS files do not embed version information so this isn't a solvable problem...
-	if(hash != serverhash)
-		saltysdupdateavailable = true;
 
 	svcSignalEvent(event_downloadthreadfinished);
+	notthis->functiondone = true;
 }
 
 /*void initupdatechecker()
@@ -256,22 +269,31 @@ void threadfunc_downloadandinstallupdate(WorkerFunction* notthis)
 		URL.append(".cia");
 #endif
 	http_download(URL.c_str(), "INSTALL", notthis);
+	notthis->functiondone = true;
 }
 
 void threadfunc_updatesaltysd(WorkerFunction* notthis)
 {
-	string URL = baseURL + "SaltySD" + currenttitleidstr + ".ips";
-	string out = "/luma/titles/" + currenttitleidstr + '/';
-	if (!pathExist(out)) //Maybe it's disabled?
+	//We're probably going to have to update all 3 of them.
+	u64 saltysdtids[] = { //WTF, I can't believe I haven't defined this as a global somewhere already.
+		0x00040000000EDF00, 0x00040000000EE000, 0x00040000000B8B00,
+	};
+	for (int i = 0; i < 2; i++)
 	{
-		out.insert(13, "Disabled");
-		if (!pathExist(out))
+		string URL = baseURL + "SaltySD" + tid2str(saltysdtids[i]) + ".ips";
+		string out = "/luma/titles/" + tid2str(saltysdtids[i]) + '/';
+		if (!pathExist(out)) //Maybe it's disabled?
 		{
-			svcSignalEvent(event_downloadthreadfinished); return;
+			out.insert(13, "Disabled");
+			if (!pathExist(out))
+				continue;
 		}
+		out.append("code.ips");
+		http_download(URL.c_str(), "FILE", notthis, out);
 	}
-	http_download(URL.c_str(), "FILE", notthis, out);
 	svcSignalEvent(event_downloadthreadfinished);
+	notthis->functiondone = true;
+	saltysdupdateavailable = false; //We don't want this to run over and over again...
 }
 
 /*void initdownloadandinstallupdate()

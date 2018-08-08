@@ -445,6 +445,14 @@ int main(int argc, char **argv) {
 			error("Update complete. The system\nwill now reboot.");
 			nsRebootSystemClean();
 		}
+		if (issaltysdupdateavailable() && !shoulddisableupdater)
+		{
+			error("A SaltySD update is available.\nIt will be downloaded now.");
+			saltysdupdaterworker.startworker();
+			saltysdupdaterworker.displayprogress();
+			error("SaltySD update complete."); 
+		}
+
 		hidScanInput();
 		opos = tpos;
 		hidTouchRead(&tpos);

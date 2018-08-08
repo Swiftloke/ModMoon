@@ -11,6 +11,7 @@ public:
 
 extern DownloadWorker updatecheckworker;
 extern DownloadWorker updateinstallworker;
+extern DownloadWorker saltysdupdaterworker;
 
 //void initupdatechecker();
 bool isupdateavailable();
