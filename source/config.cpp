@@ -13,15 +13,15 @@
 //Like this. The numbering is odd as it is based on the config file version, not the ModMoon version;
 //A version can change without adding config settings.
 /*
-unordered_map<int, string> newoptions;
-newoptions[17] = R"raw(
-ThisOptionThatIsNewIn31{0}
-AnotherOption{1, 5})raw";
-Then based on that we'll figure out what needs to be appended to the file.
-for(int i = this->read("ConfigFileVersion", 0); i <= CONFIG_FILE_VERSION; i++)
-{
-	this->configfile.append(newoptions[i]);
-}
+	unordered_map<int, string> newoptions;
+	newoptions[17] = R"raw(
+	ThisOptionThatIsNewIn31{0}
+	AnotherOption{1, 5})raw";
+	Then based on that we'll figure out what needs to be appended to the file.
+	for(int i = this->read("ConfigFileVersion", 0); i <= CONFIG_FILE_VERSION; i++)
+	{
+		this->configfile.append(newoptions[i]);
+	}
 */
 using namespace std;
 

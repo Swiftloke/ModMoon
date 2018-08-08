@@ -16,7 +16,6 @@ extern DownloadWorker updateinstallworker;
 bool isupdateavailable();
 bool issaltysdupdateavailable();
 //void initdownloadandinstallupdate();
-void downloadsignalandwaitforcancel();
 //unsigned int retrievedownloadprogress();
 extern Handle event_downloadthreadfinished;
 

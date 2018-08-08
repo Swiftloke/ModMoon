@@ -12,6 +12,7 @@
 #include "main.hpp"
 #include "error.hpp"
 #include "srv.hpp"
+#include "download.hpp"
 
 using namespace std;
 
@@ -291,6 +292,10 @@ void launch(){
 	draw.frameend();
 	draw.cleanup();
 	srv::exit();
+
+	updatecheckworker.shutdown();
+	SMDHworker.shutdown();
+
 	u8 param[0x300];
 	u8 hmac[0x20];
 	memset(param, 0, sizeof(param));

@@ -20,8 +20,12 @@ void worker_loadallsmdhdata(WorkerFunction* notthis)
 	//The cartridge was loaded from the main thread, so we don't need to worry about it. This is because updatecartridgedata() may use the rendering queue through error calls
 	notthis->functiontotal = alltitlescount;
 
-	for(unsigned int i = 1; i < tidstoload.size(); i++)
+	for (unsigned int i = 1; i < tidstoload.size(); i++)
+	{
 		smdhvector[i].load(tidstoload[i]);
+		if(notthis->cancel)
+			return;
+	}
 
 	//Now, load everything that's not already loaded to support selection of new titles
 	u64* alltids = new u64[alltitlescount];
@@ -47,6 +51,8 @@ void worker_loadallsmdhdata(WorkerFunction* notthis)
 		else
 			alltitlesvector[i].load(alltids[i]);
 		notthis->functionprogress++;
+		if(notthis->cancel)
+			return;
 	}
 	/*bool cardinserted;
 	FSUSER_CardSlotIsInserted(&cardinserted);

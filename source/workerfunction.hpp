@@ -24,11 +24,17 @@ public:
 	void startworker();
 	void displayprogress();
 	string progressstring;
+	//Forces the thread to stop. Because Horizon can not kill threads, 
+	//it is the worker function's responsibility to handle this being set to true.
+	//Unfortunate.
+	void shutdown()
+	{ this->cancel = true;}
 
 //protected:
 	
 	C3D_Tex progressfbtop, progressfbbot;
 	bool functiondone = false;
 	int functionprogress = 0;
-	int functiontotal = 0;
+	int functiontotal = 100;
+	bool cancel = false;
 };
