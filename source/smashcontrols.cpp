@@ -56,6 +56,11 @@ void controlsdraw()
 
 void controlsmodifier() {
 	smdhdata data = getSMDHdata()[currenttidpos];
+	if (!issaltysdtitle(data.titl))
+	{
+		error("The currently selected title\nis not Smash. Please select\nSmash and try again.");
+		return;
+	}
 	FS_Archive archive;
 	u32 path[3] = { data.gametype, (u32)(data.titl & 0xFFFFFFFF), 0x00040000 };
 
