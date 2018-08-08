@@ -144,6 +144,7 @@ int startup()
 	mainmenuupdateslotname();
 	cfguInit(); //For system language
 	amInit(); //For getting all the installed titles + updating
+	httpcInit(0); //Downloading
 	initializeallSMDHdata(titleids);
 	//Do this in the main thread, because it may throw error calls
 	updatecartridgedata(); 
@@ -400,6 +401,9 @@ int main(int argc, char **argv) {
 		initialsetup();
 		config.write("InitialSetupDone", true);
 	}
+
+	updatecheckworker.startworker();
+
 	mainmenushiftinb();
 	//So, uh, sdraw doesn't like it when I trigger an error before shifting in the menu, and freezes the GPU...
 	//I don't like this at all, it fragments the code and forces me to do bad things
@@ -433,6 +437,14 @@ int main(int argc, char **argv) {
 	while (aptMainLoop()) {
 		if(cartridgeneedsupdating)
 			updatecartridgedata();
+		if (isupdateavailable() && !shoulddisableupdater)
+		{
+			error("An update is available.\nIt will be installed now.");
+			updateinstallworker.startworker();
+			updateinstallworker.displayprogress();
+			error("Update complete. The system\nwill now reboot.");
+			nsRebootSystemClean();
+		}
 		hidScanInput();
 		opos = tpos;
 		hidTouchRead(&tpos);
@@ -556,6 +568,9 @@ int main(int argc, char **argv) {
 	config.intmultiwrite("TitleIDSlots", slots);
 	config.write("SelectedTitleIDPos", currenttidpos);
 	config.flush();
+
+	updatecheckworker.shutdown();
+	SMDHworker.shutdown();
 	
 	//svcWaitSynchronization(event_fadefinished, U64_MAX);
 	C3D_TexDelete(&(spritesheet->image));

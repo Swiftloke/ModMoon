@@ -5,26 +5,29 @@
 #include <string.h>
 #include <stdio.h>
 #include <inttypes.h>
+#include <unistd.h>
 
 #include <3ds.h>
 #include <string>
 #include <fstream>
 #include "download.hpp"
 #include "main.hpp"
+#include "error.hpp"
+#include "utils.hpp"
 using namespace std;
 
-DownloadWorker updatecheckworker(threadfunc_updatechecker, "Checking for updates... [progress]% complete");
+DownloadWorker updatecheckworker(threadfunc_updatechecker, "Checking for updates...\nByte [progress] of [total]");
 DownloadWorker updateinstallworker(threadfunc_downloadandinstallupdate, \
-	"Downloading update...\n[progress]% complete");
+	"Downloading update...\nByte [progress] of [total]");
 DownloadWorker saltysdupdaterworker(threadfunc_updatesaltysd, \
 	"Updating SaltySD... Byte [progress] of [total]");
-
-bool cancel = false;
 bool updateisavailable = false;
 bool saltysdupdateavailable = false;
 string result;
 //unsigned int downloadprogress = 0;
 Handle event_downloadthreadfinished;
+
+string baseURL = "http://swiftloke.github.io/ModMoon/";
 
 void DownloadWorker::startworker()
 {
@@ -32,7 +35,6 @@ void DownloadWorker::startworker()
 	this->WorkerFunction::startworker();
 }
 
-Result http_download(const char *url, string savelocation, WorkerFunction* notthis)
 Result http_download(const char *url, string savelocation, WorkerFunction* notthis, string fileout = "")
 {
 	Result ret = 0;
@@ -83,7 +85,7 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 			url = newurl; // Change pointer to the url that we just learned
 			httpcCloseContext(&context); // Close this context before we try the next
 
-		if (cancel)
+		if (notthis->cancel)
 			return -5; //Let the thread die
 		}
 	} while ((statuscode >= 301 && statuscode <= 303) || (statuscode >= 307 && statuscode <= 308));
@@ -101,6 +103,7 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 		if (newurl != NULL) free(newurl);
 		return ret;
 	}
+	notthis->functiontotal = contentsize;
 
 	// Start with a single page buffer
 	buf = (u8*)malloc(0x1000);
@@ -112,7 +115,7 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 
 	do {
 		// This download loop resizes the buffer as data is read.
-		notthis->functionprogress = (size * 100) / contentsize;
+		notthis->functionprogress = size;
 		ret = httpcDownloadData(&context, buf + size, 0x1000, &readsize);
 		size += readsize;
 		if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING) {
@@ -124,7 +127,7 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 				if (newurl != NULL) free(newurl);
 				return -1;
 			}
-		if(cancel)
+		if(notthis->cancel)
 			return -5; //Let the thread die
 		}
 	} while (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING);
@@ -155,28 +158,28 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 	else if (savelocation == "INSTALL")
 	{
 		romfsExit(); //One cannot have an open handle to their romFS while they are updating it
-		notthis->functionprogress = 101; //Signal we're currently installing
-		if (BUILDIS3DSX)
-		{
-			ofstream out(savelocation, ios::trunc);
-			out << buf;
+		//notthis->functionprogress = 101; //Signal we're currently installing
+#ifdef BUILTFROM3DSX
+			char cwdbuf[1024];
+			getcwd(cwdbuf, sizeof(cwdbuf));
+			string outputlocation(cwdbuf);
+			outputlocation.append("ModMoon.3dsx");
+			ofstream out(outputlocation.c_str(), ofstream::trunc | ofstream::binary);
+			out.write((const char*)buf, size);
 			out.close();
-		}
-		else //Install the CIA we downloaded
-		{
+#else //Install the CIA we downloaded
 			Handle cia;
 			AM_QueryAvailableExternalTitleDatabase(NULL);
 			AM_StartCiaInstall(MEDIATYPE_SD, &cia);
 			FSFILE_Write(cia, NULL, 0, buf, contentsize, 0);
 			AM_FinishCiaInstall(cia);
-		}
-		notthis->functionprogress = 102; //Signal that we're all done
+#endif
+		notthis->functiondone = true;
 	}
 	else //It's a file
 	{
-		ofstream out(savelocation, ios::trunc);
-		ofstream out(fileout, ios::trunc | ios::binary);
-		out << buf;
+		ofstream out(fileout, ofstream::trunc | ofstream::binary);
+		out.write((const char*)buf, size);
 		out.close();
 	}
 	free(buf);
@@ -191,8 +194,9 @@ void threadfunc_updatechecker(WorkerFunction* notthis)
 {
 	if(!osGetWifiStrength())
 		{svcSignalEvent(event_downloadthreadfinished); return; }
-	string URL = "http://swiftloke.github.io/ModMoon/ModMoonVersion.txt";
-	if (http_download(URL.c_str(), "TEXT", notthis))
+	string URL = baseURL + "ModMoonVersion.txt";
+	int res = http_download(URL.c_str(), "TEXT", notthis);
+	if (res)
 		{svcSignalEvent(event_downloadthreadfinished); return; }
 	int newversion = stoi(result);
 	if (newversion > config.read("ModMoonVersion", 0))
@@ -245,11 +249,12 @@ bool issaltysdupdateavailable()
 
 void threadfunc_downloadandinstallupdate(WorkerFunction* notthis)
 {
-	string URL = "http://swiftloke.github.io/ModMoon/ModMoonBin";
-	if (BUILDIS3DSX)
+	string URL = baseURL + "ModMoonBin";
+#ifdef BUILTFROM3DSX
 		URL.append(".3dsx");
-	else
+#else
 		URL.append(".cia");
+#endif
 	http_download(URL.c_str(), "INSTALL", notthis);
 }
 
@@ -281,11 +286,3 @@ unsigned int retrievedownloadprogress()
 {
 	return downloadprogress;
 }*/
-
-void downloadsignalandwaitforcancel()
-{
-	//Set the cancel flag to true from the main thread so the download thread will finish and close
-	cancel = true;
-	//Wait for it to close
-	svcWaitSynchronization(event_downloadthreadfinished, U64_MAX);
-}
