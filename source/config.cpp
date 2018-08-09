@@ -41,6 +41,7 @@ MainMenuHighlightColors{255, 0, 0}
 ErrorHighlightColors{255, 0, 0}
 TitleSelectHighlightColors{255, 0, 0}
 ToolsMenuHighlightColors{133, 46, 165}
+EnableFlexibleCartridgeSystem{False}
 ;This file saves config info for ModMoon.
 ;You shouldn't really mess with this unless you want to have a custom path for mod slots.
 ;If you do and ModMoon breaks, just delete this file.

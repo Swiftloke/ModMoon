@@ -3,7 +3,7 @@
 #include <vector>
 #include <3ds/types.h>
 
-#define CONFIG_FILE_VERSION 16
+#define CONFIG_FILE_VERSION 17
 #define MODMOON_VERSION 30
 using namespace std;
 

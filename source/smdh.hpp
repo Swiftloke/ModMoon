@@ -11,7 +11,7 @@ class smdhdata
 {
 	public:
 	bool load(u64 title, int ingametype = -1);
-	u64 titl;
+	u64 titl = -1ULL; //We can be certain it's loaded if this isn't this constant
 	string shortdesc, longdesc;
 	C3D_Tex icon;
 	u8 gametype;

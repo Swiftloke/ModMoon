@@ -148,9 +148,12 @@ int startup()
 	initializeallSMDHdata(titleids);
 	//Do this in the main thread, because it may throw error calls
 	updatecartridgedata(); 
-	/*srv::init();
-	srv::hook(0x208, cartridgesrvhook); //Notif 0x208: Game cartridge inserted
-	srv::hook(0x20A, cartridgesrvhook); //Notif 0x20A: Game cartridge removed*/
+	if (config.read("EnableFlexibleCartridgeSystem", false))
+	{
+		srv::init();
+		srv::hook(0x208, cartridgesrvhook); //Notif 0x208: Game cartridge inserted
+		srv::hook(0x20A, cartridgesrvhook); //Notif 0x20A: Game cartridge removed
+	}
 	return renamefailed;
 }
 

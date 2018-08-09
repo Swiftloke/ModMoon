@@ -23,8 +23,11 @@ void worker_loadallsmdhdata(WorkerFunction* notthis)
 	for (unsigned int i = 1; i < tidstoload.size(); i++)
 	{
 		smdhvector[i].load(tidstoload[i]);
-		if(notthis->cancel)
+		if (notthis->cancel)
+		{
+			smdhvector.resize(i); //Prevent crashes by ensuring that the boundaries are maintained
 			return;
+		}
 	}
 
 	//Now, load everything that's not already loaded to support selection of new titles
@@ -51,8 +54,11 @@ void worker_loadallsmdhdata(WorkerFunction* notthis)
 		else
 			alltitlesvector[i].load(alltids[i]);
 		notthis->functionprogress++;
-		if(notthis->cancel)
+		if (notthis->cancel)
+		{
 			return;
+			alltitlesvector.resize(i);
+		}
 	}
 	/*bool cardinserted;
 	FSUSER_CardSlotIsInserted(&cardinserted);
@@ -102,8 +108,12 @@ void freeSMDHdata()
 		//Get a pointer to the icon by dereferencing the vector and going by array count. Quite a handful of operators.
 		C3D_TexDelete(&(smdhvector[i].icon));
 	}*/
-	for(vector<smdhdata>::iterator iter = smdhvector.begin(); iter != smdhvector.end(); iter++)
+	for (vector<smdhdata>::iterator iter = smdhvector.begin(); iter != smdhvector.end(); iter++)
+	{
+		if(iter->titl == -1ULL)
+			continue;
 		C3D_TexDelete(&(iter->icon));
+	}
 }
 
 vector<smdhdata>& getSMDHdata()

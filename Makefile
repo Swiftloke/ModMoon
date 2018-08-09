@@ -39,6 +39,7 @@ ROMFS		:=	romfs
 APP_TITLE   :=  ModMoon
 APP_DESCRIPTION := Mods manager for 3DS with fancy features and UI
 APP_AUTHOR  :=  Swiftloke
+ICON        :=  CIA/icon.png
 
 VERSION_MAJOR := 3
 VERSION_MINOR := 0
@@ -51,12 +52,16 @@ RSF_PATH		:=	CIA/app.rsf
 
 LOGO            := CIA/splash.bin
 
+ROMFS_DIR       := $(TOPDIR)/$(ROMFS)
+
 # If left blank, makerom will use default values (0xff3ff and CTR-P-CTAP, respectively)
 UNIQUE_ID		:=	0xA73A
 PRODUCT_CODE	:=	CTR-HB-MDMN
 
 # Don't really need to change this
 ICON_FLAGS          :=	nosavebackups,visible
+
+LONG_NAME       := ModMoon: Mods Manager for 3DS
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -175,8 +180,8 @@ run: $(BUILD)
 	
 cia: $(BUILD)
 	@bannertool makebanner -i "$(BANNER_IMAGE)" -a "$(BANNER_AUDIO)" -o $(BUILD)/banner.bnr
-	@bannertool makesmdh -s "$(APP_TITLE)" -l "$(APP_DESCRIPTION)" -p "$(APP_AUTHOR)" -i "$(APP_ICON)" -f "$(ICON_FLAGS)" -o $(BUILD)/icon.icn
-	@makerom -f cia -o $(OUTPUT).cia -target t -exefslogo -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -ver "$$(($(VERSION_MAJOR)*1024+$(VERSION_MINOR)*16+$(VERSION_MICRO)))" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)"
+	@bannertool makesmdh -l "$(LONG_NAME)" -s "$(APP_TITLE)" -p "$(APP_AUTHOR)" -i "$(ICON)" -f "$(ICON_FLAGS)" -o $(BUILD)/icon.icn
+	@makerom -f cia -o $(OUTPUT).cia -target t -exefslogo -elf "$(OUTPUT).elf" -rsf "$(RSF_PATH)" -ver "$$(($(VERSION_MAJOR)*1024+$(VERSION_MINOR)*16+$(VERSION_MICRO)))" -banner "$(BUILD)/banner.bnr" -icon "$(BUILD)/icon.icn" -DAPP_TITLE="$(APP_TITLE)" -DAPP_PRODUCT_CODE="$(PRODUCT_CODE)" -DAPP_UNIQUE_ID="$(UNIQUE_ID)" -DAPP_ROMFS="$(ROMFS_DIR)"
 
 
 #---------------------------------------------------------------------------------
