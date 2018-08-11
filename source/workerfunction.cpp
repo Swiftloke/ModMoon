@@ -26,6 +26,8 @@ void WorkerFunction::startworker()
 
 void WorkerFunction::displayprogress()
 {
+	if(this->functiondone)
+		return;
 	C3D_TexInit(&this->progressfbtop, 256, 512, GPU_RGBA8);
 	C3D_TexInit(&this->progressfbbot, 256, 512, GPU_RGBA8);
 	draw.retrieveframebuffers(&progressfbtop, &progressfbbot);
@@ -39,7 +41,7 @@ void WorkerFunction::displayprogress()
 		progresspopup(expandpos);
 		drawprogresserror(actualtext, expandpos, (float)this->functionprogress / this->functiontotal, \
 			this->progressfbtop, this->progressfbbot);
-	} while (!functiondone);
+	} while (!this->functiondone);
 	while (expandpos > 0)
 	{
 		progresspopdown(expandpos);

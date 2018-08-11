@@ -122,7 +122,9 @@ void toolsmenu()
 			{
 				case 0:
 				{
+					toolsmenushiftout();
 					activetitleselect();
+					toolsmenushiftin();
 					break;
 				}
 				case 1: 
@@ -192,7 +194,9 @@ void toolsmenu()
 		//Actually activate it
 		else if (buttonpressed(controlsmodifierbutton, 18, 6, opos, kHeld))
 		{
+			toolsmenushiftout();
 			activetitleselect();
+			toolsmenushiftin();
 		}
 
 		if (touched(controlsmodifierbutton, 18, 49, tpos))
