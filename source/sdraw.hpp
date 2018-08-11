@@ -35,17 +35,12 @@ using namespace std;
 struct sdraw_Vertex { float position[3]; float texcoord[2]; };
 struct sdraw_TwoCdsVertex { float pos1[3]; float pos2[3]; float texcoord[2]; };
 
-struct sdraw_texture
-{
-	int id;
-	unsigned int width, height;
-	C3D_Tex image;
-};
-
 struct sdraw_stex
 {
-	sdraw_stex(sdraw_texture* inputsheet, int posx, int posy, int width, int height, bool optionalusesdarkmode = false);
-	sdraw_texture* spritesheet;
+
+	sdraw_stex(C3D_Tex* inputsheet, int posx, int posy, int inwidth, int inheight, bool optionalusesdarkmode = false) : \
+		spritesheet(inputsheet), x(posx), y(posy), width(inwidth), height(inheight), usesdarkmode(optionalusesdarkmode) {}
+	C3D_Tex* spritesheet;
 	float x, y, width, height;
 	//Many UI elements need this disabled; most that don't are in the spritesheet, so this is a sane place to put it.
 	bool usesdarkmode;
@@ -55,7 +50,7 @@ struct sdraw_highlighter : public sdraw_stex
 {
 	u32 highlightercolor;
 
-	sdraw_highlighter(sdraw_texture* inputsheet, int posx, int posy, int width, int height, u32 incolor, \
+	sdraw_highlighter(C3D_Tex* inputsheet, int posx, int posy, int width, int height, u32 incolor, \
 		bool optionalusesdarkmode = false) : sdraw_stex(inputsheet, posx, posy, width, height, optionalusesdarkmode), \
 		highlightercolor(incolor) {};
 };
@@ -68,7 +63,7 @@ class sDraw_interface
 	void cleanup();
 	void drawon(gfxScreen_t window);
 	void framestart();
-	void drawtexture(sdraw_texture* tex, int x, float y);
+	void drawtexture(C3D_Tex* tex, int x, float y);
 	void drawtexture(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0); //Second coords are optional
 	void drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	//Second coords functionality of this is broken
@@ -84,7 +79,7 @@ class sDraw_interface
 	vector<float> gettextwidths(const char* text, float sizeX, float sizeY);
 	float gettextmaxwidth(const char* text, float sizeX, float sizeY);
 	
-	void drawblendedtexture(sdraw_texture* texture1, sdraw_texture* texture2, int x, int y, int blendfactor);
+	void drawblendedtexture(C3D_Tex* texture1, C3D_Tex* texture2, int x, int y, int blendfactor);
 	void drawhighlighter(sdraw_highlighter info, int x, int y, int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void usebasicshader();
@@ -115,6 +110,6 @@ class sDraw_interface
 };
 
 
-sdraw_texture* loadpng(string filepath);
-sdraw_texture* loadbin(string filepath, int width, int height);
+C3D_Tex* loadpng(string filepath);
+C3D_Tex* loadbin(string filepath, int width, int height);
 unsigned int nextPow2(unsigned int v);

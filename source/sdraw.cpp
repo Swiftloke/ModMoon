@@ -37,8 +37,6 @@ using namespace std;
 	GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
 	GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
-
-	int idcount = 0;
 	static DVLB_s* basicvshader_dvlb;
 	static DVLB_s* eventualvshader_dvlb;
 	static DVLB_s* twocoordsinterp_dvlb;
@@ -87,16 +85,13 @@ unsigned int nextPow2(unsigned int v)
     return (v >= TEX_MIN_SIZE ? v : TEX_MIN_SIZE);
 }
 
-sdraw_stex::sdraw_stex(sdraw_texture* inputsheet, int posx, int posy, int inwidth, int inheight, bool optionalusesdarkmode) : \
-	spritesheet(inputsheet), x(posx), y(posy), width(inwidth), height(inheight), usesdarkmode(optionalusesdarkmode) {}
-
 //Take note that this can only load images with dimensions of powers of 2
-sdraw_texture* loadpng(string filepath)
+C3D_Tex* loadpng(string filepath)
 {
 
 	unsigned char* imagebuf;
 	unsigned int width = 0, height = 0;
-	sdraw_texture* tex = (sdraw_texture*)malloc(sizeof(sdraw_texture));
+	C3D_Tex* tex = new C3D_Tex;
 
 	lodepng_decode32_file(&imagebuf, &width, &height, filepath.c_str());
 
@@ -124,19 +119,19 @@ sdraw_texture* loadpng(string filepath)
 
 
 	// Load the texture and bind it to the first texture unit
-	C3D_TexInit(&tex->image, width, height, GPU_RGBA8);
+	C3D_TexInit(tex, width, height, GPU_RGBA8);
 	//u32* dest = (u32*)linearAlloc(width*height*4);
 
 
 	// Convert image to 3DS tiled texture format
-	C3D_SyncDisplayTransfer((u32*)gpusrc, GX_BUFFER_DIM(width, height), (u32*)tex->image.data, GX_BUFFER_DIM(width, height), TEXTURE_TRANSFER_FLAGS);
+	C3D_SyncDisplayTransfer((u32*)gpusrc, GX_BUFFER_DIM(width, height), (u32*)tex->data, GX_BUFFER_DIM(width, height), TEXTURE_TRANSFER_FLAGS);
 
 	/*ofstream out(("spritesheet.bin"), ios::binary | ios::trunc);
 	out.write((char*)dest, width*height*4);
 	out.close();*/
 
-	C3D_TexSetFilter(&tex->image, GPU_LINEAR, GPU_LINEAR);
-	C3D_TexSetWrap(&tex->image, GPU_REPEAT, GPU_REPEAT);
+	C3D_TexSetFilter(tex, GPU_LINEAR, GPU_LINEAR);
+	C3D_TexSetWrap(tex, GPU_REPEAT, GPU_REPEAT);
 
 	free(imagebuf);
 	linearFree(gpusrc);
@@ -144,15 +139,13 @@ sdraw_texture* loadpng(string filepath)
 
 	tex->width = width; tex->height = height; 
 
-	tex->id = idcount;
-	idcount++;
 	return tex;
 }
 
-sdraw_texture* loadbin(string filepath, int width, int height)
+C3D_Tex* loadbin(string filepath, int width, int height)
 {
-	sdraw_texture* tex = new sdraw_texture;
-	C3D_TexInit(&tex->image, width, height, GPU_RGBA8);
+	C3D_Tex* tex = new C3D_Tex;
+	C3D_TexInit(tex, width, height, GPU_RGBA8);
 	//Read the file
 	ifstream in(filepath.c_str(), ifstream::binary);
 	if (!in)
@@ -166,9 +159,9 @@ sdraw_texture* loadbin(string filepath, int width, int height)
 	char* buf = new char[size];
 	in.read(buf, size);
 	in.close();
-	C3D_TexUpload(&tex->image, (void*)buf);
-	C3D_TexSetFilter(&tex->image, GPU_LINEAR, GPU_LINEAR);
-	C3D_TexSetWrap(&tex->image, GPU_REPEAT, GPU_REPEAT);
+	C3D_TexUpload(tex, (void*)buf);
+	C3D_TexSetFilter(tex, GPU_LINEAR, GPU_LINEAR);
+	C3D_TexSetWrap(tex, GPU_REPEAT, GPU_REPEAT);
 	//delete[] buf; //For some reason this kills everything on hardware. Works fine in Citra. Strange...
 	return tex;
 }
@@ -543,9 +536,9 @@ void sDraw_interface::drawtextinrec(const char* text, int x, int y, int width, f
 	this->enabledarkmode(false);
 }
 
-void sDraw_interface::drawtexture(sdraw_texture* tex, int x, float y)
+void sDraw_interface::drawtexture(C3D_Tex* tex, int x, float y)
 {
-	C3D_TexBind(0, &tex->image);
+	C3D_TexBind(0, tex);
 	
 	C3D_TexEnv	*env = C3D_GetTexEnv(0);
 	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
@@ -564,11 +557,9 @@ void sDraw_interface::drawtexture(sdraw_texture* tex, int x, float y)
 
 //Citro3D port of this https://www.khronos.org/opengl/wiki/Texture_Combiners#Example_:_Blend_tex0_and_tex1_based_on_a_blending_factor_you_supply
 // *Lack of fragment shader intensifies*
-void sDraw_interface::drawblendedtexture(sdraw_texture* texture1, sdraw_texture* texture2, int x, int y, int blendfactor)
+void sDraw_interface::drawblendedtexture(C3D_Tex* texa, C3D_Tex* texb, int x, int y, int blendfactor)
 {
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_Tex* texa = &texture1->image;
-	C3D_Tex* texb = &texture2->image;
 	C3D_TexBind(0, texa);
 	C3D_TexBind(1, texb);
 	//Configure the fragment shader to blend texture0 with texture1 based on the alpha of the constant
@@ -580,10 +571,10 @@ void sDraw_interface::drawblendedtexture(sdraw_texture* texture1, sdraw_texture*
 	C3D_TexEnvColor(tev, RGBA8(0,0,0,blendfactor));
 	C3D_TexEnvFunc(tev, C3D_Both, GPU_INTERPOLATE);
 	
-    sDrawi_addTextVertex(x, y + texture1->height, 0.0f, 1); //left bottom
-    sDrawi_addTextVertex(x + texture1->width, y + texture1->height, 1, 1); //right bottom
+    sDrawi_addTextVertex(x, y + texa->height, 0.0f, 1); //left bottom
+    sDrawi_addTextVertex(x + texa->width, y + texa->height, 1, 1); //right bottom
 	sDrawi_addTextVertex(x, y, 0.0f, 0.0f); //left top
-	sDrawi_addTextVertex(x + texture1->width, y, 1, 0.0f); //right top
+	sDrawi_addTextVertex(x + texa->width, y, 1, 0.0f); //right top
 	
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
 }
@@ -631,7 +622,7 @@ void sDraw_interface::drawtexture(sdraw_stex info, int x, int y, int x1, int y1,
 {
 	if(info.usesdarkmode)
 		this->enabledarkmode(true);
-	C3D_TexBind(0, &(info.spritesheet->image));
+	C3D_TexBind(0, info.spritesheet);
 	
 	C3D_TexEnv	*env = C3D_GetTexEnv(0);
 	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
@@ -817,7 +808,7 @@ void sDraw_interface::drawhighlighter(sdraw_highlighter info, int x, int y, int 
 {
 	if (info.usesdarkmode)
 		this->enabledarkmode(true);
-	C3D_TexBind(0, &(info.spritesheet->image));
+	C3D_TexBind(0, info.spritesheet);
 	
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
 	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);

@@ -33,8 +33,8 @@ vector<int> errorhighlightcolors = config.intmultiread("ErrorHighlightColors");
 vector<int> titleselecthighlightcolors = config.intmultiread("TitleSelectHighlightColors");
 vector<int> toolsmenuhighlightcolors = config.intmultiread("ToolsMenuHighlightColors");
 
-sdraw_texture* spritesheet = loadpng("romfs:/spritesheet.png"); //Texture conversion for this doesn't fucking work >:(
-sdraw_texture* progressfiller = loadbin("romfs:/progress.bin", 32, 32); //This needs to be in its own texture due to usage of wrapping for animation
+C3D_Tex* spritesheet = loadpng("romfs:/spritesheet.png"); //Texture conversion for this doesn't fucking work >:(
+C3D_Tex* progressfiller = loadbin("romfs:/progress.bin", 32, 32); //This needs to be in its own texture due to usage of wrapping for animation
 sdraw_stex leftbutton(spritesheet, 0, 324, 152, 134, true);
 sdraw_stex leftbuttonenabled(spritesheet, 0, 458, 152, 134, true);
 sdraw_stex rightbutton(spritesheet, 153, 324, 151, 134, true);
@@ -584,7 +584,8 @@ int main(int argc, char **argv) {
 	SMDHworker.shutdown();
 	
 	//svcWaitSynchronization(event_fadefinished, U64_MAX);
-	C3D_TexDelete(&(spritesheet->image));
+	C3D_TexDelete(spritesheet);
+	C3D_TexDelete(progressfiller);
 	freeSMDHdata();
 	draw.cleanup();
 	srv::exit();
