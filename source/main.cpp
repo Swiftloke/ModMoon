@@ -19,6 +19,8 @@
 #include "titleselects.hpp"
 #include "srv.hpp"
 #include "download.hpp"
+#include "toolsmenu.hpp"
+#include "initialsetup.hpp"
 
 using namespace std;
 
@@ -35,13 +37,16 @@ vector<int> toolsmenuhighlightcolors = config.intmultiread("ToolsMenuHighlightCo
 
 C3D_Tex* spritesheet = loadpng("romfs:/spritesheet.png"); //Texture conversion for this doesn't fucking work >:(
 C3D_Tex* progressfiller = loadbin("romfs:/progress.bin", 32, 32); //This needs to be in its own texture due to usage of wrapping for animation
+C3D_Tex* rainbow = loadbin("romfs:/rainbow.bin", 256, 256); //Ditto; needs its own texture for animation
 sdraw_stex leftbutton(spritesheet, 0, 324, 152, 134, true);
 sdraw_stex leftbuttonenabled(spritesheet, 0, 458, 152, 134, true);
 sdraw_stex rightbutton(spritesheet, 153, 324, 151, 134, true);
 sdraw_stex selector(spritesheet, 0, 241, 320, 81, true);
 sdraw_stex backgroundbot(spritesheet, 0, 0, 320, 240, true);
 sdraw_stex backgroundtop(spritesheet, 320, 129, 400, 240, true);
-sdraw_stex banner(spritesheet, 320, 0, 256, 128, false);
+sdraw_stex banner(spritesheet, 320, 0, 292, 128, false);
+sdraw_stex bannermoonalpha(spritesheet, 612, 0, 90, 106, false);
+sdraw_stex rainbowtexture(spritesheet, 702, 0, 110, 110, false);
 sdraw_stex textbox(spritesheet, 0, 592, 300, 200, true);
 sdraw_stex textboxokbutton(spritesheet, 152, 458, 87, 33, true);
 sdraw_highlighter textboxokbuttonhighlight(spritesheet, 152, 491, 89, 35, \
@@ -56,6 +61,8 @@ sdraw_stex secret(spritesheet, 320, 369, 114, 113, false);
 sdraw_highlighter toolsmenuhighlighter(spritesheet, 706, 369, 319, 60, \
 	RGBA8(toolsmenuhighlightcolors[0], toolsmenuhighlightcolors[1], toolsmenuhighlightcolors[2], 0), false);
 sdraw_stex controlsmodifierbutton(spritesheet, 720, 310, 289, 45);
+sdraw_stex tutorialbutton(spritesheet, 706, 428, 289, 45, false);
+sdraw_stex darkmodebutton(spritesheet, 706, 473, 289, 45, false);
 
 bool modsenabled = config.read("ModsEnabled", true);
 
@@ -352,11 +359,37 @@ void drawtopscreen()
 	draw.drawtexture(backgroundtop, 0, 0);
 	int bannerx = 400 / 2 - banner.width / 2;
 	float bannery = 240 / 2 - banner.height / 2;
-	//Inspiration from new-hbmenu
+	//From new-hbmenu
 	minusy -= 0.0052; // 1/192, the compiler didn't like assigning a division value for some reason.
 	float addy = 6.0f*sinf(C3D_Angle(minusy));
 	bannery += addy;
 	draw.drawtexture(banner, bannerx, bannery);
+
+	//Animate the moon colors...
+	const int moonx = 191, moony = 13; //Position of the moon in the banner
+	//Same idea as the progress bar texture- increase texcoords constantly to animate the motion
+	//This time, however, we're going to base it on an alpha texture of the moon, so only the
+	//moon is actually animated with these colors.
+	static float animationplus = 0;
+
+	//Basically sDraw's future in a nutshell- sDraw_fs
+	//A struct containing all the information needed for
+	//fragment shading- texture pointers and TexEnv struct
+	//You bind it, then draw the texture you need.
+	//Not yet implemented. But the idea is right here.
+	//As it is several other places in the program.
+	C3D_TexEnv* tev = C3D_GetTexEnv(0);
+	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE1);
+	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0);
+	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
+	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);
+	
+	sdraw_stex temp(rainbow, 0, 0 + animationplus, 256, 256, false);
+	draw.drawmultipletextures(bannerx + moonx, bannery + moony, bannermoonalpha, temp, temp);
+
+	animationplus += .75;
+
 	//Draw the title selection text
 	draw.settextcolor(RGBA8(165, 165, 165, 255));
 	//Not implemented...
@@ -388,9 +421,8 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	draw.settextcolor(RGBA8(0, 0, 0, 255));
 	draw.drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
 }
-void initialsetup();
-void controlsmodifier();
-void toolsmenu();
+
+
 int main(int argc, char **argv) {
 
 	int renamefailed = startup();

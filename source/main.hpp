@@ -46,6 +46,8 @@ extern sdraw_stex progressbarstenciltex;
 extern sdraw_stex secret;
 extern sdraw_highlighter toolsmenuhighlighter;
 extern sdraw_stex controlsmodifierbutton;
+extern sdraw_stex tutorialbutton;
+extern sdraw_stex darkmodebutton;
 
 extern Config config;
 extern bool modsenabled;

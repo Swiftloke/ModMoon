@@ -12,6 +12,7 @@
 #include "vshader_shbin.h"
 #include "eventualvertex_shbin.h"
 #include "twocoordsinterp_shbin.h"
+#include "threetextures_shbin.h"
 
 #include <string>
 #include <fstream>
@@ -40,28 +41,34 @@ using namespace std;
 	static DVLB_s* basicvshader_dvlb;
 	static DVLB_s* eventualvshader_dvlb;
 	static DVLB_s* twocoordsinterp_dvlb;
+	static DVLB_s* threetextures_dvlb;
 	static int uLoc_projection;
 	int expand_projectionloc;
 	int twocds_projectionloc;
+	int threetextures_projectionloc;
 	static C3D_Mtx projectionTop, projectionBot;
 	static C3D_Tex* glyphSheets;
 	shaderProgram_s basicprogram;
 	shaderProgram_s eventualprogram;
 	shaderProgram_s twocoordsprogram;
+	shaderProgram_s threetexturesprogram;
 
 	C3D_AttrInfo basicinfo;
 	C3D_AttrInfo twocoordsinfo;
+	C3D_AttrInfo threetexturesinfo;
 	C3D_BufInfo basicbuf;
 	C3D_BufInfo twocoordsbuf;
+	C3D_BufInfo threetexturesbuf;
 
 	static sdraw_Vertex* sdrawVtxArray;
 	static sdraw_TwoCdsVertex* twocdsVtxArray;
+	static sdraw_ThreeTexVertex* threetexturesVtxArray;
 	C3D_RenderTarget* top;
 	C3D_RenderTarget* bottom;
 
 	enum SDRAW_SHADERINUSE
 	{
-		BASICSHADER, EVENTUALSHADER, TWOCOORDSSHADER
+		BASICSHADER, EVENTUALSHADER, TWOCOORDSSHADER, THREETEXTURESSHADER
 	};
 	SDRAW_SHADERINUSE shaderinuse = BASICSHADER;
 
@@ -126,9 +133,12 @@ C3D_Tex* loadpng(string filepath)
 	// Convert image to 3DS tiled texture format
 	C3D_SyncDisplayTransfer((u32*)gpusrc, GX_BUFFER_DIM(width, height), (u32*)tex->data, GX_BUFFER_DIM(width, height), TEXTURE_TRANSFER_FLAGS);
 
-	/*ofstream out(("spritesheet.bin"), ios::binary | ios::trunc);
-	out.write((char*)dest, width*height*4);
-	out.close();*/
+	if (filepath == "romfs:/rainbow.png")
+	{
+		ofstream out(("rainbow.bin"), ios::binary | ios::trunc);
+		out.write((char*)tex->data, width*height * 4);
+		out.close();
+	}
 
 	C3D_TexSetFilter(tex, GPU_LINEAR, GPU_LINEAR);
 	C3D_TexSetWrap(tex, GPU_REPEAT, GPU_REPEAT);
@@ -166,6 +176,36 @@ C3D_Tex* loadbin(string filepath, int width, int height)
 	return tex;
 }
 
+//Helper function for loading a texture from a file
+/*
+C3D_Tex* loadTextureFromFile(const char* filename)
+{
+	C3D_Tex* original = new C3D_Tex;
+	FILE* fp = fopen(filename, "r");
+	Tex3DS_Texture t3x = Tex3DS_TextureImportStdio(fp, original, NULL, false);
+	if (!t3x)
+	return NULL;
+	// Delete the t3x object since we don't need it
+	Tex3DS_TextureFree(t3x);
+	fclose(fp);
+
+	//An early design choice of sDraw was to have pixel positions start at the top.
+	//This was because the original 3DS example for sprites did this.
+	//It was easily done during the PNG loading process, by telling DisplayTransfer to flip the result.
+	//Since I'm not changing all of the texcoords at the very end of the development cycle
+	//(This will be the last commit before 3.0 release) we'll just do it again.
+	GSPGPU_FlushDataCache(original->data, original->width * original->height * 4);
+	C3D_Tex* ret = new C3D_Tex;
+	C3D_TexInit(ret, original->width, original->height, GPU_RGBA8);
+
+	//This FUCKING DOESNT WORK >:(
+	C3D_SyncDisplayTransfer((u32*)original->data, GX_BUFFER_DIM(original->width, original->height), \
+	(u32*)ret->data, GX_BUFFER_DIM(ret->width, ret->height), TEXTURE_TRANSFER_FLAGS);
+	//delete original;
+
+	return ret;
+}*/
+
 
 sDraw_interface::sDraw_interface()
 {
@@ -198,6 +238,12 @@ sDraw_interface::sDraw_interface()
 	twocoordsinterp_dvlb = DVLB_ParseFile((u32*)twocoordsinterp_shbin, twocoordsinterp_shbin_size);
 	shaderProgramInit(&twocoordsprogram);
 	shaderProgramSetVsh(&twocoordsprogram, &twocoordsinterp_dvlb->DVLE[0]);
+
+	//Load the three textures shader
+	threetextures_dvlb = DVLB_ParseFile((u32*)threetextures_shbin, threetextures_shbin_size);
+	shaderProgramInit(&threetexturesprogram);
+	shaderProgramSetVsh(&threetexturesprogram, &threetextures_dvlb->DVLE[0]);
+	
 	// Get the location of the uniforms
 	uLoc_projection = shaderInstanceGetUniformLocation(basicprogram.vertexShader, "projection");
 	
@@ -210,6 +256,8 @@ sDraw_interface::sDraw_interface()
 	twocds_baseloc = shaderInstanceGetUniformLocation(twocoordsprogram.vertexShader, "base");
 	twocds_baseinterploc = shaderInstanceGetUniformLocation(twocoordsprogram.vertexShader, "baseinterpfactor");
 
+	threetextures_projectionloc = shaderInstanceGetUniformLocation(threetexturesprogram.vertexShader, "projection");
+
 	//Configure AttrInfos for use with the vertex shader
 	//Basic AttrInfos are the same in the eventual shader but position is actually the eventual position
 	AttrInfo_Init(&basicinfo);
@@ -221,17 +269,28 @@ sDraw_interface::sDraw_interface()
 	AttrInfo_AddLoader(&twocoordsinfo, 0, GPU_FLOAT, 3); // v0 = position 1
 	AttrInfo_AddLoader(&twocoordsinfo, 1, GPU_FLOAT, 3); // v1 = position 2
 	AttrInfo_AddLoader(&twocoordsinfo, 2, GPU_FLOAT, 2); // v2 = texcoords
+	//Three textures
+	AttrInfo_Init(&threetexturesinfo);
+	AttrInfo_AddLoader(&threetexturesinfo, 0, GPU_FLOAT, 3); //Position
+	AttrInfo_AddLoader(&threetexturesinfo, 1, GPU_FLOAT, 2); //tc0
+	AttrInfo_AddLoader(&threetexturesinfo, 2, GPU_FLOAT, 2); //tc1
+	AttrInfo_AddLoader(&threetexturesinfo, 3, GPU_FLOAT, 2); //tc2
 	
 	// Create the vertex arrays
 	sdrawVtxArray = (sdraw_Vertex*)linearAlloc(sizeof(sdraw_Vertex)*TEXT_VTX_ARRAY_COUNT);
 	twocdsVtxArray = (sdraw_TwoCdsVertex*)linearAlloc(sizeof(sdraw_TwoCdsVertex) * TEXT_VTX_ARRAY_COUNT);
+	threetexturesVtxArray = (sdraw_ThreeTexVertex*)linearAlloc(sizeof(sdraw_ThreeTexVertex) * TEXT_VTX_ARRAY_COUNT);
 	
 	// Configure buffers
 	BufInfo_Init(&basicbuf);
 	BufInfo_Add(&basicbuf, sdrawVtxArray, sizeof(sdraw_Vertex), 2, 0x10);
 	C3D_SetBufInfo(&basicbuf);
+
 	BufInfo_Init(&twocoordsbuf);
 	BufInfo_Add(&twocoordsbuf, twocdsVtxArray, sizeof(sdraw_TwoCdsVertex), 3, 0x210);
+
+	BufInfo_Init(&threetexturesbuf);
+	BufInfo_Add(&threetexturesbuf, threetexturesVtxArray, sizeof(sdraw_ThreeTexVertex), 4, 0x3210);
 
 	// Compute the projection matrix
 	Mtx_OrthoTilt(&projectionTop, 0.0, 400.0, 240.0, 0.0, 0.0, 1.0, true);
@@ -278,7 +337,8 @@ void sDraw_interface::drawon(gfxScreen_t output)
 	C3D_FrameDrawOn(currentoutput == GFX_TOP ? top : bottom);
 	// Update the uniforms
 	int loc = (shaderinuse == BASICSHADER) ?\
-		uLoc_projection : (shaderinuse == EVENTUALSHADER) ? expand_projectionloc : twocds_projectionloc;
+		uLoc_projection : (shaderinuse == EVENTUALSHADER) ? expand_projectionloc : \
+		(shaderinuse == TWOCOORDSSHADER) ? twocds_projectionloc : threetextures_projectionloc;
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, loc, output == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
@@ -345,6 +405,23 @@ void sDraw_interface::sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2,
 	vtx->pos2[2] = 0.5f;
 	vtx->texcoord[0] = tx;
 	vtx->texcoord[1] = ty;
+}
+
+void sDraw_interface::sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float tc0y, float tc1x, float tc1y, float tc2x, float tc2y)
+{
+	sdraw_ThreeTexVertex* vtx = &threetexturesVtxArray[sdrawThreeTexturesVtxArrayPos++];
+	vtx->position[0] = vx;
+	vtx->position[1] = vy;
+	vtx->position[2] = 0.5f;
+
+	vtx->tc0[0] = tc0x;
+	vtx->tc0[1] = tc0y;
+
+	vtx->tc1[0] = tc1x;
+	vtx->tc1[1] = tc1y;
+
+	vtx->tc2[0] = tc2x;
+	vtx->tc2[1] = tc2y;
 }
 
 void sDraw_interface::sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text)
@@ -617,6 +694,15 @@ void sDraw_interface::usetwocoordsshader()
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, twocds_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
+void sDraw_interface::usethreetexturesshader()
+{
+	C3D_SetAttrInfo(&threetexturesinfo);
+	C3D_SetBufInfo(&threetexturesbuf);
+	shaderinuse = THREETEXTURESSHADER;
+	C3D_BindProgram(&threetexturesprogram);
+	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, threetextures_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
+}
+
 
 void sDraw_interface::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
 {
@@ -701,6 +787,41 @@ void sDraw_interface::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, i
 	sDrawi_addTextVertex(x, y - 450, 0, 1); //left top
 	sDrawi_addTextVertex(x + tex.width, y - 450, 1, 1); //right top*/
 	
+}
+
+//The behavior of this is defined externally, in accordance with sDraw's future;
+//this simply passes through the texcoords.
+//All textures should be the same width/height.
+void sDraw_interface::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3)
+{
+	usethreetexturesshader();
+
+	C3D_TexBind(0, info1.spritesheet);
+	C3D_TexBind(1, info2.spritesheet);
+	C3D_TexBind(2, info3.spritesheet);
+
+	float rleft1 = info1.x / info1.spritesheet->width;
+	float rright1 = (info1.x + info1.width) / info1.spritesheet->width;
+	float rtop1 = info1.y / info1.spritesheet->height;
+	float rbot1 = (info1.y + info1.height) / info1.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
+
+	float rleft2 = info2.x / info2.spritesheet->width;
+	float rright2 = (info2.x + info2.width) / info2.spritesheet->width;
+	float rtop2 = info2.y / info2.spritesheet->height;
+	float rbot2 = (info2.y + info2.height) / info2.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
+
+	float rleft3 = info3.x / info3.spritesheet->width;
+	float rright3 = (info3.x + info3.width) / info3.spritesheet->width;
+	float rtop3 = info3.y / info3.spritesheet->height;
+	float rbot3 = (info3.y + info3.height) / info3.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
+
+	sDrawi_addThreeTexturesVertex(x, y + info1.height, rleft1, rbot1, rleft2, rbot2, rleft3, rbot3); //left bottom
+	sDrawi_addThreeTexturesVertex(x + info1.width, y + info1.height, rright1, rbot1, rright2, rbot2, rright3, rbot3); //right bottom
+	sDrawi_addThreeTexturesVertex(x, y, rleft1, rtop1, rleft2, rtop2, rleft3, rtop3); //left top
+	sDrawi_addThreeTexturesVertex(x + info1.width, y, rright1, rtop1, rright2, rtop2, rright3, rtop3); //right top
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawThreeTexturesVtxArrayPos - 4, 4);
+
+	usebasicshader();
 }
 
 void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1, int y1, float interpfactor)

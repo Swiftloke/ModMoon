@@ -34,11 +34,12 @@ using namespace std;
 
 struct sdraw_Vertex { float position[3]; float texcoord[2]; };
 struct sdraw_TwoCdsVertex { float pos1[3]; float pos2[3]; float texcoord[2]; };
+struct sdraw_ThreeTexVertex {float position[3]; float tc0[2]; float tc1[2]; float tc2[2]; };
 
 struct sdraw_stex
 {
 
-	sdraw_stex(C3D_Tex* inputsheet, int posx, int posy, int inwidth, int inheight, bool optionalusesdarkmode = false) : \
+	sdraw_stex(C3D_Tex* inputsheet, float posx, float posy, int inwidth, int inheight, bool optionalusesdarkmode = false) : \
 		spritesheet(inputsheet), x(posx), y(posy), width(inwidth), height(inheight), usesdarkmode(optionalusesdarkmode) {}
 	C3D_Tex* spritesheet;
 	float x, y, width, height;
@@ -73,6 +74,7 @@ class sDraw_interface
 	void drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley);
 	void drawcenteredtext(const char* text, float scaleX, float scaleY, float y);
 	void drawrectangle(int x, int y, int width, int height, u32 color, bool shouldusedarkmode = false);
+	void drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3);
 	void frameend();
 	void settextcolor(u32 color);
 	float gettextheight(const char* text, float sizeY);
@@ -85,8 +87,10 @@ class sDraw_interface
 	void usebasicshader();
 	void useeventualshader();
 	void usetwocoordsshader();
+	void usethreetexturesshader();
 	void sDrawi_addTextVertex(float vx, float vy, float tx, float ty);
 	void sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty);
+	void sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float tc0y, float tc1x, float tc1y, float tc2x, float tc2y);
 
 	//Copies last frame to provided textures of 256x512 dimensions.
 	void retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb);
@@ -101,6 +105,7 @@ class sDraw_interface
 	int twocds_interploc, twocds_baseloc, twocds_baseinterploc;
 	int sdrawTwoCdsVtxArrayPos;
 	int sdrawVtxArrayPos;
+	int sdrawThreeTexturesVtxArrayPos;
 	
 	private:
 	C3D_Tex lastfbtop;
