@@ -92,7 +92,16 @@ unsigned int nextPow2(unsigned int v)
     return (v >= TEX_MIN_SIZE ? v : TEX_MIN_SIZE);
 }
 
-//Take note that this can only load images with dimensions of powers of 2
+//This code is extremely wasteful given the existence of Tex3DS.
+//However, it is essential to the proper functioning of sDraw.
+//This code was taken from the 3DS example at the very beginning
+//of its existence, in July 2017. At this time, the example
+//flipped the texcoords while doing C3D_DisplayTransfer, and all of sDraw's
+//texcoord behavior since has relied on this.
+//When attempting to convert to Tex3DS, I ran into this problem, and found
+//that it couldn't be solved, because DisplayTransfer crashed or produced garbage
+//on Tex3DS textures for some reason... So, this code will remain, for now.
+//(See below. I do have a loadTexture function ready to go.)
 C3D_Tex* loadpng(string filepath)
 {
 
@@ -990,6 +999,10 @@ void sDraw_interface::framestart()
 	//Well, OK, I don't really need or use this functionality anyway.
 	//C3D_RenderTargetClear(top, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	//C3D_RenderTargetClear(bottom, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
+
+	//Except... We DO need to clear the stencil buffer.
+	C3D_RenderTargetClear(top, C3D_CLEAR_DEPTH, 0, 0);
+	C3D_RenderTargetClear(bottom, C3D_CLEAR_DEPTH, 0, 0);
 	drawon(GFX_TOP); //Reset default output to the top screen
 }
 
