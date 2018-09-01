@@ -39,7 +39,7 @@ C3D_Tex* spritesheet = loadpng("romfs:/spritesheet.png"); //Texture conversion f
 C3D_Tex* progressfiller = loadbin("romfs:/progress.bin", 32, 32); //This needs to be in its own texture due to usage of wrapping for animation
 C3D_Tex* rainbow = loadbin("romfs:/rainbow.bin", 256, 256); //Ditto; needs its own texture for animation
 sdraw_stex leftbutton(spritesheet, 0, 324, 152, 134, true);
-sdraw_stex leftbuttonenabled(spritesheet, 0, 458, 152, 134, true);
+sdraw_stex leftbuttonmoon(spritesheet, 0, 458, 152, 134, false);
 sdraw_stex rightbutton(spritesheet, 153, 324, 151, 134, true);
 sdraw_stex selector(spritesheet, 0, 241, 320, 81, true);
 sdraw_stex backgroundbot(spritesheet, 0, 0, 320, 240, true);
@@ -206,32 +206,8 @@ bool buttonpressed(sdraw_stex button, int bx, int by, touchPosition lastpos, u32
 	return touched(button, bx, by, lastpos) && !(kHeld & KEY_TOUCH);
 }
 
-//This should be done with a shader instead- I wrote this when I wasn't good at OpenGL
+
 void mainmenushiftin()
-{
-	//Shift the buttons in. if l equals 0 we're done all the buttons are moved in. Handle b separately as we're moving less
-	//And along the y coordinate here.
-	for(int l = -(leftbutton.width), r = 320, b = 240; l < 0; l += 10, r -= 10)
-	{
-		draw.framestart();
-		drawtopscreen();
-		draw.drawon(GFX_BOTTOM);
-		draw.drawtexture(backgroundbot, 0, 0);
-		draw.drawtexture(leftbutton, l, 13);
-		draw.drawtexture(rightbutton, r, 13);
-		draw.drawtexture(selector, 0, b);
-		//21 is the distance from the top of the selection bar to the top of the text
-		draw.drawtextinrec(slotname.c_str(), 35, 21 + b, 251, 1.4, 1.4);
-		draw.frameend();
-		if(b >= 161) b -= 6; //159 plus 2
-		if(b < 161) b = 159; //Handle b not quite hitting what we want
-	}
-
-
-}
-
-
-void mainmenushiftinb()
 {
 	for (float i = 0; i <= 1.0; i += 0.08)
 	{
@@ -240,6 +216,7 @@ void mainmenushiftinb()
 		draw.drawon(GFX_BOTTOM);
 		draw.drawtexture(backgroundbot, 0, 0);
 		draw.drawtexture(leftbutton, -leftbutton.width, 13, 0, 13, i);
+		draw.drawtexture(leftbuttonmoon, -leftbuttonmoon.width, 13, 0, 13, i);
 		draw.drawtexture(rightbutton, 320, 13, 169, 13, i);
 		draw.drawtexture(selector, 0, 240, 0, 159, i);
 		draw.frameend();
@@ -322,6 +299,7 @@ void mainmenushiftout()
 		draw.drawon(GFX_BOTTOM);
 		draw.drawtexture(backgroundbot, 0, 0);
 		draw.drawtexture(leftbutton, l, 13);
+		draw.drawtexture(leftbuttonmoon, l, 13);
 		draw.drawtexture(rightbutton, r, 13);
 		draw.drawtexture(selector, 0, b);
 		draw.drawtextinrec(slotname.c_str(), 35, 21 + b, 251, 1.4, 1.4);
@@ -406,10 +384,47 @@ void drawtopscreen()
 void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapos, bool highlighterblink)
 {
 	draw.drawtexture(backgroundbot, 0, 0);
+
+	//Draw the rainbow (or not) moon first.
+	//A bit like the banner animation but not quite.
+	//The texcoords for the rainbow are much smaller vertically,
+	//meaning this focuses on one color at a time.
+	//It also interpolates with the moon's colors, leading to a great
+	//glow effect on the rainbow which was stolen from it, while ALSO
+	//using that same moon as an alpha map. Pretty nice!
+	static float animationplus = 0;
+	C3D_TexEnv* tev = C3D_GetTexEnv(0);
+	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
+	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_TEXTURE1);
+	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
+	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
+	C3D_TexEnvFunc(tev, C3D_RGB, GPU_INTERPOLATE);
+	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
+	//It's a bit jarring to enable mods and immediately
+	//have the rainbow pop up. This code smoothes it out a bit.
+	static int rainbowinterp = 0;
+	if (modsenabled && rainbowinterp < 128)
+	{
+		rainbowinterp += 3;
+		if(rainbowinterp > 128) rainbowinterp = 128;
+	}
+	if (!modsenabled && rainbowinterp > 0)
+	{
+		rainbowinterp -= 3;
+		if(rainbowinterp < 0) rainbowinterp = 0;
+	}
+	C3D_TexEnvColor(tev, RGBA8(0, 0, 0, rainbowinterp));
+
+	sdraw_stex temp(rainbow, 0, 0 + animationplus, 256, 40, false);
+	draw.drawmultipletextures(0, 13, leftbuttonmoon, temp, temp);
+		
+	animationplus += 0.5;
+
 	if (dpadpos == 0)
-		draw.drawtexturewithhighlight(touched(leftbutton, 0, 13, tpos) ? leftbuttonenabled : leftbutton, 0, 13, \
+		draw.drawtexturewithhighlight(leftbutton, 0, 13, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
-	else draw.drawtexture(touched(leftbutton, 0, 13, tpos) ? leftbuttonenabled : leftbutton, 0, 13);
+	else draw.drawtexture(leftbutton, 0, 13);
+
 	if (dpadpos == 1)
 		draw.drawtexturewithhighlight(rightbutton, 169, 13, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
@@ -439,7 +454,7 @@ int main(int argc, char **argv) {
 
 	updatecheckworker.startworker();
 
-	mainmenushiftinb();
+	mainmenushiftin();
 	//So, uh, sdraw doesn't like it when I trigger an error before shifting in the menu, and freezes the GPU...
 	//I don't like this at all, it fragments the code and forces me to do bad things
 	if(renamefailed)
