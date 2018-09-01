@@ -53,6 +53,7 @@ sdraw_highlighter textboxokbuttonhighlight(spritesheet, 152, 491, 89, 35, \
 	RGBA8(errorhighlightcolors[0], errorhighlightcolors[1], errorhighlightcolors[2], 0), false);
 sdraw_stex titleselectionboxes(spritesheet, 0, 792, 268, 198, true);
 sdraw_stex titleselectionsinglebox(spritesheet, 0, 792, 58, 58, true);
+sdraw_stex titleselectioncartridge(spritesheet, 268, 857, 70, 66, false);
 sdraw_highlighter titleselecthighlighter(spritesheet, 268, 792, 65, 65, \
 	RGBA8(titleselecthighlightcolors[0], titleselecthighlightcolors[1], titleselecthighlightcolors[2], 0), false);
 sdraw_stex progressbar(spritesheet, 720, 240, 260, 35, true);
@@ -170,6 +171,8 @@ void enablemods(bool isenabled)
 	//in both cases
 	modsenabled = isenabled;
 	config.write("ModsEnabled", modsenabled);
+	//This assumption is invalidated by LayeredFS because we move the folder
+	//which makes this folder not exist. I don't trust myself to solve it at this time of night.
 	string src = "/luma/titles/" + currenttitleidstr;
 	string dest = "/luma/titles/" + currenttitleidstr;
 	//If we're enabling, the source is the "Disabled" folder
@@ -215,8 +218,8 @@ void mainmenushiftin()
 		drawtopscreen();
 		draw.drawon(GFX_BOTTOM);
 		draw.drawtexture(backgroundbot, 0, 0);
-		draw.drawtexture(leftbutton, -leftbutton.width, 13, 0, 13, i);
 		draw.drawtexture(leftbuttonmoon, -leftbuttonmoon.width, 13, 0, 13, i);
+		draw.drawtexture(leftbutton, -leftbutton.width, 13, 0, 13, i);
 		draw.drawtexture(rightbutton, 320, 13, 169, 13, i);
 		draw.drawtexture(selector, 0, 240, 0, 159, i);
 		draw.frameend();
@@ -298,8 +301,8 @@ void mainmenushiftout()
 		drawtopscreen();
 		draw.drawon(GFX_BOTTOM);
 		draw.drawtexture(backgroundbot, 0, 0);
-		draw.drawtexture(leftbutton, l, 13);
 		draw.drawtexture(leftbuttonmoon, l, 13);
+		draw.drawtexture(leftbutton, l, 13);
 		draw.drawtexture(rightbutton, r, 13);
 		draw.drawtexture(selector, 0, b);
 		draw.drawtextinrec(slotname.c_str(), 35, 21 + b, 251, 1.4, 1.4);

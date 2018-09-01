@@ -40,6 +40,7 @@ extern sdraw_stex textboxokbutton;
 extern sdraw_highlighter textboxokbuttonhighlight;
 extern sdraw_stex titleselectionboxes;
 extern sdraw_stex titleselectionsinglebox;
+extern sdraw_stex titleselectioncartridge;
 extern sdraw_highlighter titleselecthighlighter;
 extern sdraw_stex progressbar;
 extern sdraw_stex progressbarstenciltex;

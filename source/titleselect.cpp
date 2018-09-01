@@ -33,6 +33,8 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			x = 31;
 			y += 70;
 		}
+		if (i == 0) //Draw the cartridge icon
+			draw.drawtexture(titleselectioncartridge, x - 9, y - 9);
 		if (i == selectpos)
 		{
 			draw.drawtext(tid2str((*iter).titl).c_str(), 0, 0, .4, .4);

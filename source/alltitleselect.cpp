@@ -55,6 +55,8 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			x = 31;
 			y += 70;
 		}
+		if (i == 0) //Draw the cartridge icon
+			draw.drawtexture(titleselectioncartridge, x - 9, y - 9);
 		if (i == selectpos)
 		{
 			draw.drawtext(tid2str((*iter).titl).c_str(), 0, 0, .4, .4);
@@ -86,7 +88,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			if(iter->isactive)
 				C3D_TexEnvInit(C3D_GetTexEnv(1));
 		}
-		else if (iter->isactive)
+		else if (iter->isactive && i != 0)
 		{
 			C3D_SetTexEnv(1, &coloroverride);
 			draw.drawtexture(titleselecthighlighter, x - 9, y - 9);
@@ -96,7 +98,6 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 		i++;
 		if (iter == allicons.begin()) //It's the cartridge
 		{
-			//sdraw::drawicon(cartridgeicon, x - 12, y - 12);
 			if (iter->titl == 0)
 				continue; //There's no cartridge inserted
 		}
