@@ -985,6 +985,7 @@ void sDraw_interface::framestart()
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	sdrawVtxArrayPos = 0; //Reset the vertex arrays
 	sdrawTwoCdsVtxArrayPos = 0;
+	sdrawThreeTexturesVtxArrayPos = 0;
 	//Of all things, this is what breaks the framebuffer copy.
 	//Well, OK, I don't really need or use this functionality anyway.
 	//C3D_RenderTargetClear(top, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
