@@ -369,6 +369,12 @@ void drawtopscreen()
 	sdraw_stex temp(rainbow, 0, 0 + animationplus, 256, 256, false);
 	draw.drawmultipletextures(bannerx + moonx, bannery + moony, bannermoonalpha, temp, temp);
 
+	//At some point, the PICA200 just doesn't like texcoords of an extremely high value and stops repeating.
+	//A quick debugging session yielded that it got to 30000 without issue, and that's something like 10
+	//minutes of running, so it's fine to reset it at that point. The value I use here is 256 * 117
+	//so it also shouldn't(?) cause a jarring skip.
+	if(animationplus >= 29952)
+		animationplus = 0;
 	animationplus += .75;
 
 	//Draw the title selection text
@@ -421,6 +427,9 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	sdraw_stex temp(rainbow, 0, 0 + animationplus, 256, 40, false);
 	draw.drawmultipletextures(0, 13, leftbuttonmoon, temp, temp);
 		
+	//See above for why this is done
+	if (animationplus >= 29952)
+		animationplus = 0;
 	animationplus += 0.5;
 
 	if (dpadpos == 0)
