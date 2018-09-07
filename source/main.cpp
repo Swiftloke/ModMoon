@@ -465,6 +465,8 @@ int main(int argc, char **argv) {
 	}
 
 	updatecheckworker.startworker();
+	if(!shoulddisableupdater)
+		updatecheckworker.startworker();
 
 	mainmenushiftin();
 	//So, uh, sdraw doesn't like it when I trigger an error before shifting in the menu, and freezes the GPU...

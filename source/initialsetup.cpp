@@ -262,8 +262,11 @@ void initialsetup()
 	bool migrationwasdone = doallmigration();
 
 	//initupdatechecker();
-	updatecheckworker.startworker();
-	svcWaitSynchronization(event_downloadthreadfinished, U64_MAX);
+	if (!shoulddisableupdater)
+	{
+		updatecheckworker.startworker();
+		svcWaitSynchronization(event_downloadthreadfinished, U64_MAX);
+	}
 	if (isupdateavailable() && !shoulddisableupdater)
 	{
 		//doprogressdraw = false;
