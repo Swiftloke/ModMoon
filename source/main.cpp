@@ -167,22 +167,24 @@ int startup()
 
 void enablemods(bool isenabled)
 {
-	//Disables SaltySD for Smash titles, moves every mod file out of the way for LayeredFS, so it works
-	//in both cases
+	//Disables SaltySD for Smash titles, changes state for both.
 	modsenabled = isenabled;
 	config.write("ModsEnabled", modsenabled);
 	//This assumption is invalidated by LayeredFS because we move the folder
-	//which makes this folder not exist. I don't trust myself to solve it at this time of night.
-	string src = "/luma/titles/" + currenttitleidstr;
-	string dest = "/luma/titles/" + currenttitleidstr;
-	//If we're enabling, the source is the "Disabled" folder
-	if(isenabled) src.insert(13, "Disabled");
-	else dest.insert(13, "Disabled");
-	if (rename(src.c_str(), dest.c_str()))
+	//which makes this folder not exist.
+	if (issaltysdtitle())
 	{
-		string enable = isenabled ? "enable" : "disable";
-		error("Failed to " + enable + " mods!");
-		error("This may resolve itself\nthrough normal usage.");
+		string src = "/luma/titles/" + currenttitleidstr;
+		string dest = "/luma/titles/" + currenttitleidstr;
+		//If we're enabling, the source is the "Disabled" folder
+		if (isenabled) src.insert(13, "Disabled");
+		else dest.insert(13, "Disabled");
+		if (rename(src.c_str(), dest.c_str()))
+		{
+			string enable = isenabled ? "enable" : "disable";
+			error("Failed to " + enable + " mods!");
+			error("This may resolve itself\nthrough normal usage.");
+		}
 	}
 }
 
@@ -464,7 +466,6 @@ int main(int argc, char **argv) {
 		config.write("InitialSetupDone", true);
 	}
 
-	updatecheckworker.startworker();
 	if(!shoulddisableupdater)
 		updatecheckworker.startworker();
 
