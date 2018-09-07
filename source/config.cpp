@@ -25,30 +25,6 @@
 */
 using namespace std;
 
-string configfiledefault = R"raw(
-"ModMoonVersion{)raw" + to_string(MODMOON_VERSION) + R"raw(}
-ModsEnabled{False}
-ConfigFileVersion{)raw" + to_string(CONFIG_FILE_VERSION) + R"raw(}
-InitialSetupDone{False}
-ModsFolder{/3ds/ModMoon/}
-ActiveTitleIDs{0}
-TitleIDSlots{0}
-SelectedTitleIDPos{0}
-DarkModeEnabled{False}
-DisableErrors{False}
-DisableUpdater{False}
-MainMenuHighlightColors{255, 0, 0}
-ErrorHighlightColors{255, 0, 0}
-TitleSelectHighlightColors{255, 0, 0}
-ToolsMenuHighlightColors{133, 46, 165}
-EnableFlexibleCartridgeSystem{False}
-;This file saves config info for ModMoon.
-;You shouldn't really mess with this unless you want to have a custom path for mod slots.
-;If you do and ModMoon breaks, just delete this file.
-;By enabling DisableError or DisableUpdate, you are disqualifying yourself from
-;recieving aid with ModMoon; these functions are critical in troubleshooting.
-)raw";
-
 void _mkdir(const char *dir) { //http://nion.modprobe.de/blog/archives/357-Recursive-directory-creation.html
         char tmp[256];
         char *p = NULL;
@@ -82,10 +58,38 @@ void _mkdir(const char *dir) { //http://nion.modprobe.de/blog/archives/357-Recur
 
 void Config::createfile()
 {
-	ofstream out(filepath, ios::trunc);
+	/*ofstream out(filepath, ofstream::trunc | ofstream::binary);
 	//out << "Enabled{True}\r\nGameType{Cia}\r\nGameRegion{Usa}\r\nLastSSDHash{}\r\nModsFolder{/saltysdMODS/}\r\nSmashSelectorVersion{3.0}\r\nConfigFileVersion{008}\r\nSelectedModSlot{1}\r\n\r\nMainCodeFolder{/luma/titles/}\r\nSplitCodeTextFolder{/corbenik/exe/text/}\r\nSplitCodeRoFolder{/corbenik/exe/ro/}\r\nSplitCodeDataFolder{/corbenik/exe/data/}\r\n\r\nConfigWorking{TRUE}\r\nInitialSetup{NotDone}\r\nHitboxDisplayActive{False}\r\n#When putting in the path make sure you use / and NOT \\ Also make sure the path ends in a /. \r\n#If you made a change to this file and smash selector no longer works, just delete this file.";
 	out << configfiledefault;
-	out.close();
+	out.close();*/
+
+	//This just... doesn't work as a global. So I guess it'll be a local until I get a better solution. Yay
+	string configfiledefault = 
+R"raw(ModMoonVersion{)raw" + to_string(MODMOON_VERSION) + R"raw(}
+ModsEnabled{False}
+ConfigFileVersion{)raw" + to_string(CONFIG_FILE_VERSION) + R"raw(}
+InitialSetupDone{False}
+ModsFolder{/3ds/ModMoon/}
+ActiveTitleIDs{0}
+TitleIDSlots{0}
+SelectedTitleIDPos{0}
+DarkModeEnabled{False}
+DisableErrors{False}
+DisableUpdater{False}
+MainMenuHighlightColors{255, 0, 0}
+ErrorHighlightColors{255, 0, 0}
+TitleSelectHighlightColors{255, 0, 0}
+ToolsMenuHighlightColors{133, 46, 165}
+EnableFlexibleCartridgeSystem{False}
+;This file saves config info for ModMoon.
+;If you change things in this file and ModMoon breaks, just delete it.
+;By enabling DisableErrors, you are disqualifying yourself from
+;recieving aid with ModMoon; these functions are critical in troubleshooting.
+)raw";
+
+	this->configfile = configfiledefault;
+	this->isflushed = false;
+	this->flush();
 }
 
 Config::Config(string path, string filename)
@@ -94,8 +98,12 @@ Config::Config(string path, string filename)
 	filepath = path + filename;
 	ifstream in(filepath.c_str(), ifstream::binary);
 	if(!in)
-	{in.close(); createfile(); in.open(filepath.c_str(), ifstream::binary);}
-	in.seekg(0, in.end);
+	{
+		in.close(); 
+		createfile();
+	}
+	else
+	{in.seekg(0, in.end);
 	int size = in.tellg();
 	in.seekg(0);
 	char* buf = new char[size];
@@ -103,6 +111,7 @@ Config::Config(string path, string filename)
 	configfile = string(buf);
 	delete[] buf;
 	in.close();
+	}
 	//if(read("ConfigFileVersion", 0) < CONFIG_FILE_VERSION) updateconfig();
 }
 
