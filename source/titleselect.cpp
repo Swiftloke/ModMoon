@@ -128,12 +128,26 @@ void titleselect()
 		fbinterpfactor += 0.05;
 		titleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos, false);
 	}
+	//touchPosition firstpos, cpos;
+	//int touchadd = 0;
 	while (aptMainLoop())
 	{
 		if (cartridgeneedsupdating)
 			updatecartridgedata();
 		hidScanInput();
 		u32 kDown = hidKeysDown();
+		//I have some ideas for touch input, but it will be REALLY complex...
+		//I'll come back to it at some point after 3.0.
+		/*if (kDown & KEY_TOUCH)
+		{
+			hidTouchRead(&cpos);
+			if (firstpos.px == 0 && firstpos.py == 0)
+			{
+				firstpos = cpos;
+			}
+		}
+		else
+			firstpos = {0, 0};*/
 		if (secretcodeadvance(kDown)) continue;
 		if (kDown & KEY_LEFT)
 		{
@@ -180,24 +194,27 @@ void titleselect()
 
 		if (kDown & KEY_A)
 		{
-			while (hidKeysHeld() & KEY_A)
+			if (icons[selectpos].titl != 0)
 			{
-				hidScanInput();
-				titleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos, true);
+				while (hidKeysHeld() & KEY_A)
+				{
+					hidScanInput();
+					titleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos, true);
+				}
+				currenttidpos = selectpos;
+				//Re-initialize stuff for the new TID. This is actually all we have to do, the design
+				//Of accessing a vector based on currenttidpos does everything else.
+				maxslot = maxslotcheck();
+				if (maxslot == 0)
+				{
+					error("Warning: Failed to find mods for\nthis game!");
+					error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nwhere X is a number starting at 1.");
+				}
+				mainmenuupdateslotname();
+				config.write("SelectedTitleIDPos", currenttidpos);
+				modsenabled = currentslot != 0;
+				break;
 			}
-			currenttidpos = selectpos;
-			//Re-initialize stuff for the new TID. This is actually all we have to do, the design
-			//Of accessing a vector based on currenttidpos does everything else.
-			maxslot = maxslotcheck();
-			if (maxslot == 0)
-			{
-				error("Warning: Failed to find mods for\nthis game!");
-				error("Place them at " + modsfolder + '\n' + currenttitleidstr + "/Slot_X\nwhere X is a number starting at 1.");
-			}
-			mainmenuupdateslotname();
-			config.write("SelectedTitleIDPos", currenttidpos);
-			modsenabled = currentslot != 0;
-			break;
 		}
 		if (kDown & KEY_B)
 			break;
