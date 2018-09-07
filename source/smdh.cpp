@@ -56,8 +56,8 @@ void worker_loadallsmdhdata(WorkerFunction* notthis)
 		notthis->functionprogress++;
 		if (notthis->cancel)
 		{
-			return;
 			alltitlesvector.resize(i);
+			return;
 		}
 	}
 	/*bool cardinserted;
