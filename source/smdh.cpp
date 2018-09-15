@@ -36,6 +36,7 @@ void worker_loadallsmdhdata(WorkerFunction* notthis)
 	for (unsigned int i = 0; i < alltitlescount; i++)
 	{
 		//Doesn't work, but that's OK, it's not *that* costly
+
 		//If it's already loaded, why bother loading it again? Loading textures is expensive.
 		/*bool alreadyloaded = false;
 		for (unsigned int j = 0; j < smdhvector->size(); j++)
@@ -71,6 +72,7 @@ void worker_loadallsmdhdata(WorkerFunction* notthis)
 	}*/
 	//this->functionprogress++;
 	//alltitlesvector.insert(alltitlesvector.begin(), smdhvector[0]); //Done by updatecartridgedata()
+
 	//Remove titles that aren't titles- extdata, updates, etc.
 	//Also determine if the title is active or not.
 	vector<smdhdata>::iterator remove = \
@@ -85,7 +87,7 @@ void initializeallSMDHdata(vector<u64> intitleids)
 	tidstoload = intitleids;
 	smdhvector.resize(tidstoload.size());
 	//Initialize the SMDH vector TODO: initialize it with a "!" texture by doing TexCopy instead
-	//We need to do this ahead of time in the main thread, because what if the main thread attempts to load
+	//We need to do this ahead of time in the main thread, because what if the worker thread attempts to load
 	//the textures before they're allocated? Instant segfault!
 	for(unsigned int i = 0; i < smdhvector.size(); i++)
 		C3D_TexInit(&(smdhvector[i].icon), 64, 64, GPU_RGB565);
@@ -314,7 +316,7 @@ void updatecartridgedata()
 			//Update related stuff as well
 			titleids[0] = icons[0].titl;
 			slots[0] = 0;
-			getallSMDHdata()[0] = icons[0];
+			alltitlesvector[0] = icons[0];
 			if (currenttidpos == 0)
 			{
 				maxslot = maxslotcheck();
@@ -335,6 +337,7 @@ void updatecartridgedata()
 		//Update related stuff as well
 		titleids[0] = 0;
 		slots[0] = 0;
+		alltitlesvector[0] = icons[0];
 		if (currenttidpos == 0)
 		{
 			maxslot = 0;

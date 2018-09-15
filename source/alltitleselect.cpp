@@ -99,11 +99,6 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			C3D_TexEnvInit(C3D_GetTexEnv(1));
 		}
 		i++;
-		if (iter == allicons.begin()) //It's the cartridge
-		{
-			if (iter->titl == 0)
-				continue; //There's no cartridge inserted
-		}
 		if (iter->titl != 0) //Not a null cartridge
 			draw.drawSMDHicon((*iter).icon, x, y);
 	}
