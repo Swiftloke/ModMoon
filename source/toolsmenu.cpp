@@ -190,6 +190,37 @@ void toolsmenu()
 			}
 			break;
 		}
+		if (kDown & KEY_X)
+		{
+			string helptext;
+			string helptext2 = "None";
+			switch (position)
+			{
+			case 0: 
+			{
+				helptext = "Active Title Selection:\nAdd or remove titles from\nModMoon's list of titles to use."; 
+				helptext2 = "See the in-menu help option\nfor more information.";
+				break;
+			}
+			case 1: 
+			{
+				helptext = "Smash Controls Modifier:\nFeature for Super Smash Bros.\nfor Nintendo 3DS only.";
+				helptext2 = "Allows you to modify the in-\ngame controls much further\nthan the game itself allows."; 
+				break; 
+			}
+			case 2: helptext = "Tutorial:\nReplay the tutorial shown at the\nfirst start of ModMoon."; break;
+			case 3: 
+			{ 
+				helptext = "Smash Selector Mods Migrator:\nMigrate mods to ModMoon from\nSmash Selector 1.0 or\nSmash Selector 2.x.";
+				helptext2 = "This functionality is activated\nautomatically at first boot."; 
+				break; 
+			}
+			case 4: helptext = " Mode:\nChange the theme of ModMoon!"; helptext.insert(0, draw.darkmodeshouldactivate ? "Light" : "Dark");
+			}
+			error(helptext);
+			if(helptext2 != "None")
+				error(helptext2);
+		}
 		//Get the highlighter in position
 		if(touched(activetitlesbutton, 18, 6, tpos))
 			position = 0;

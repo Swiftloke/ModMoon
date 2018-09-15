@@ -388,7 +388,7 @@ void drawtopscreen()
 	//Draw the title selection text
 	draw.settextcolor(RGBA8(165, 165, 165, 255));
 	//Not implemented...
-	//draw.drawtext(": Enable/Disable mods", 5, 240 - 40, 0.55, 0.55);
+	draw.drawtext(": Help", 5, 240 - 40, 0.55, 0.55);
 	draw.drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
 	//Draw the current title
 	if (getSMDHdata()[currenttidpos].titl != 0) //This may be a cartridge that's not inserted, if it is, don't draw it
@@ -600,17 +600,49 @@ int main(int argc, char **argv) {
 			}
 		}
 		if (kDown & KEY_Y) titleselect();
-		if(kDown & KEY_START) break;
-		if(touched(leftbutton, 0, 13, opos) & !(kHeld & KEY_TOUCH)) //It was touched last frame and released this frame
-			launch();
-		if(touched(4, 180, 28, 42, opos) && !(kHeld & KEY_TOUCH)) //Left button coordinates
-			updateslots(false);
-		if(touched(288, 180, 28, 42, opos) && !(kHeld & KEY_TOUCH)) //Right button coordinates
-			updateslots(true);
-		if (touched(rightbutton, 169, 13, opos) && !(kHeld & KEY_TOUCH))
+		if (kDown & KEY_X)
 		{
-			mainmenushiftout(); toolsmenu(); mainmenushiftin();
+			string helptext;
+			switch (dpadpos)
+			{
+			case 0:
+				helptext = "Launch:\nApplies and launches mods\nfor the selected game."; break;
+			case 1:
+				helptext = "Tools Menu:\nAccess some of the goodies\nModMoon has to offer!"; break;
+			case 2: //Fall through
+			case 3:
+				helptext = "Mod Selector:\nChange the active mod for the\ncurrent game. Tap the arrows or\nuse  left/right to change mods."; break;
+			}
+			error(helptext);
 		}
+		if(kDown & KEY_START) break;
+		if (touched(leftbutton, 0, 13, tpos))
+			dpadpos = 0;
+		else if (buttonpressed(leftbutton, 0, 13, opos, kHeld))
+			launch();
+
+		if (touched(4, 180, 28, 42, tpos)) //Left button coordinates
+			dpadpos = (dpadpos == 0) ? 2 : (dpadpos == 1) ? 3 : 3;
+		else if(buttonpressed(4, 180, 28, 42, opos, kHeld))
+			updateslots(false);
+
+		if (touched(288, 180, 28, 42, tpos)) //Right button coordinates
+			dpadpos = (dpadpos == 0) ? 2 : (dpadpos == 1) ? 3 : 3;
+		else if(buttonpressed(288, 180, 28, 42, opos, kHeld))
+			updateslots(true);
+
+		if(buttonpressed(selector, 0, 159, opos, kHeld)) //No action, but do highlight it
+			dpadpos = (dpadpos == 0) ? 2 : (dpadpos == 1) ? 3 : 3;
+
+		if (touched(rightbutton, 169, 13, tpos))
+			dpadpos = 1;
+		else if (buttonpressed(rightbutton, 169, 13, opos, kHeld))
+		{
+			mainmenushiftout();
+			toolsmenu();
+			mainmenushiftin();
+		}
+
 		draw.framestart();
 		drawtopscreen();
 		draw.drawon(GFX_BOTTOM);

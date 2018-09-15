@@ -253,6 +253,11 @@ void titleselect()
 		}
 		if (kDown & KEY_B)
 			break;
+		if (kDown & KEY_X)
+		{
+			error("Title Selection Menu:\nSelect a game to run mods for!\n");
+			error("Games can be added/removed\nfrom the Active Title Selection\nmenu in the tools menu.");
+		}
 		titleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos, isbeingtouched);
 	}
 	while (fbinterpfactor > 0)

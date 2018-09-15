@@ -1,4 +1,4 @@
-//This is a clone of titleselect.cpp, but instead of picking a title to load mods for, it provides a menu
+﻿//This is a clone of titleselect.cpp, but instead of picking a title to load mods for, it provides a menu
 //to set the "ActiveTitleIDs" config value.
 //I didn't want to repeat nearly-identical-but-not-quite code in one file, so it's here instead.
 #include "titleselects.hpp"
@@ -313,6 +313,12 @@ void activetitleselect()
 		}
 		if (kDown & KEY_B)
 			break;
+		if (kDown & KEY_X)
+		{
+			error("Active Title Selection:\nAdd or remove titles from\nModMoon's list of titles to use.");
+			error("Select the titles you want to\nactivate for use by tapping them\nor using the Circle Pad and .");
+			error("Activated titles will glow blue.\nThe cartridge is always active.");
+		}
 		activetitleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos);
 	}
 	while (fbinterpfactor > 0)

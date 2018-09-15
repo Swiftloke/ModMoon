@@ -149,6 +149,11 @@ void controlsmodifier() {
 				if (buttons[cursor] == 9) { buttons[cursor] = 0; }
 			}
 		}
+		if (kDown & KEY_X)
+		{
+			error("Smash Controls Modifier:\nAllows you to modify the in-\ngame controls much further\nthan the game itself allows.");
+			error("Select a button by moving the\nCircle Pad up and down. Select a\ncontrol setting with left and right.\nPress  to save and exit.");
+		}
 		controlsdraw();
 	}
 	for (int i = 0x0; i <= 0xD; i++)
