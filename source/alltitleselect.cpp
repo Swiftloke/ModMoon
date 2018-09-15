@@ -47,6 +47,9 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 
 	highlighterhandle(highlighteralpha, highlighteralphaplus);
 	y -= 70 * scrollsubtractrows;
+
+	draw.drawtexture(titleselectioncartridge, 22, 17 - 70 * scrollsubtractrows);
+
 	for (vector<smdhdata>::iterator iter = allicons.begin(); iter < allicons.end(); iter++)
 	{
 		x += 70;
@@ -178,18 +181,63 @@ void activetitleselect()
 	alloldselectpos = selectpos;
 	static int scrollsubtractrows = 0;
 
+	//Calculate the positions of all the buttons the user could potentially press
+	float quadsofbuttons[12][2];
+	const int advancecount = 70;
+	int quadx = 26 - advancecount; //Start smaller, it'll be incremented immediately
+	int quady = 21;
+	for (int i = 0; i < 12; i++)
+	{
+		quadx += advancecount;
+		if (quadx > 241)
+		{
+			quadx = 26;
+			quady += advancecount;
+		}
+		quadsofbuttons[i][0] = quadx;
+		quadsofbuttons[i][1] = quady;
+	}
+
 	float fbinterpfactor = 0;
 	while (fbinterpfactor < 1)
 	{
 		fbinterpfactor += 0.05;
 		activetitleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos);
 	}
+	touchPosition tpos, opos;
 	while (aptMainLoop())
 	{
 		if (cartridgeneedsupdating)
 			updatecartridgedata();
 		hidScanInput();
 		u32 kDown = hidKeysDown();
+		u32 kHeld = hidKeysHeld();
+
+		//No scrolling support, too complex. Maybe I'll use a library for it in the future.
+		hidTouchRead(&tpos);
+		for (int i = 0; i < 12; i++)
+		{
+			if (touched(quadsofbuttons[i][0], quadsofbuttons[i][1], advancecount, advancecount, tpos))
+			{
+				int newselectpos = i + (4 * scrollsubtractrows);
+				if (newselectpos <= (signed int)allicons.size() - 1)
+				{
+					selectpos = newselectpos;
+				}
+			}
+			else if (buttonpressed(quadsofbuttons[i][0], quadsofbuttons[i][1], advancecount, advancecount, opos, kHeld))
+			{
+				//Do the calculation again to ensure we don't accidentally hit something bad
+				int newselectpos = i + (4 * scrollsubtractrows);
+				if (newselectpos <= (signed int)allicons.size() - 1)
+				{
+					opos = tpos;
+					goto selecttitle;
+				}
+			}
+		}
+		opos = tpos;
+
 		if (secretcodeadvance(kDown)) continue;
 		if (kDown & KEY_LEFT)
 		{
@@ -236,6 +284,7 @@ void activetitleselect()
 
 		if (kDown & KEY_A)
 		{
+			selecttitle:
 			if (selectpos != 0) //Not a cartridge, these rules don't apply to them
 			{
 				smdhdata& titleop = allicons.at(selectpos);

@@ -25,6 +25,9 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 
 	highlighterhandle(highlighteralpha, highlighteralphaplus);
 	y -= 70 * scrollsubtractrows;
+
+	draw.drawtexture(titleselectioncartridge, 22, 17 - 70 * scrollsubtractrows);
+
 	for (vector<smdhdata>::iterator iter = icons.begin(); iter < icons.end(); iter++)
 	{
 		x += 70;
@@ -122,32 +125,63 @@ void titleselect()
 	oldselectpos = selectpos;
 	static int scrollsubtractrows = 0;
 
+	//Calculate the positions of all the buttons the user could potentially press
+	float quadsofbuttons[12][2];
+	const int advancecount = 70;
+	int quadx = 26 - advancecount; //Start smaller, it'll be incremented immediately
+	int quady = 21;
+	for (int i = 0; i < 12; i++)
+	{
+		quadx += advancecount;
+		if (quadx > 241)
+		{
+			quadx = 26;
+			quady += advancecount;
+		}
+		quadsofbuttons[i][0] = quadx;
+		quadsofbuttons[i][1] = quady;
+	}
+
 	float fbinterpfactor = 0;
 	while (fbinterpfactor < 1)
 	{
 		fbinterpfactor += 0.05;
 		titleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos, false);
 	}
-	//touchPosition firstpos, cpos;
-	//int touchadd = 0;
+	touchPosition tpos, opos;
+	bool isbeingtouched = false;
 	while (aptMainLoop())
 	{
 		if (cartridgeneedsupdating)
 			updatecartridgedata();
 		hidScanInput();
 		u32 kDown = hidKeysDown();
-		//I have some ideas for touch input, but it will be REALLY complex...
-		//I'll come back to it at some point after 3.0.
-		/*if (kDown & KEY_TOUCH)
+		u32 kHeld = hidKeysHeld();
+		//No scrolling support, too complex. Maybe I'll use a library for it in the future.
+		hidTouchRead(&tpos);
+		for (int i = 0; i < 12; i++)
 		{
-			hidTouchRead(&cpos);
-			if (firstpos.px == 0 && firstpos.py == 0)
+			if (touched(quadsofbuttons[i][0], quadsofbuttons[i][1], advancecount, advancecount, tpos))
 			{
-				firstpos = cpos;
+				int newselectpos = i + (4 * scrollsubtractrows);
+				if (newselectpos <= (signed int)icons.size() - 1)
+				{
+					selectpos = newselectpos;
+					isbeingtouched = true;
+				}
+			}
+			else if (buttonpressed(quadsofbuttons[i][0], quadsofbuttons[i][1], advancecount, advancecount, opos, kHeld))
+			{
+				//Do the calculation again to ensure we don't accidentally hit something bad
+				int newselectpos = i + (4 * scrollsubtractrows);
+				if (newselectpos <= (signed int)icons.size() - 1)
+				{
+					opos = tpos;
+					goto selecttitle;
+				}
 			}
 		}
-		else
-			firstpos = {0, 0};*/
+		opos = tpos;
 		if (secretcodeadvance(kDown)) continue;
 		if (kDown & KEY_LEFT)
 		{
@@ -194,6 +228,7 @@ void titleselect()
 
 		if (kDown & KEY_A)
 		{
+			selecttitle:
 			if (icons[selectpos].titl != 0)
 			{
 				while (hidKeysHeld() & KEY_A)
@@ -218,7 +253,7 @@ void titleselect()
 		}
 		if (kDown & KEY_B)
 			break;
-		titleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos, false);
+		titleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos, isbeingtouched);
 	}
 	while (fbinterpfactor > 0)
 	{
