@@ -803,6 +803,8 @@ void sDraw_interface::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, i
 //All textures should be the same width/height.
 void sDraw_interface::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3)
 {
+	if(info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
+		this->enabledarkmode(true);
 	usethreetexturesshader();
 
 	C3D_TexBind(0, info1.spritesheet);
@@ -831,6 +833,9 @@ void sDraw_interface::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawThreeTexturesVtxArrayPos - 4, 4);
 
 	usebasicshader();
+
+	if (info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
+		this->enabledarkmode(false);
 }
 
 void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1, int y1, float interpfactor)
