@@ -46,9 +46,12 @@ extern sdraw_stex progressbar;
 extern sdraw_stex progressbarstenciltex;
 extern sdraw_stex secret;
 extern sdraw_highlighter toolsmenuhighlighter;
-extern sdraw_stex controlsmodifierbutton;
+extern sdraw_stex activetitlesbutton;
+extern sdraw_stex smashcontrolsbutton;
 extern sdraw_stex tutorialbutton;
+extern sdraw_stex migrationbutton;
 extern sdraw_stex darkmodebutton;
+extern sdraw_stex lightmodebutton;
 
 extern Config config;
 extern bool modsenabled;
@@ -80,6 +83,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 bool touched(sdraw_stex button, int dx, int dy, touchPosition tpos);
 bool touched(int x, int y, int width, int height, touchPosition tpos);
 bool buttonpressed(sdraw_stex button, int bx, int by, touchPosition lastpos, u32 kHeld);
+bool buttonpressed(int bx, int by, int bwidth, int bheight, touchPosition lastpos, u32 kHeld);
 bool issaltysdtitle(u64 optionaltitleid = 0);
 //Returns "USA", "EUR" or "JPN"
 string saltysdtidtoregion(u64 optionaltitleid = 0);

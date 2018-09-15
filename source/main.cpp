@@ -39,14 +39,13 @@ C3D_Tex* spritesheet = loadpng("romfs:/spritesheet.png"); //Texture conversion f
 C3D_Tex* progressfiller = loadbin("romfs:/progress.bin", 32, 32); //This needs to be in its own texture due to usage of wrapping for animation
 C3D_Tex* rainbow = loadbin("romfs:/rainbow.bin", 256, 256); //Ditto; needs its own texture for animation
 sdraw_stex leftbutton(spritesheet, 0, 324, 152, 134, true);
-sdraw_stex leftbuttonmoon(spritesheet, 0, 458, 152, 134, false);
+sdraw_stex leftbuttonmoon(spritesheet, 0, 458, 152, 134, true);
 sdraw_stex rightbutton(spritesheet, 153, 324, 151, 134, true);
 sdraw_stex selector(spritesheet, 0, 241, 320, 81, true);
 sdraw_stex backgroundbot(spritesheet, 0, 0, 320, 240, true);
 sdraw_stex backgroundtop(spritesheet, 320, 129, 400, 240, true);
 sdraw_stex banner(spritesheet, 320, 0, 292, 128, false);
 sdraw_stex bannermoonalpha(spritesheet, 612, 0, 90, 106, false);
-sdraw_stex rainbowtexture(spritesheet, 702, 0, 110, 110, false);
 sdraw_stex textbox(spritesheet, 0, 592, 300, 200, true);
 sdraw_stex textboxokbutton(spritesheet, 152, 458, 87, 33, true);
 sdraw_highlighter textboxokbuttonhighlight(spritesheet, 152, 491, 89, 35, \
@@ -61,9 +60,12 @@ sdraw_stex progressbarstenciltex(spritesheet, 720, 275, 260, 35, true);
 sdraw_stex secret(spritesheet, 320, 369, 114, 113, false);
 sdraw_highlighter toolsmenuhighlighter(spritesheet, 706, 369, 319, 60, \
 	RGBA8(toolsmenuhighlightcolors[0], toolsmenuhighlightcolors[1], toolsmenuhighlightcolors[2], 0), false);
-sdraw_stex controlsmodifierbutton(spritesheet, 720, 310, 289, 45);
-sdraw_stex tutorialbutton(spritesheet, 706, 428, 289, 45, false);
-sdraw_stex darkmodebutton(spritesheet, 706, 473, 289, 45, false);
+sdraw_stex activetitlesbutton(spritesheet, 706, 428, 289, 45, false);
+sdraw_stex smashcontrolsbutton(spritesheet, 706, 475, 289, 41, false);
+sdraw_stex tutorialbutton(spritesheet, 706, 518, 289, 42, false);
+sdraw_stex migrationbutton(spritesheet, 706, 560, 289, 51, false);
+sdraw_stex darkmodebutton(spritesheet, 706, 611, 289, 46, false);
+sdraw_stex lightmodebutton(spritesheet, 706, 657, 289, 46, false);
 
 bool modsenabled = config.read("ModsEnabled", true);
 
@@ -211,6 +213,10 @@ bool buttonpressed(sdraw_stex button, int bx, int by, touchPosition lastpos, u32
 	return touched(button, bx, by, lastpos) && !(kHeld & KEY_TOUCH);
 }
 
+bool buttonpressed(int bx, int by, int bwidth, int bheight, touchPosition lastpos, u32 kHeld)
+{
+	return touched(bx, by, bwidth, bheight, lastpos) && !(kHeld & KEY_TOUCH);
+}
 
 void mainmenushiftin()
 {
@@ -652,9 +658,9 @@ int main(int argc, char **argv) {
 	SMDHworker.shutdown();
 	
 	//svcWaitSynchronization(event_fadefinished, U64_MAX);
-	C3D_TexDelete(spritesheet);
-	C3D_TexDelete(progressfiller);
-	freeSMDHdata();
+	//C3D_TexDelete(spritesheet);
+	//C3D_TexDelete(progressfiller);
+	//freeSMDHdata();
 	draw.cleanup();
 	srv::exit();
 	romfsExit();
