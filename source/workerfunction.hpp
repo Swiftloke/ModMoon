@@ -1,5 +1,6 @@
 #pragma once
 #include <string>
+#include <3ds.h>
 #include <citro3d.h>
 #include <functional>
 using std::string;
@@ -28,7 +29,10 @@ public:
 	//it is the worker function's responsibility to handle this being set to true.
 	//Unfortunate.
 	void shutdown()
-	{ this->cancel = true;}
+	{ 
+		this->cancel = true; 
+		threadJoin(workerthread, U64_MAX);
+	}
 
 //protected:
 	
@@ -37,4 +41,5 @@ public:
 	int functionprogress = 0;
 	int functiontotal = 100;
 	bool cancel = false;
+	Thread workerthread;
 };

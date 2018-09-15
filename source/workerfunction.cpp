@@ -20,7 +20,11 @@ void WorkerFunction::startworker()
 	s32 mainthreadpriority;
 	svcGetThreadPriority(&mainthreadpriority, CUR_THREAD_HANDLE);
 	//The lambda is to convert the std::function into a C function call and pass the argument of "this".
-	threadCreate([](void* passedThis) { auto thisPtr = (WorkerFunction*)passedThis; thisPtr->worker(thisPtr); }, \
+	this->workerthread = threadCreate([](void* passedThis)
+	{ 
+		auto thisPtr = (WorkerFunction*)passedThis; 
+		thisPtr->worker(thisPtr);
+	},
 		this, 20000, mainthreadpriority + 1, -2, true);
 }
 
