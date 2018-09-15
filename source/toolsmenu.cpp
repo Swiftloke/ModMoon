@@ -15,7 +15,7 @@ There are five options to work with, they should just call various parts of the 
 */
 
 
-//Unlike the main menu shift in logic, which was developed at the very beginning of the project,
+//Unlike the main menu "shift in" logic, which was developed at the very beginning of the project,
 //this logic uses sDraw's significant developments since then. Instead of being weird and playing
 //with pixel positions, we'll just use the vertex interpolation functionality.
 //Final x position should be 18.
@@ -49,7 +49,10 @@ bool toolsmenushift(float& interpfactor, bool plus)
 void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool shouldblink)
 {
 	const int initialxvals[] = { -290, 401, -290, 401, -290 };
-	const int toolsyvals[] = { 6, 49, 93, 138, 184 };
+	const int toolsyvals[] = { 6, 56, 102, 141, 190 };
+	//Where the highlighter goes to actually be over the button... Some buttons have
+	//parts that stick out.
+	const int highlighteradds[] = { 3, 0, 2, 7, 4 };
 	draw.framestart();
 	if (shouldblink)
 	{
@@ -62,13 +65,15 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 		drawtopscreen();
 		draw.drawon(GFX_BOTTOM);
 		draw.drawtexture(backgroundbot, 0, 0);
-		draw.drawhighlighter(toolsmenuhighlighter, initialxvals[position] - 13, toolsyvals[position] - 7,\
-			highlighteralpha, 18 - 13, toolsyvals[position] - 7, interpfactor);
-		draw.drawtexture(controlsmodifierbutton, initialxvals[0], toolsyvals[0], 18, toolsyvals[0], interpfactor);
-		draw.drawtexture(controlsmodifierbutton, initialxvals[1], toolsyvals[1], 18, toolsyvals[1], interpfactor);
-		draw.drawtexture(controlsmodifierbutton, initialxvals[2], toolsyvals[2], 18, toolsyvals[2], interpfactor);
-		draw.drawtexture(controlsmodifierbutton, initialxvals[3], toolsyvals[3], 18, toolsyvals[3], interpfactor);
-		draw.drawtexture(controlsmodifierbutton, initialxvals[4], toolsyvals[4], 18, toolsyvals[4], interpfactor);
+		draw.drawhighlighter(toolsmenuhighlighter, initialxvals[position] - 13, \
+			toolsyvals[position] - 9 + highlighteradds[position], \
+			highlighteralpha, 18 - 13, toolsyvals[position] - 9 + highlighteradds[position], interpfactor);
+		draw.drawtexture(activetitlesbutton,  initialxvals[0], toolsyvals[0], 18, toolsyvals[0], interpfactor);
+		draw.drawtexture(smashcontrolsbutton, initialxvals[1], toolsyvals[1], 18, toolsyvals[1], interpfactor);
+		draw.drawtexture(tutorialbutton,      initialxvals[2], toolsyvals[2], 18, toolsyvals[2], interpfactor);
+		draw.drawtexture(migrationbutton,     initialxvals[3], toolsyvals[3], 18, toolsyvals[3], interpfactor);
+		draw.drawtexture(draw.darkmodeshouldactivate ? lightmodebutton : darkmodebutton, \
+											  initialxvals[4], toolsyvals[4], 18, toolsyvals[4], interpfactor);
 	}
 	draw.frameend();
 }
@@ -92,9 +97,6 @@ void toolsmenushiftin()
 		toolsmenudraw(shift, 0, 0, false);
 	}
 }
-
-//Temporary forward declaration
-void controlsmodifier();
 
 void toolsmenu()
 {
@@ -189,37 +191,37 @@ void toolsmenu()
 			break;
 		}
 		//Get the highlighter in position
-		if(touched(controlsmodifierbutton, 18, 6, tpos))
+		if(touched(activetitlesbutton, 18, 6, tpos))
 			position = 0;
 		//Actually activate it
-		else if (buttonpressed(controlsmodifierbutton, 18, 6, opos, kHeld))
+		else if (buttonpressed(activetitlesbutton, 18, 6, opos, kHeld))
 		{
 			toolsmenushiftout();
 			activetitleselect();
 			toolsmenushiftin();
 		}
 
-		if (touched(controlsmodifierbutton, 18, 49, tpos))
+		if (touched(smashcontrolsbutton, 18, 49, tpos))
 			position = 1;
-		else if (buttonpressed(controlsmodifierbutton, 18, 49, opos, kHeld))
+		else if (buttonpressed(smashcontrolsbutton, 18, 49, opos, kHeld))
 		{
 			toolsmenushiftout();
 			controlsmodifier();
 			toolsmenushiftin();
 		}
 
-		if (touched(controlsmodifierbutton, 18, 93, tpos))
+		if (touched(tutorialbutton, 18, 93, tpos))
 			position = 2;
-		else if (buttonpressed(controlsmodifierbutton, 18, 93, opos, kHeld))
+		else if (buttonpressed(tutorialbutton, 18, 93, opos, kHeld))
 		{
 			toolsmenushiftout();
 			tutorial(false);
 			toolsmenushiftin();
 		}
 
-		if (touched(controlsmodifierbutton, 18, 138, tpos))
+		if (touched(migrationbutton, 18, 138, tpos))
 			position = 3;
-		else if (buttonpressed(controlsmodifierbutton, 18, 138, opos, kHeld))
+		else if (buttonpressed(migrationbutton, 18, 138, opos, kHeld))
 		{
 			bool migrationwasdone = doallmigration();
 			if (!migrationwasdone)
@@ -228,9 +230,10 @@ void toolsmenu()
 			}
 		}
 		
-		if (touched(controlsmodifierbutton, 18, 184, tpos))
+		//Dark mode / light mode buttons have the same coordinate info so it doesn't matter
+		if (touched(darkmodebutton, 18, 184, tpos))
 			shouldblink = true;
-		else if (buttonpressed(controlsmodifierbutton, 18, 184, opos, kHeld))
+		else if (buttonpressed(darkmodebutton, 18, 184, opos, kHeld))
 			toggledarkmode();
 		else
 			shouldblink = false;

@@ -6,3 +6,6 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 void toolsmenu();
 
 void toggledarkmode();
+
+//No need for a whole header just for one function.
+void controlsmodifier();
