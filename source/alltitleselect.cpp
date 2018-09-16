@@ -287,8 +287,8 @@ void activetitleselect()
 				{
 					titleop.isactive = false;
 					//Remove the title ID from the global entries
-					vector<u64>::iterator i = std::find(titleids.begin(), titleids.end(), titleop.titl);
-					vector<int>::iterator j = slots.begin();
+					vector<u64>::iterator      i = std::find(titleids.begin(), titleids.end(), titleop.titl);
+					vector<int>::iterator      j = slots.begin();
 					vector<smdhdata>::iterator k = getSMDHdata().begin();
 					std::advance(j, i - titleids.begin()); //Get raw index, the two are in the same position
 					std::advance(k, i - titleids.begin());

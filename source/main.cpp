@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <cmath>
 #include <errno.h>
+#include <algorithm>
 
 #include <3ds.h>
 
@@ -339,6 +340,25 @@ void updateslots(bool plus)
 	if(currentslot == 0) enablemods(false);
 	else if(oldslot == 0 && currentslot) enablemods(true); //It was moved from disabled
 	
+	//If there's a cartridge inserted, and it has the same title as something on the SD card, we need to synchronize slots.
+	if (currenttidpos != 0)
+	{
+		if(titleids[0] == currenttitleid)
+			slots[0] = currentslot;
+	}
+	//Redundant check, just for code readability
+	else if (currenttidpos == 0)
+	{
+		vector<u64>::iterator tiditer = std::find(titleids.begin() + 1, titleids.end(), currenttitleid);
+		if (tiditer != titleids.end())
+		{
+			vector<int>::iterator slotiter = slots.begin();
+			//They're in the same raw index, get the iterator to match the other one
+			std::advance(slotiter, tiditer - titleids.begin());
+			*slotiter = currentslot;
+		}
+	}
+
 	mainmenuupdateslotname();
 }
 
