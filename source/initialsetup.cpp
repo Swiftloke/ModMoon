@@ -136,7 +136,7 @@ void tutorial(bool migrationwasdone)
 	//A quick tutorial?
 	mainmenushiftin();
 	//threadfunc_fade(colorvalues);
-	errorsetmode(MODE_FADE);
+	//errorsetmode(MODE_FADE);
 	error("Let's get you acquainted\nwith ModMoon.");
 	error("Press Start now to skip\nthis tutorial.");
 	if (errorwasstartpressed())
@@ -184,23 +184,23 @@ void tutorial(bool migrationwasdone)
 		kDown = hidKeysDown();
 		kHeld = hidKeysHeld();
 		hidTouchRead(&tpos);
-		if (buttonpressed(controlsmodifierbutton, 18, 6, opos, kHeld) || kDown & KEY_A)
+		if (buttonpressed(activetitlesbutton, 18, 6, opos, kHeld) || kDown & KEY_A)
 		{
 			toolsmenushiftout();
 			break;
 		}
 		opos = tpos;
 	}
-	error("Select the titles you\nwant to activate for use by tapping on\nthem or using the Circle Pad and .");
-	error("The cartridge is always active.\nActivated titles will glow blue.");
+	error("Select the titles you want to\nactivate for use by tapping them\nor using the Circle Pad and .");
+	error("Activated titles will glow blue.\nThe cartridge is always active.");
 	if (migrationwasdone)
 		error("As part of migration, titles you\nused previously will already\nbe activated.");
-	errorsetmode(MODE_POPUP); //activetitleselect can call errors
+	//errorsetmode(MODE_POPUP); //activetitleselect can call errors
 	activetitleselect();
-	errorsetmode(MODE_FADE);
+	//errorsetmode(MODE_FADE);
 	error("You can always select new titles\nor deactivate existing ones by\nentering this menu.");
 	toolsmenushiftin();
-	error("Press  to return to the main menu.");
+	error("Press  to return to the\nmain menu.");
 	alphapos = 0;
 	alphaplus = true;
 	while (aptMainLoop())
@@ -235,10 +235,11 @@ void tutorial(bool migrationwasdone)
 		mainmenudraw(1, tpos, alphapos, false);
 		draw.frameend();
 	}
-	error("To select the title currently in use,\nyou can use this menu and\ntap it or use the Circle Pad and .");
-	errorsetmode(MODE_POPUP);
+	error("To select the title currently in\nuse, you can use this menu and\ntap it or use the Circle Pad and .");
+	error("You can access this menu from\nany menu screen at any time,\nnot just in the main menu.");
+	//errorsetmode(MODE_POPUP);
 	titleselect();
-	errorsetmode(MODE_FADE);
+	//errorsetmode(MODE_FADE);
 	//Fix a small issue with the tools menu and the main menu clashing together in a copied framebuffer
 	draw.framestart();
 	drawtopscreen();
@@ -247,7 +248,7 @@ void tutorial(bool migrationwasdone)
 	mainmenudraw(0, tpos, 0, false);
 	draw.frameend();
 	error("You're all set! Have fun,\nand happy modding!");
-	errorsetmode(MODE_POPUP);
+	//errorsetmode(MODE_POPUP);
 }
 
 void initialsetup()
