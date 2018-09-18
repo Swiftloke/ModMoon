@@ -116,7 +116,7 @@ void toolsmenu()
 		u32 kDown = hidKeysDown();
 		u32 kHeld = hidKeysHeld();
 		hidTouchRead(&tpos);
-		if(kDown || kHeld)
+		if(kDown)
 			highlighteralpha = 255;
 		if (kDown & KEY_A)
 		{
@@ -221,6 +221,7 @@ void toolsmenu()
 			if(helptext2 != "None")
 				error(helptext2);
 		}
+		if (kDown & KEY_Y) titleselect();
 		//Get the highlighter in position
 		if(touched(activetitlesbutton, 18, 6, tpos))
 			position = 0;

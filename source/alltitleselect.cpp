@@ -168,6 +168,11 @@ void activetitleselect()
 			getSMDHdata().push_back(*activepos);
 			titleids.push_back(title);
 			slots.push_back(1);
+			//Add the folder if it doesn't exist
+			if (!pathExist(modsfolder + tid2str(title)))
+				_mkdir((modsfolder + tid2str(title)).c_str());
+			if (issaltysdtitle(title) && !pathExist("/luma/titles/" + tid2str(title) + "/code.ips"))
+				writeSaltySD(title);
 		}
 		queueforactivation.pop();
 	}
@@ -319,6 +324,7 @@ void activetitleselect()
 			error("Select the titles you want to\nactivate for use by tapping them\nor using the Circle Pad and .");
 			error("Activated titles will glow blue.\nThe cartridge is always active.");
 		}
+		if (kDown & KEY_Y) titleselect();
 		activetitleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos);
 	}
 	while (fbinterpfactor > 0)

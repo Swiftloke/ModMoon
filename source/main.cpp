@@ -498,12 +498,16 @@ int main(int argc, char **argv) {
 	mainmenushiftin();
 	//So, uh, sdraw doesn't like it when I trigger an error before shifting in the menu, and freezes the GPU...
 	//I don't like this at all, it fragments the code and forces me to do bad things
+	//UPDATE: Managed to fix that crash. But, I'm too lazy to put this code back where it belongs. It's fine.
 	if(renamefailed)
 	{
 		renamefailederror:
 		string source = issaltysdtitle() ? "/saltysd/smash" : "/luma/titles/" + currenttitleidstr + '/';
 		string dest = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot); //Just copy/pasted
-		error("Failed to move slot file from\n" + source + "\nto" + dest + '!');
+		//Dest is almost always too large, so we'll split it up.
+		string displaydest = dest;
+		displaydest.insert(dest.size() / 2, "\n");
+		error("Failed to move slot file from\n" + source + "\nto " + displaydest + '!');
 		error("Error code:\n" + to_string(errno));
 		if ((unsigned int)errno == 0xC82044BE) //Destination already exists
 		{
@@ -558,6 +562,8 @@ int main(int argc, char **argv) {
 		if (secretcodeadvance(kDown)) continue;
 		//So 0 is the launch button, 1 is the tools button,
 		//2 is the selector bar that, when pressed up, goes back to the launch button, and 3 is the same for the tools button.
+		if(kDown)
+			alphapos = 255;
 		if(kDown & KEY_A)
 		{
 			switch(dpadpos)
@@ -641,17 +647,17 @@ int main(int argc, char **argv) {
 		else if (buttonpressed(leftbutton, 0, 13, opos, kHeld))
 			launch();
 
-		if (touched(4, 180, 28, 42, tpos)) //Left button coordinates
+		if (touched(0, 174, 52, 66, tpos)) //Left button coordinates
 			dpadpos = (dpadpos == 0) ? 2 : (dpadpos == 1) ? 3 : 3;
-		else if(buttonpressed(4, 180, 28, 42, opos, kHeld))
+		else if(buttonpressed(0, 174, 52, 66, opos, kHeld))
 			updateslots(false);
 
-		if (touched(288, 180, 28, 42, tpos)) //Right button coordinates
+		if (touched(268, 174, 52, 66, tpos)) //Right button coordinates
 			dpadpos = (dpadpos == 0) ? 2 : (dpadpos == 1) ? 3 : 3;
-		else if(buttonpressed(288, 180, 28, 42, opos, kHeld))
+		else if(buttonpressed(268, 174, 52, 66, opos, kHeld))
 			updateslots(true);
 
-		if(buttonpressed(selector, 0, 159, opos, kHeld)) //No action, but do highlight it
+		if(touched(selector, 0, 159, tpos)) //No action, but do highlight it
 			dpadpos = (dpadpos == 0) ? 2 : (dpadpos == 1) ? 3 : 3;
 
 		if (touched(rightbutton, 169, 13, tpos))
