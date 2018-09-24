@@ -89,15 +89,13 @@ void initializeallSMDHdata(vector<u64> intitleids)
 	//Initialize the SMDH vector TODO: initialize it with a "!" texture by doing TexCopy instead
 	//We need to do this ahead of time in the main thread, because what if the worker thread attempts to load
 	//the textures before they're allocated? Instant segfault!
-	for(unsigned int i = 0; i < smdhvector.size(); i++)
-		C3D_TexInit(&(smdhvector[i].icon), 64, 64, GPU_RGB565);
-
+	for(vector<smdhdata>::iterator iter = smdhvector.begin(); iter != smdhvector.end(); iter++)
+		C3D_TexInit(&iter->icon, 64, 64, GPU_RGB565);
 	//Initialize the all-titles vector in the same way
 	AM_GetTitleCount(MEDIATYPE_SD, &alltitlescount);
 	alltitlesvector.resize(alltitlescount + 1);
-	for (unsigned int i = 0; i < alltitlesvector.size() + 1; i++)
-		C3D_TexInit(&(alltitlesvector[i].icon), 64, 64, GPU_RGB565);
-
+	for(vector<smdhdata>::iterator iter = alltitlesvector.begin(); iter != alltitlesvector.end(); iter++)
+		C3D_TexInit(&iter->icon, 64, 64, GPU_RGB565);
 	CFGU_GetSystemLanguage(&language);
 	//Create the thread
 	SMDHworker.startworker();
