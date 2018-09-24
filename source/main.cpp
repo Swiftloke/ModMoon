@@ -105,6 +105,15 @@ string tid2str(u64 in)
 	return out.str();
 }
 
+string hex2str(u32 in)
+{
+	stringstream out;
+	out << std::hex;
+	out << std::uppercase;
+	out << in;
+	return out.str();
+}
+
 bool issaltysdtitle(u64 optionaltitleid)
 {
 	u64 titleop = optionaltitleid != 0 ? optionaltitleid : currenttitleid;
@@ -186,7 +195,7 @@ void enablemods(bool isenabled)
 		if (rename(src.c_str(), dest.c_str()))
 		{
 			string enable = isenabled ? "enable" : "disable";
-			error("Failed to " + enable + " mods!");
+			error("Failed to " + enable + " mods!\nError: " + hex2str(errno));
 			error("This may resolve itself\nthrough normal usage.");
 		}
 	}
@@ -509,7 +518,7 @@ int main(int argc, char **argv) {
 		string displaydest = dest;
 		displaydest.insert(dest.size() / 2, "\n");
 		error("Failed to move slot file from\n" + source + "\nto " + displaydest + '!');
-		error("Error code:\n" + to_string(errno));
+		error("Error code:\n" + hex2str(errno));
 		if ((unsigned int)errno == 0xC82044BE) //Destination already exists
 		{
 			if (countEntriesInDir(dest.c_str()) == 0)
@@ -519,7 +528,7 @@ int main(int argc, char **argv) {
 				if(movemodsin()) goto renamefailederror;
 			}
 		}
-		else if(errno == 2) //Maybe they shut off the system, preventing us from moving to /saltysd/smash?
+		else if(errno == 2) //Maybe they shut off the system, preventing us from moving to dest?
 		{
 			error("This error probably occurred\nbecause you shut off the system\nwhile using ModMoon.");
 			error("It will likely resolve itself\nthrough normal usage.");
@@ -695,7 +704,7 @@ int main(int argc, char **argv) {
 		if (rename(src.c_str(), dest.c_str()))
 		{
 			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto " + dest + '!');
-			error("Error code:\n" + to_string(errno));
+			error("Error code:\n" + hex2str(errno));
 			if ((unsigned int)errno == 0xC82044BE) //Destination already exists
 			{
 				if (countEntriesInDir(dest.c_str()) == 0)
@@ -707,7 +716,6 @@ int main(int argc, char **argv) {
 			}
 		}
 	}
-	titleids[0] = 0; //Prevent a potential issue with the reader finding this title on SD next boot when it's not inserted
 	config.u64multiwrite("ActiveTitleIDs", titleids, true);
 	config.intmultiwrite("TitleIDSlots", slots);
 	config.write("SelectedTitleIDPos", currenttidpos);

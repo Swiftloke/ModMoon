@@ -145,6 +145,7 @@ void writeSaltySD(u64 titleid)
 	//else { inputpath.insert(7, "Normal"); }
 	if (pathExist(outputpath)) { remove(outputpath.c_str()); }
 	fcopy(inputpath, outputpath);
+	error("New SaltySD file written.\nRegion Type: " + regionmodifier);
 }
 
 unsigned int MurmurHash2(const void * key, int len, unsigned int seed)
@@ -215,14 +216,14 @@ void movecustomsaltysdin()
 		if (rename(originalmoveout.c_str(), originalmovein.c_str()))
 		{
 			error("Custom SaltySD code.ips move\nfailed! (original move)");
-			error("Error code: " + to_string(errno));
+			error("Error code: " + hex2str(errno));
 		}
 		string custommoveout = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot) + "/codes/" + saltysdtidtoregion() + "code.ips";
 		string custommovein = "/luma/titles/" + currenttitleidstr + "/code.ips";
 		if (rename(custommoveout.c_str(), custommovein.c_str()))
 		{
 			error("Custom SaltySD code.ips move\nfailed! (custom move)");
-			error("Error code: " + to_string(errno));
+			error("Error code: " + hex2str(errno));
 		}
 	}
 }
@@ -237,7 +238,7 @@ void movecustomsaltysdout()
 		if (rename(custommoveout.c_str(), custommovein.c_str()))
 		{
 			error("Custom SaltySD code.ips move\nfailed! (custom move)");
-			error("Error code: " + to_string(errno));
+			error("Error code: " + hex2str(errno));
 		}
 
 		string originalmoveout = "/3ds/ModMoon/" + saltysdtidtoregion() + "code.ips";
@@ -245,7 +246,7 @@ void movecustomsaltysdout()
 		if (rename(originalmoveout.c_str(), originalmovein.c_str()))
 		{
 			error("Custom SaltySD code.ips move\nfailed! (original move)");
-			error("Error code: " + to_string(errno));
+			error("Error code: " + hex2str(errno));
 		}
 	}
 }
@@ -271,8 +272,8 @@ void launch(){
 		attemptrename:
 		if(rename(src.c_str(), dest.c_str()))
 		{
-			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + "\nto" + dest + '!');
-			error("Error code:\n" + to_string(errno));
+			error("Failed to move slot file from\n" + modsfolder + '\n' + currenttitleidstr + "/Slot_" + to_string(currentslot) + " to\n" + dest + '!');
+			error("Error code:\n" + hex2str(errno));
 			if ((unsigned int)errno == 0xC82044BE) //Destination already exists
 			{
 				if (countEntriesInDir(dest.c_str()) == 0)

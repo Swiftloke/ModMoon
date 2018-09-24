@@ -72,6 +72,7 @@ extern int currenttidpos;
 #define currentslot slots[currenttidpos]
 string tid2str(u64 in);
 #define currenttitleidstr tid2str(currenttitleid)
+string hex2str(u32 in);
 
 
 int startup();
