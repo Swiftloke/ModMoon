@@ -48,7 +48,8 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 	highlighterhandle(highlighteralpha, highlighteralphaplus);
 	y -= 70 * scrollsubtractrows;
 
-	draw.drawtexture(titleselectioncartridge, 22, 17 - 70 * scrollsubtractrows);
+	if(scrollsubtractrows == 0)
+		draw.drawtexture(titleselectioncartridge, 22, 17);
 
 	for (vector<smdhdata>::iterator iter = allicons.begin(); iter < allicons.end(); iter++)
 	{
@@ -58,8 +59,6 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			x = 31;
 			y += 70;
 		}
-		if (i == 0) //Draw the cartridge icon
-			draw.drawtexture(titleselectioncartridge, x - 9, y - 9);
 		if (i == selectpos)
 		{
 			draw.drawtext(tid2str((*iter).titl).c_str(), 0, 0, .4, .4);
@@ -161,18 +160,20 @@ void activetitleselect()
 		{
 			//It won't be active in the all titles vector so we've got to do that now
 			vector<smdhdata>::iterator activepos = std::find_if(\
-				getallSMDHdata().begin(), getallSMDHdata().end(), \
+				getallSMDHdata().begin() + 1, getallSMDHdata().end(), \
 				[title](const smdhdata& data) {return data.titl == title; });
 			if (!activepos->isactive && activepos != getallSMDHdata().end())
+			{
 				activepos->isactive = true;
-			getSMDHdata().push_back(*activepos);
-			titleids.push_back(title);
-			slots.push_back(1);
-			//Add the folder if it doesn't exist
-			if (!pathExist(modsfolder + tid2str(title)))
-				_mkdir((modsfolder + tid2str(title)).c_str());
-			if (issaltysdtitle(title) && !pathExist("/luma/titles/" + tid2str(title) + "/code.ips"))
-				writeSaltySD(title);
+				getSMDHdata().push_back(*activepos);
+				titleids.push_back(title);
+				slots.push_back(1);
+				//Add the folder if it doesn't exist
+				if (!pathExist(modsfolder + tid2str(title)))
+					_mkdir((modsfolder + tid2str(title)).c_str());
+				if (issaltysdtitle(title) && !pathExist("/luma/titles/" + tid2str(title) + "/code.ips"))
+					writeSaltySD(title);
+			}
 		}
 		queueforactivation.pop();
 	}
@@ -292,7 +293,7 @@ void activetitleselect()
 				{
 					titleop.isactive = false;
 					//Remove the title ID from the global entries
-					vector<u64>::iterator      i = std::find(titleids.begin(), titleids.end(), titleop.titl);
+					vector<u64>::iterator      i = std::find(titleids.begin() + 1, titleids.end(), titleop.titl);
 					vector<int>::iterator      j = slots.begin();
 					vector<smdhdata>::iterator k = getSMDHdata().begin();
 					std::advance(j, i - titleids.begin()); //Get raw index, the two are in the same position

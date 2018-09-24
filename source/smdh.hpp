@@ -23,7 +23,7 @@ void worker_loadallsmdhdata(WorkerFunction* notthis);
 
 extern WorkerFunction SMDHworker;
 
-void initializeallSMDHdata(vector<u64> intitleids);
+void initializeallSMDHdata(vector<u64>& intitleids);
 void freeSMDHdata();
 vector<smdhdata>& getSMDHdata();
 vector<smdhdata>& getallSMDHdata();

@@ -78,11 +78,15 @@ void worker_loadallsmdhdata(WorkerFunction* notthis)
 	vector<smdhdata>::iterator remove = \
 		std::remove_if(alltitlesvector.begin(), alltitlesvector.end(), \
 		[](const smdhdata& data) {return tid2str(data.titl)[7] != '0';});
+	//linear allocator is not (yet) thread safe. There's a patch available, but it's not in the codebase
+	//yet. So we'll leave these dangling pointers until then.
+	//for(vector<smdhdata>::iterator iter = remove; iter != alltitlesvector.end(); iter++)
+	//	C3D_TexDelete(&iter->icon);
 	alltitlesvector.erase(remove, alltitlesvector.end());
 	notthis->functiondone = true;
 }
 
-void initializeallSMDHdata(vector<u64> intitleids)
+void initializeallSMDHdata(vector<u64>& intitleids)
 {
 	tidstoload = intitleids;
 	smdhvector.resize(tidstoload.size());
@@ -145,7 +149,7 @@ bool smdhdata::load(u64 title, int ingametype) //gametype is optional
 {
 	this->titl = title;
 	//Search the global active TIDs vector
-	if (std::find(titleids.begin(), titleids.end(), this->titl) != titleids.end())
+	if (std::find(titleids.begin() + 1, titleids.end(), this->titl) != titleids.end())
 		this->isactive = true;
 	else
 		this->isactive = false;
@@ -311,10 +315,13 @@ void updatecartridgedata()
 			//Load the cartridge, it may take a few tries because FS may not be ready for us
 			while (!icons[0].load(0, 2)) {}
 			//if (icons[0].titl == 0) return; //It read out garbage
-			//Update related stuff as well
-			titleids[0] = icons[0].titl;
-			slots[0] = 0;
-			alltitlesvector[0] = icons[0];
+			//Update related stuff as well, if we need to; as in, if the cartridge has changed
+			if (titleids[0] != icons[0].titl)
+			{
+				titleids[0] = icons[0].titl;
+				slots[0] = 0;
+				alltitlesvector[0] = icons[0];
+			}
 			if (currenttidpos == 0)
 			{
 				maxslot = maxslotcheck();
