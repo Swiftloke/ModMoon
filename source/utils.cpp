@@ -69,21 +69,27 @@ void threadfunc_fade(void* main)
 	int* rgbvalues = (int*)main; //We expect an array of 3 ints for the RGB values
 	//C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE_MINUS_CONSTANT_ALPHA, GPU_CONSTANT_COLOR, GPU_ONE_MINUS_CONSTANT_ALPHA, GPU_CONSTANT_ALPHA);
 	//I tried to use blending operations but the equation I used didn't like an alpha value of < 1 for a texture, and overwrote it entirely with the color. It looked gross.
+	C3D_Tex fbtop, fbbot;
+	//linearAlloc isn't thread-safe in current libctru (as of 9/24/18, check again if you're in the future).
+	//As such, the framebuffer code can't be present here. It still looks fine, actually, because sDraw doesn't
+	//clear the color buffer at the start of a frame.
+
+	//C3D_TexInit(&fbtop, 256, 512, GPU_RGBA8);
+	//C3D_TexInit(&fbbot, 256, 512, GPU_RGBA8);
+	//draw.retrieveframebuffers(&fbtop, &fbbot);
 	while(alpha <= 255)
 	{
 		alpha += 3;
 		draw.framestart();
-		drawtopscreen();
+		//draw.drawframebuffer(fbtop, 0, 0, true);
 		draw.drawrectangle(0, 0, 400, 240, RGBA8(rgbvalues[0], rgbvalues[1], rgbvalues[2], alpha)); //Overlay an increasingly covering rectangle for a fade effect
 		draw.drawon(GFX_BOTTOM);
-		draw.drawtexture(backgroundbot, 0, 0);
-		draw.drawtexture(leftbutton, 0, 13);
-		draw.drawtexture(rightbutton, 169, 13);
-		draw.drawtexture(selector, 0, 159);
-		draw.drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
+		//draw.drawframebuffer(fbbot, 0, 0, false);
 		draw.drawrectangle(0, 0, 320, 240, RGBA8(rgbvalues[0], rgbvalues[1], rgbvalues[2], alpha));
 		draw.frameend();
 	}
+	//C3D_TexDelete(&fbtop);
+	//C3D_TexDelete(&fbbot);
 	svcSignalEvent(event_fadefinished);
 }
 
@@ -286,11 +292,7 @@ void launch(){
 		}
 	}
 	svcWaitSynchronization(event_fadefinished, U64_MAX);
-	draw.framestart(); //Prevent wonkiness with the app jump
-	draw.drawrectangle(0, 0, 400, 240, 0); //Not actually drawn, just there to prevent Citro3D hang. Clear color does this for real
-	draw.drawon(GFX_BOTTOM);
-	draw.drawrectangle(0, 0, 320, 240, 0);
-	draw.frameend();
+	
 	draw.cleanup();
 	srv::exit();
 
