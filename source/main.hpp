@@ -27,7 +27,7 @@ using namespace std;
 
 //Globals
 extern sDraw_interface draw;
-extern C3D_Tex* spritesheet;
+extern std::pair<C3D_Tex*, Tex3DS_Texture> spritesheet;
 extern C3D_Tex* progressfiller; //This needs to be in its own texture due to usage of wrapping for animation
 extern sdraw_stex leftbutton;
 extern sdraw_stex rightbutton;

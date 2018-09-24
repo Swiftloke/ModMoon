@@ -9,6 +9,7 @@
 #include <stdlib.h>
 #include <3ds.h>
 #include <citro3d.h>
+#include <tex3ds.h>
 #include "vshader_shbin.h"
 #include "eventualvertex_shbin.h"
 #include "twocoordsinterp_shbin.h"
@@ -142,12 +143,12 @@ C3D_Tex* loadpng(string filepath)
 	// Convert image to 3DS tiled texture format
 	C3D_SyncDisplayTransfer((u32*)gpusrc, GX_BUFFER_DIM(width, height), (u32*)tex->data, GX_BUFFER_DIM(width, height), TEXTURE_TRANSFER_FLAGS);
 
-	if (filepath == "romfs:/rainbow.png")
+	/*if (filepath == "romfs:/rainbow.png")
 	{
 		ofstream out(("rainbow.bin"), ios::binary | ios::trunc);
 		out.write((char*)tex->data, width*height * 4);
 		out.close();
-	}
+	}*/
 
 	C3D_TexSetFilter(tex, GPU_LINEAR, GPU_LINEAR);
 	C3D_TexSetWrap(tex, GPU_REPEAT, GPU_REPEAT);
@@ -186,34 +187,17 @@ C3D_Tex* loadbin(string filepath, int width, int height)
 }
 
 //Helper function for loading a texture from a file
-/*
-C3D_Tex* loadTextureFromFile(const char* filename)
+std::pair<C3D_Tex*, Tex3DS_Texture> loadTextureFromFile(const char* filename)
 {
-	C3D_Tex* original = new C3D_Tex;
+	C3D_Tex* tex = new C3D_Tex;
 	FILE* fp = fopen(filename, "r");
-	Tex3DS_Texture t3x = Tex3DS_TextureImportStdio(fp, original, NULL, false);
+	Tex3DS_Texture t3x = Tex3DS_TextureImportStdio(fp, tex, nullptr, false);
 	if (!t3x)
-	return NULL;
-	// Delete the t3x object since we don't need it
-	Tex3DS_TextureFree(t3x);
+	return std::make_pair(nullptr, Tex3DS_Texture());
 	fclose(fp);
 
-	//An early design choice of sDraw was to have pixel positions start at the top.
-	//This was because the original 3DS example for sprites did this.
-	//It was easily done during the PNG loading process, by telling DisplayTransfer to flip the result.
-	//Since I'm not changing all of the texcoords at the very end of the development cycle
-	//(This will be the last commit before 3.0 release) we'll just do it again.
-	GSPGPU_FlushDataCache(original->data, original->width * original->height * 4);
-	C3D_Tex* ret = new C3D_Tex;
-	C3D_TexInit(ret, original->width, original->height, GPU_RGBA8);
-
-	//This FUCKING DOESNT WORK >:(
-	C3D_SyncDisplayTransfer((u32*)original->data, GX_BUFFER_DIM(original->width, original->height), \
-	(u32*)ret->data, GX_BUFFER_DIM(ret->width, ret->height), TEXTURE_TRANSFER_FLAGS);
-	//delete original;
-
-	return ret;
-}*/
+	return std::make_pair(tex, t3x);
+}
 
 
 sDraw_interface::sDraw_interface()
@@ -725,12 +709,6 @@ void sDraw_interface::drawtexture(sdraw_stex info, int x, int y, int x1, int y1,
 	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 	
-	float rleft = info.x/info.spritesheet->width;
-	float rright = (info.x + info.width) /info.spritesheet->width;
-	float rtop = info.y/info.spritesheet->height;
-	float rbot = (info.y + info.height) / info.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
-	
-	
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2);}
 	
 	//If we have a second coordinate we need to activate the interpolation shader and add coordinates to its buffer
@@ -739,19 +717,19 @@ void sDraw_interface::drawtexture(sdraw_stex info, int x, int y, int x1, int y1,
 		usetwocoordsshader();
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
-		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, rleft, rbot);
-		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, rright, rbot);
-		sDrawi_addTwoCoordsVertex(x, y, x1, y1, rleft, rtop);
-		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, rright, rtop);
+		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, info.botleft[0], info.botleft[1]);
+		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, info.botright[0], info.botright[1]);
+		sDrawi_addTwoCoordsVertex(x, y, x1, y1, info.topleft[0], info.topleft[1]);
+		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, info.topright[0], info.topright[1]);
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawTwoCdsVtxArrayPos - 4, 4);
 		usebasicshader();
 	}
 	else
 	{
-		sDrawi_addTextVertex(x, y + info.height, rleft, rbot); //left bottom
-		sDrawi_addTextVertex(x + info.width, y + info.height, rright, rbot); //right bottom
-		sDrawi_addTextVertex(x, y, rleft, rtop); //left top
-		sDrawi_addTextVertex(x + info.width, y, rright, rtop); //right top
+		sDrawi_addTextVertex(x, y + info.height, info.botleft[0], info.botleft[1]); //left bottom
+		sDrawi_addTextVertex(x + info.width, y + info.height, info.botright[0], info.botright[1]); //right bottom
+		sDrawi_addTextVertex(x, y, info.topleft[0], info.topleft[1]); //left top
+		sDrawi_addTextVertex(x + info.width, y, info.topright[0], info.topright[1]); //right top
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
 	}
 	if(info.usesdarkmode)
@@ -811,25 +789,10 @@ void sDraw_interface::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw
 	C3D_TexBind(1, info2.spritesheet);
 	C3D_TexBind(2, info3.spritesheet);
 
-	float rleft1 = info1.x / info1.spritesheet->width;
-	float rright1 = (info1.x + info1.width) / info1.spritesheet->width;
-	float rtop1 = info1.y / info1.spritesheet->height;
-	float rbot1 = (info1.y + info1.height) / info1.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
-
-	float rleft2 = info2.x / info2.spritesheet->width;
-	float rright2 = (info2.x + info2.width) / info2.spritesheet->width;
-	float rtop2 = info2.y / info2.spritesheet->height;
-	float rbot2 = (info2.y + info2.height) / info2.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
-
-	float rleft3 = info3.x / info3.spritesheet->width;
-	float rright3 = (info3.x + info3.width) / info3.spritesheet->width;
-	float rtop3 = info3.y / info3.spritesheet->height;
-	float rbot3 = (info3.y + info3.height) / info3.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
-
-	sDrawi_addThreeTexturesVertex(x, y + info1.height, rleft1, rbot1, rleft2, rbot2, rleft3, rbot3); //left bottom
-	sDrawi_addThreeTexturesVertex(x + info1.width, y + info1.height, rright1, rbot1, rright2, rbot2, rright3, rbot3); //right bottom
-	sDrawi_addThreeTexturesVertex(x, y, rleft1, rtop1, rleft2, rtop2, rleft3, rtop3); //left top
-	sDrawi_addThreeTexturesVertex(x + info1.width, y, rright1, rtop1, rright2, rtop2, rright3, rtop3); //right top
+	sDrawi_addThreeTexturesVertex(x, y + info1.height,				 info1.botleft[0],  info1.botleft[1],  info2.botleft[0],  info2.botleft[1],  info3.botleft[0],  info3.botleft[1]); //left bottom
+	sDrawi_addThreeTexturesVertex(x + info1.width, y + info1.height, info1.botright[0], info1.botright[1], info2.botright[0], info2.botright[1], info3.botright[0], info3.botright[1]); //right bottom
+	sDrawi_addThreeTexturesVertex(x, y,								 info1.topleft[0],	info1.topleft[1],  info2.topleft[0],  info2.topleft[1],  info3.topleft[0], info3.topleft[1]); //left top
+	sDrawi_addThreeTexturesVertex(x + info1.width, y,				 info1.topright[0], info1.topright[1], info2.topright[0], info2.topright[1], info3.topright[0], info3.topright[1]); //right top
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawThreeTexturesVtxArrayPos - 4, 4);
 
 	usebasicshader();
@@ -905,11 +868,6 @@ void sDraw_interface::drawSMDHicon(C3D_Tex icon, int x, int y)
 
 void sDraw_interface::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
 {
-	float rleft = info.x / info.spritesheet->width;
-	float rright = (info.x + info.width) / info.spritesheet->width;
-	float rtop = info.y / info.spritesheet->height;
-	float rbot = (info.y + info.height) / info.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
-
 
 	if (x == CENTERED && y == CENTERED) { x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2); }
 
@@ -917,21 +875,21 @@ void sDraw_interface::drawquad(sdraw_stex info, int x, int y, int x1, int y1, fl
 	if (x1 != -1)
 	{
 		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
-		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, rleft, rbot);
-		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, rright, rbot);
-		sDrawi_addTwoCoordsVertex(x, y, x1, y1, rleft, rtop);
-		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, rright, rtop);
+		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
+		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, info.botleft[0], info.botleft[1]);
+		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, info.botright[0], info.botright[1]);
+		sDrawi_addTwoCoordsVertex(x, y, x1, y1, info.topleft[0], info.topleft[1]);
+		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, info.topright[0], info.topright[1]);
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawTwoCdsVtxArrayPos - 4, 4);
 		usebasicshader();
 	}
 	else
 	{
-		sDrawi_addTextVertex(x, y + info.height, rleft, rbot); //left bottom
-		sDrawi_addTextVertex(x + info.width, y + info.height, rright, rbot); //right bottom
-		sDrawi_addTextVertex(x, y, rleft, rtop); //left top
-		sDrawi_addTextVertex(x + info.width, y, rright, rtop); //right top
+		sDrawi_addTextVertex(x, y + info.height, info.botleft[0], info.botleft[1]); //left bottom
+		sDrawi_addTextVertex(x + info.width, y + info.height, info.botright[0], info.botright[1]); //right bottom
+		sDrawi_addTextVertex(x, y, info.topleft[0], info.topleft[1]); //left top
+		sDrawi_addTextVertex(x + info.width, y, info.topright[0], info.topright[1]); //right top
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
 	}
 }
@@ -952,33 +910,27 @@ void sDraw_interface::drawhighlighter(sdraw_highlighter info, int x, int y, int 
 	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
 	C3D_TexEnvColor(tev, (info.highlightercolor & 0xFFFFFF) | ((alpha & 0xFF) << 24));
 	
-	float rleft = info.x/info.spritesheet->width;
-	float rright = (info.x + info.width) /info.spritesheet->width;
-	float rtop = info.y/info.spritesheet->height;
-	float rbot = (info.y + info.height) / info.spritesheet->height; //Get the real spritesheet coordinates between 0 and 1
-	
-	
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2);}
 	
 	//If we have a second coordinate we need to activate the interpolation shader and add coordinates to its buffer
 	if (x1 != -1)
 	{
 		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
-		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, rleft, rbot);
-		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, rright, rbot);
-		sDrawi_addTwoCoordsVertex(x, y, x1, y1, rleft, rtop);
-		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, rright, rtop);
+		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
+		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, info.botleft[0], info.botleft[1]);
+		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, info.botright[0], info.botright[1]);
+		sDrawi_addTwoCoordsVertex(x, y, x1, y1, info.topleft[0], info.topleft[1]);
+		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, info.topright[0], info.topright[1]);
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawTwoCdsVtxArrayPos - 4, 4);
 		usebasicshader();
 	}
 	else
 	{
-		sDrawi_addTextVertex(x, y + info.height, rleft, rbot); //left bottom
-		sDrawi_addTextVertex(x + info.width, y + info.height, rright, rbot); //right bottom
-		sDrawi_addTextVertex(x, y, rleft, rtop); //left top
-		sDrawi_addTextVertex(x + info.width, y, rright, rtop); //right top
+		sDrawi_addTextVertex(x, y + info.height, info.botleft[0], info.botleft[1]); //left bottom
+		sDrawi_addTextVertex(x + info.width, y + info.height, info.botright[0], info.botright[1]); //right bottom
+		sDrawi_addTextVertex(x, y, info.topleft[0], info.topleft[1]); //left top
+		sDrawi_addTextVertex(x + info.width, y, info.topright[0], info.topright[1]); //right top
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
 	}
 	if (info.usesdarkmode)

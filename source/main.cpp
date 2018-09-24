@@ -36,37 +36,38 @@ vector<int> errorhighlightcolors = config.intmultiread("ErrorHighlightColors");
 vector<int> titleselecthighlightcolors = config.intmultiread("TitleSelectHighlightColors");
 vector<int> toolsmenuhighlightcolors = config.intmultiread("ToolsMenuHighlightColors");
 
-C3D_Tex* spritesheet = loadpng("romfs:/spritesheet.png"); //Texture conversion for this doesn't fucking work >:(
+//C3D_Tex* spritesheet = loadpng("romfs:/spritesheet.png"); //Texture conversion for this doesn't fucking work >:(
+std::pair<C3D_Tex*, Tex3DS_Texture> spritesheet = loadTextureFromFile("romfs:/spritesheet.t3x");
 C3D_Tex* progressfiller = loadbin("romfs:/progress.bin", 32, 32); //This needs to be in its own texture due to usage of wrapping for animation
 C3D_Tex* rainbow = loadbin("romfs:/rainbow.bin", 256, 256); //Ditto; needs its own texture for animation
-sdraw_stex leftbutton(spritesheet, 0, 324, 152, 134, true);
-sdraw_stex leftbuttonmoon(spritesheet, 0, 458, 152, 134, true);
-sdraw_stex rightbutton(spritesheet, 153, 324, 151, 134, true);
-sdraw_stex selector(spritesheet, 0, 241, 320, 81, true);
-sdraw_stex backgroundbot(spritesheet, 0, 0, 320, 240, true);
-sdraw_stex backgroundtop(spritesheet, 320, 129, 400, 240, true);
-sdraw_stex banner(spritesheet, 320, 0, 292, 128, false);
-sdraw_stex bannermoonalpha(spritesheet, 612, 0, 90, 106, false);
-sdraw_stex textbox(spritesheet, 0, 592, 300, 200, true);
-sdraw_stex textboxokbutton(spritesheet, 152, 458, 87, 33, true);
-sdraw_highlighter textboxokbuttonhighlight(spritesheet, 152, 491, 89, 35, \
+sdraw_stex leftbutton(0, spritesheet, true);//(spritesheet, 0, 324, 152, 134, true);
+sdraw_stex leftbuttonmoon(1, spritesheet, true);//(spritesheet, 0, 458, 152, 134, true);
+sdraw_stex rightbutton(2, spritesheet, true);//(spritesheet, 153, 324, 151, 134, true);
+sdraw_stex selector(3, spritesheet, true);//(spritesheet, 0, 241, 320, 81, true);
+sdraw_stex backgroundbot(4, spritesheet, true);//(spritesheet, 0, 0, 320, 240, true);
+sdraw_stex backgroundtop(5, spritesheet, true);//(spritesheet, 320, 129, 400, 240, true);
+sdraw_stex banner(6, spritesheet, false);//(spritesheet, 320, 0, 292, 128, false);
+sdraw_stex bannermoonalpha(7, spritesheet, false);//(spritesheet, 612, 0, 90, 106, false);
+sdraw_stex textbox(8, spritesheet, true);//(spritesheet, 0, 592, 300, 200, true);
+sdraw_stex textboxokbutton(9, spritesheet, true);//(spritesheet, 152, 458, 87, 33, true);
+sdraw_highlighter textboxokbuttonhighlight(10, spritesheet,
 	RGBA8(errorhighlightcolors[0], errorhighlightcolors[1], errorhighlightcolors[2], 0), false);
-sdraw_stex titleselectionboxes(spritesheet, 0, 792, 268, 198, true);
-sdraw_stex titleselectionsinglebox(spritesheet, 0, 792, 58, 58, true);
-sdraw_stex titleselectioncartridge(spritesheet, 268, 857, 70, 66, false);
-sdraw_highlighter titleselecthighlighter(spritesheet, 268, 792, 65, 65, \
+sdraw_stex titleselectionboxes(11, spritesheet, true);//(spritesheet, 0, 792, 268, 198, true);
+sdraw_stex titleselectionsinglebox(12, spritesheet, true);//(spritesheet, 0, 792, 58, 58, true);
+sdraw_stex titleselectioncartridge(13, spritesheet, false);//(spritesheet, 268, 857, 70, 66, false);
+sdraw_highlighter titleselecthighlighter(14, spritesheet,
 	RGBA8(titleselecthighlightcolors[0], titleselecthighlightcolors[1], titleselecthighlightcolors[2], 0), false);
-sdraw_stex progressbar(spritesheet, 720, 240, 260, 35, true);
-sdraw_stex progressbarstenciltex(spritesheet, 720, 275, 260, 35, true);
-sdraw_stex secret(spritesheet, 320, 369, 114, 113, false);
-sdraw_highlighter toolsmenuhighlighter(spritesheet, 706, 369, 319, 60, \
+sdraw_stex progressbar(15, spritesheet, true);//(spritesheet, 720, 240, 260, 35, true);
+sdraw_stex progressbarstenciltex(16, spritesheet, true);//(spritesheet, 720, 275, 260, 35, true);
+sdraw_stex secret(17, spritesheet, false);//(spritesheet, 320, 369, 114, 113, false);
+sdraw_highlighter toolsmenuhighlighter(18, spritesheet,
 	RGBA8(toolsmenuhighlightcolors[0], toolsmenuhighlightcolors[1], toolsmenuhighlightcolors[2], 0), false);
-sdraw_stex activetitlesbutton(spritesheet, 706, 428, 289, 45, false);
-sdraw_stex smashcontrolsbutton(spritesheet, 706, 475, 289, 41, false);
-sdraw_stex tutorialbutton(spritesheet, 706, 518, 289, 42, false);
-sdraw_stex migrationbutton(spritesheet, 706, 560, 289, 51, false);
-sdraw_stex darkmodebutton(spritesheet, 706, 611, 289, 46, false);
-sdraw_stex lightmodebutton(spritesheet, 706, 657, 289, 46, false);
+sdraw_stex activetitlesbutton(19, spritesheet, false);//(spritesheet, 706, 428, 289, 45, false);
+sdraw_stex smashcontrolsbutton(20, spritesheet, false);//(spritesheet, 706, 475, 289, 41, false);
+sdraw_stex tutorialbutton(21, spritesheet, false);//(spritesheet, 706, 518, 289, 42, false);
+sdraw_stex migrationbutton(22, spritesheet, false);//(spritesheet, 706, 560, 289, 51, false);
+sdraw_stex darkmodebutton(23, spritesheet, false);//(spritesheet, 706, 611, 289, 46, false);
+sdraw_stex lightmodebutton(24, spritesheet, false);//(spritesheet, 706, 657, 289, 46, false);
 
 bool modsenabled = config.read("ModsEnabled", true);
 
@@ -304,7 +305,7 @@ bool secretcodeadvance(u32 kDown)
 void mainmenushiftout()
 {
 	//Opposite of shifting in (just some numbers changed)
-	for(int l = 0, r = 169, b = 159; l > -(leftbutton.width); l -= 10, r += 10)
+	for(int l = 0, r = 169, b = 159; l > -((signed int)leftbutton.width); l -= 10, r += 10)
 	{
 		draw.framestart();
 		drawtopscreen();
@@ -394,7 +395,7 @@ void drawtopscreen()
 	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);
 	
-	sdraw_stex temp(rainbow, 0, 0 + animationplus, 256, 256, false);
+	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 256, false);
 	draw.drawmultipletextures(bannerx + moonx, bannery + moony, bannermoonalpha, temp, temp);
 
 	//At some point, the PICA200 just doesn't like texcoords of an extremely high value and stops repeating.
@@ -452,7 +453,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	}
 	C3D_TexEnvColor(tev, RGBA8(0, 0, 0, rainbowinterp));
 
-	sdraw_stex temp(rainbow, 0, 0 + animationplus, 256, 40, false);
+	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 40, false);
 	draw.drawmultipletextures(0, 13, leftbuttonmoon, temp, temp);
 		
 	//See above for why this is done
