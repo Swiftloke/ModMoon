@@ -320,8 +320,8 @@ void updatecartridgedata()
 			{
 				titleids[0] = icons[0].titl;
 				slots[0] = 0;
-				alltitlesvector[0] = icons[0];
 			}
+			alltitlesvector[0] = icons[0];
 			if (currenttidpos == 0)
 			{
 				maxslot = maxslotcheck();
