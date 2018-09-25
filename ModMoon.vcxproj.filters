@@ -66,6 +66,9 @@
     <ClCompile Include="source\workerfunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\sdraw\shader.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\config.hpp">
@@ -125,5 +128,8 @@
       <Filter>Source Files</Filter>
     </None>
     <None Include="source\panicmode.v.pica" />
+    <None Include="source\threetextures.v.pica">
+      <Filter>Source Files</Filter>
+    </None>
   </ItemGroup>
 </Project>
