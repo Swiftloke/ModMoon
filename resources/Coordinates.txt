@@ -1,3 +1,0 @@
-Left button: 0, 13
-Right button: 169, 13
-Selector: 0, 158

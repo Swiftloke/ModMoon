@@ -1,7 +1,0 @@
-RightButton,153,324,151,134
-LeftButton,0,324,152,134
-LeftButtonEnabled,0,458,152,134
-BottomButton,0,241,320,82
-BackgroundBottom,0,0,320,240
-BackgroundTop,320,129,400,240
-Banner,320,0,256,128
