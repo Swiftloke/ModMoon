@@ -156,7 +156,7 @@ void activetitleselect()
 		u64 title = queueforactivation.front().first;
 		int mediatype = queueforactivation.front().second;
 		//We don't already have it, and it's not a cartridge.
-		if (std::find(titleids.begin(), titleids.end(), title) == titleids.end() && mediatype == 1)
+		if (std::find(titleids.begin(), titleids.end(), title) == titleids.end() && mediatype == MEDIATYPE_SD)
 		{
 			//It won't be active in the all titles vector so we've got to do that now
 			vector<smdhdata>::iterator activepos = std::find_if(\
@@ -315,6 +315,12 @@ void activetitleselect()
 					if(issaltysdtitle(titleop.titl) && !pathExist("/luma/titles/" + tid2str(titleop.titl) + "/code.ips"))
 						writeSaltySD(titleop.titl);
 				}
+			}
+			else //We should still allow to people to write SaltySD...
+			{
+				smdhdata& titleop = allicons.at(selectpos);
+				if (issaltysdtitle(titleop.titl) && !pathExist("/luma/titles/" + tid2str(titleop.titl) + "/code.ips"))
+					writeSaltySD(titleop.titl);
 			}
 		}
 		if (kDown & KEY_B)
