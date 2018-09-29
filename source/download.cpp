@@ -27,7 +27,7 @@ string result;
 //unsigned int downloadprogress = 0;
 Handle event_downloadthreadfinished;
 
-string baseURL = "http://swiftloke.github.io/ModMoon/";
+string baseURL = "https://raw.githubusercontent.com/Swiftloke/ModMoon/gh-pages/";
 
 void DownloadWorker::startworker()
 {
