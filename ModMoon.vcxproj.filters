@@ -27,9 +27,6 @@
     <ClCompile Include="source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\sdraw.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\smdh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -69,6 +66,9 @@
     <ClCompile Include="source\sdraw\shader.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\sdraw\sdraw.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\config.hpp">
@@ -78,9 +78,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\main.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="source\sdraw.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\smdh.hpp">
@@ -111,6 +108,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\workerfunction.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\sdraw\sdraw.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

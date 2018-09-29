@@ -162,12 +162,12 @@ void tutorial(bool migrationwasdone)
 			mainmenushiftout();
 			break;
 		}
-		draw.framestart();
+		sdraw::framestart();
 		drawtopscreen();
-		draw.drawon(GFX_BOTTOM);
+		sdraw::drawon(GFX_BOTTOM);
 		highlighterhandle(alphapos, alphaplus);
 		mainmenudraw(1, tpos, alphapos, false);
-		draw.frameend();
+		sdraw::frameend();
 		opos = tpos;
 	}
 	error("Tap on the Active Title Selection\nbutton.");
@@ -228,12 +228,12 @@ void tutorial(bool migrationwasdone)
 		kHeld = hidKeysHeld();
 		if (kDown & KEY_Y)
 			break;
-		draw.framestart();
+		sdraw::framestart();
 		drawtopscreen();
-		draw.drawon(GFX_BOTTOM);
+		sdraw::drawon(GFX_BOTTOM);
 		highlighterhandle(alphapos, alphaplus);
 		mainmenudraw(1, tpos, alphapos, false);
-		draw.frameend();
+		sdraw::frameend();
 	}
 	error("To select the title currently in\nuse, you can use this menu and\ntap it or use the Circle Pad and .");
 	error("You can access this menu from\nany menu screen at any time,\nnot just in the main menu.");
@@ -241,12 +241,12 @@ void tutorial(bool migrationwasdone)
 	titleselect();
 	//errorsetmode(MODE_FADE);
 	//Fix a small issue with the tools menu and the main menu clashing together in a copied framebuffer
-	draw.framestart();
+	sdraw::framestart();
 	drawtopscreen();
-	draw.drawon(GFX_BOTTOM);
+	sdraw::drawon(GFX_BOTTOM);
 	highlighterhandle(alphapos, alphaplus);
 	mainmenudraw(0, tpos, 0, false);
-	draw.frameend();
+	sdraw::frameend();
 	error("You're all set! Have fun,\nand happy modding!");
 	//errorsetmode(MODE_POPUP);
 }

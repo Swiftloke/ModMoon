@@ -2,7 +2,6 @@
 //sDraw should be redesigned to not couple TexEnv states and vertex handling, but instead
 //Have functions to set TexEnv states then functions to add + draw vertices.
 //new-hbmenu does this right.
-//Also it should be a namespace instead of a class. That just doesn't make sense.
 
 #include <string.h>
 #include <stdio.h>
@@ -22,7 +21,7 @@
 
 using namespace std;
 
-#include "lodepng.h"
+#include "../lodepng.h"
 #include "sdraw.hpp"
 
 #define CLEAR_COLOR 0
@@ -66,6 +65,18 @@ using namespace std;
 	static sdraw_ThreeTexVertex* threetexturesVtxArray;
 	C3D_RenderTarget* top;
 	C3D_RenderTarget* bottom;
+
+	int sdraw::expand_baseloc, sdraw::expand_expandloc;
+	int sdraw::twocds_interploc, sdraw::twocds_baseloc, sdraw::twocds_baseinterploc;
+	int sdraw::sdrawTwoCdsVtxArrayPos;
+	int sdraw::sdrawVtxArrayPos;
+	int sdraw::sdrawThreeTexturesVtxArrayPos;
+	bool sdraw::darkmodeshouldactivate = false;
+
+	C3D_Tex sdraw::lastfbtop;
+	C3D_Tex sdraw::lastfbbot;
+	gfxScreen_t sdraw::currentoutput = GFX_TOP;
+
 
 	enum SDRAW_SHADERINUSE
 	{
@@ -200,7 +211,7 @@ std::pair<C3D_Tex*, Tex3DS_Texture> loadTextureFromFile(const char* filename)
 }
 
 
-sDraw_interface::sDraw_interface()
+int sdraw::init()
 {
 	gfxInitDefault();
 	C3D_Init(C3D_DEFAULT_CMDBUF_SIZE);
@@ -322,9 +333,10 @@ sDraw_interface::sDraw_interface()
 	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_ONE_MINUS_SRC_COLOR);
 	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);*/
+	return 0;
 }
 
-void sDraw_interface::drawon(gfxScreen_t output)
+void sdraw::drawon(gfxScreen_t output)
 {
 	currentoutput = output;
 	C3D_FrameDrawOn(currentoutput == GFX_TOP ? top : bottom);
@@ -335,15 +347,15 @@ void sDraw_interface::drawon(gfxScreen_t output)
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, loc, output == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
-void sDraw_interface::drawtext(const char* text, float x, float y, float sizeX, float sizeY)
+void sdraw::drawtext(const char* text, float x, float y, float sizeX, float sizeY)
 {
 	//Always enable dark mode for text.
-	this->enabledarkmode(true);
+	enabledarkmode(true);
 	sDrawi_renderText(x, y, sizeX, sizeY, false, text);
-	this->enabledarkmode(false);
+	enabledarkmode(false);
 }
 
-void sDraw_interface::settextcolor(u32 color)
+void sdraw::settextcolor(u32 color)
 {
 	C3D_TexEnv* env = C3D_GetTexEnv(0);
 	C3D_TexEnvSrc(env, C3D_RGB, GPU_CONSTANT);
@@ -355,10 +367,10 @@ void sDraw_interface::settextcolor(u32 color)
 	C3D_TexEnvColor(env, color);
 }
 
-void sDraw_interface::drawrectangle(int x, int y, int width, int height, u32 color, bool shouldusedarkmode)
+void sdraw::drawrectangle(int x, int y, int width, int height, u32 color, bool shouldusedarkmode)
 {
 	if(shouldusedarkmode)
-		this->enabledarkmode(true);
+		enabledarkmode(true);
 	//Override the color entirely
 	C3D_TexEnv *env = C3D_GetTexEnv(0);
 	C3D_TexEnvSrc(env, C3D_Both, GPU_CONSTANT, GPU_CONSTANT);
@@ -374,10 +386,10 @@ void sDraw_interface::drawrectangle(int x, int y, int width, int height, u32 col
 	
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
 	if(shouldusedarkmode)
-		this->enabledarkmode(false);
+		enabledarkmode(false);
 }
 
-void sDraw_interface::sDrawi_addTextVertex(float vx, float vy, float tx, float ty)
+void sdraw::sDrawi_addTextVertex(float vx, float vy, float tx, float ty)
 {
 	sdraw_Vertex* vtx = &sdrawVtxArray[sdrawVtxArrayPos++];
 	vtx->position[0] = vx;
@@ -387,7 +399,7 @@ void sDraw_interface::sDrawi_addTextVertex(float vx, float vy, float tx, float t
 	vtx->texcoord[1] = ty;
 }
 
-void sDraw_interface::sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty)
+void sdraw::sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty)
 {
 	sdraw_TwoCdsVertex* vtx = &twocdsVtxArray[sdrawTwoCdsVtxArrayPos++];
 	vtx->pos1[0] = vx1;
@@ -400,7 +412,7 @@ void sDraw_interface::sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2,
 	vtx->texcoord[1] = ty;
 }
 
-void sDraw_interface::sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float tc0y, float tc1x, float tc1y, float tc2x, float tc2y)
+void sdraw::sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float tc0y, float tc1x, float tc1y, float tc2x, float tc2y)
 {
 	sdraw_ThreeTexVertex* vtx = &threetexturesVtxArray[sdrawThreeTexturesVtxArrayPos++];
 	vtx->position[0] = vx;
@@ -417,7 +429,7 @@ void sDraw_interface::sDrawi_addThreeTexturesVertex(float vx, float vy, float tc
 	vtx->tc2[1] = tc2y;
 }
 
-void sDraw_interface::sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text)
+void sdraw::sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text)
 {
 	ssize_t  units;
 	uint32_t code;
@@ -471,7 +483,7 @@ void sDraw_interface::sDrawi_renderText(float x, float y, float scaleX, float sc
 	} while (code > 0);
 }
 
-float sDraw_interface::gettextheight(const char* text, float sizeY)
+float sdraw::gettextheight(const char* text, float sizeY)
 {
 	string tex(text);
 	int lines = std::count(tex.begin(), tex.end(), '\n') + 1; //There's always one line that doesn't have a \n
@@ -479,7 +491,7 @@ float sDraw_interface::gettextheight(const char* text, float sizeY)
 }
 
 //Get the width of the text input. Account for \n by using a vector of possible widths. Use gettextmaxwidth to return the longest one
-vector<float> sDraw_interface::gettextwidths(const char* text, float sizeX, float sizeY)
+vector<float> sdraw::gettextwidths(const char* text, float sizeX, float sizeY)
 {
 	ssize_t  units;
 	uint32_t code;
@@ -518,7 +530,7 @@ vector<float> sDraw_interface::gettextwidths(const char* text, float sizeX, floa
 	return xvalues;
 }
 
-float sDraw_interface::gettextmaxwidth(const char* text, float sizeX, float sizeY)
+float sdraw::gettextmaxwidth(const char* text, float sizeX, float sizeY)
 {
 	vector<float> widths = gettextwidths(text, sizeX, sizeY);
 	//Compare the X values to see which one is the longest.
@@ -527,10 +539,10 @@ float sDraw_interface::gettextmaxwidth(const char* text, float sizeX, float size
 
 //Draw centered text by looping through each newline and its equivalent width in a vector.
 // (screenwidth/2) - (stringwidth / 2)
-void sDraw_interface::drawcenteredtext(const char* text, float scaleX, float scaleY, float y)
+void sdraw::drawcenteredtext(const char* text, float scaleX, float scaleY, float y)
 {
 	//Always enable dark mode for text.
-	this->enabledarkmode(true);
+	enabledarkmode(true);
 	vector<float> widths = gettextwidths(text, scaleX, scaleY);
 	vector<float>::iterator widthiterator = widths.begin();
 	float x = (((currentoutput == GFX_TOP) ? 400 : 320) / 2 - (*widthiterator / 2)) - 5; //-5 to make it look a bit better
@@ -584,13 +596,13 @@ void sDraw_interface::drawcenteredtext(const char* text, float scaleX, float sca
 
 		}
 	} while (code > 0);
-	this->enabledarkmode(false);
+	enabledarkmode(false);
 }
 
-void sDraw_interface::drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley)
+void sdraw::drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley)
 {
 	//Always enable dark mode for text.
-	this->enabledarkmode(true);
+	enabledarkmode(true);
 	float textwidth = gettextmaxwidth(text, scalex, scaley);
 	float finalsizex;
 	if(textwidth > width)
@@ -603,10 +615,10 @@ void sDraw_interface::drawtextinrec(const char* text, int x, int y, int width, f
 	float finalx = ((currentoutput == GFX_TOP ? 400 : 320) - finalsizex) / 2;
 	finalx -= 3; //Make it look better
 	drawtext(text, finalx, y, scalex, scaley);
-	this->enabledarkmode(false);
+	enabledarkmode(false);
 }
 
-void sDraw_interface::drawtexture(C3D_Tex* tex, int x, float y)
+void sdraw::drawtexture(C3D_Tex* tex, int x, float y)
 {
 	C3D_TexBind(0, tex);
 	
@@ -627,7 +639,7 @@ void sDraw_interface::drawtexture(C3D_Tex* tex, int x, float y)
 
 //Citro3D port of this https://www.khronos.org/opengl/wiki/Texture_Combiners#Example_:_Blend_tex0_and_tex1_based_on_a_blending_factor_you_supply
 // *Lack of fragment shader intensifies*
-void sDraw_interface::drawblendedtexture(C3D_Tex* texa, C3D_Tex* texb, int x, int y, int blendfactor)
+void sdraw::drawblendedtexture(C3D_Tex* texa, C3D_Tex* texb, int x, int y, int blendfactor)
 {
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
 	C3D_TexBind(0, texa);
@@ -660,7 +672,7 @@ C3D_TexEnvColor(tev, RGBA8(0,0,0,128));
 
 
 //Helper functions for switching shaders and providing uniforms automagically
-void sDraw_interface::usebasicshader()
+void sdraw::usebasicshader()
 {
 	C3D_SetAttrInfo(&basicinfo);
 	C3D_SetBufInfo(&basicbuf);
@@ -669,7 +681,7 @@ void sDraw_interface::usebasicshader()
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
-void sDraw_interface::useeventualshader()
+void sdraw::useeventualshader()
 {
 	C3D_SetAttrInfo(&basicinfo);
 	C3D_SetBufInfo(&basicbuf);
@@ -678,7 +690,7 @@ void sDraw_interface::useeventualshader()
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, expand_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
-void sDraw_interface::usetwocoordsshader()
+void sdraw::usetwocoordsshader()
 {
 	C3D_SetAttrInfo(&twocoordsinfo);
 	C3D_SetBufInfo(&twocoordsbuf);
@@ -687,7 +699,7 @@ void sDraw_interface::usetwocoordsshader()
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, twocds_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
-void sDraw_interface::usethreetexturesshader()
+void sdraw::usethreetexturesshader()
 {
 	C3D_SetAttrInfo(&threetexturesinfo);
 	C3D_SetBufInfo(&threetexturesbuf);
@@ -697,10 +709,10 @@ void sDraw_interface::usethreetexturesshader()
 }
 
 
-void sDraw_interface::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
+void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
 {
 	if(info.usesdarkmode)
-		this->enabledarkmode(true);
+		enabledarkmode(true);
 	C3D_TexBind(0, info.spritesheet);
 	
 	C3D_TexEnv	*env = C3D_GetTexEnv(0);
@@ -737,7 +749,7 @@ void sDraw_interface::drawtexture(sdraw_stex info, int x, int y, int x1, int y1,
 }
 
 //Draw a framebuffer, it's tilted sideways and stuffed into a larger texture and flipped so we need some extra maths for this
-void sDraw_interface::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1, int y1, float interpfactor)
+void sdraw::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1, int y1, float interpfactor)
 {
 	C3D_TexBind(0, &tex);
 	
@@ -779,10 +791,10 @@ void sDraw_interface::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, i
 //The behavior of this is defined externally, in accordance with sDraw's future;
 //this simply passes through the texcoords.
 //All textures should be the same width/height.
-void sDraw_interface::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3)
+void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3)
 {
 	if(info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
-		this->enabledarkmode(true);
+		enabledarkmode(true);
 	usethreetexturesshader();
 
 	C3D_TexBind(0, info1.spritesheet);
@@ -798,13 +810,13 @@ void sDraw_interface::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw
 	usebasicshader();
 
 	if (info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
-		this->enabledarkmode(false);
+		enabledarkmode(false);
 }
 
-void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1, int y1, float interpfactor)
+void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1, int y1, float interpfactor)
 {
 	if (info.usesdarkmode)
-		this->enabledarkmode(true);
+		enabledarkmode(true);
 	//Enable writing to the stencil buffer and draw the texture
 	C3D_StencilTest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
 	C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
@@ -842,12 +854,12 @@ void sDraw_interface::drawtexturewithhighlight(sdraw_stex info, int x, int y, u3
 	usebasicshader();
 	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0);
 	if (info.usesdarkmode)
-		this->enabledarkmode(false);
+		enabledarkmode(false);
 }
 
 //Draw with 0.75 texcoords as it's a 48x48 icon in a 64x64 texture (Power of two limits...)
 //Also width/height is constant- 48x48
-void sDraw_interface::drawSMDHicon(C3D_Tex icon, int x, int y)
+void sdraw::drawSMDHicon(C3D_Tex icon, int x, int y)
 {
 	C3D_TexBind(0, &icon);
 	C3D_TexEnv	*env = C3D_GetTexEnv(0);
@@ -866,7 +878,7 @@ void sDraw_interface::drawSMDHicon(C3D_Tex icon, int x, int y)
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
 }
 
-void sDraw_interface::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
+void sdraw::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
 {
 
 	if (x == CENTERED && y == CENTERED) { x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2); }
@@ -897,10 +909,10 @@ void sDraw_interface::drawquad(sdraw_stex info, int x, int y, int x1, int y1, fl
 
 //TODO: have all these different functions for individual texenv stuff configure their texenvs then call a drawquad() function.
 //It's really getting out of hand and not making sense to repeat all this code.
-void sDraw_interface::drawhighlighter(sdraw_highlighter info, int x, int y, int alpha, int x1, int y1, float interpfactor)
+void sdraw::drawhighlighter(sdraw_highlighter info, int x, int y, int alpha, int x1, int y1, float interpfactor)
 {
 	if (info.usesdarkmode)
-		this->enabledarkmode(true);
+		enabledarkmode(true);
 	C3D_TexBind(0, info.spritesheet);
 	
 	C3D_TexEnv* tev = C3D_GetTexEnv(0);
@@ -934,19 +946,19 @@ void sDraw_interface::drawhighlighter(sdraw_highlighter info, int x, int y, int 
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
 	}
 	if (info.usesdarkmode)
-		this->enabledarkmode(false);
+		enabledarkmode(false);
 }
 
-void sDraw_interface::enabledarkmode(bool isenabled)
+void sdraw::enabledarkmode(bool isenabled)
 {
-	if(!this->darkmodeshouldactivate)
+	if(!darkmodeshouldactivate)
 		return;
 	C3D_TexEnv* tev = C3D_GetTexEnv(5);
 	//Invert colors...
 	C3D_TexEnvOpRgb(tev, isenabled ? GPU_TEVOP_RGB_ONE_MINUS_SRC_COLOR : GPU_TEVOP_RGB_SRC_COLOR);
 }
 
-void sDraw_interface::framestart()
+void sdraw::framestart()
 {
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	sdrawVtxArrayPos = 0; //Reset the vertex arrays
@@ -963,7 +975,7 @@ void sDraw_interface::framestart()
 	drawon(GFX_TOP); //Reset default output to the top screen
 }
 
-void sDraw_interface::frameend()
+void sdraw::frameend()
 {
 	//Get the final framebuffer of this frame and save it
 	//So the ctrulib docs have lies, GX_BUFFER_DIM is not width and height, but rather what 16-byte blocks to copy
@@ -980,7 +992,7 @@ void sDraw_interface::frameend()
 	C3D_FrameEnd(0);
 }
 
-void sDraw_interface::retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb)
+void sdraw::retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb)
 {
 	if (topfb)
 		C3D_SyncTextureCopy((u32*)lastfbtop.data, GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), (u32*)topfb->data, \
@@ -990,7 +1002,7 @@ void sDraw_interface::retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb)
 			GX_BUFFER_DIM((256 * 8 * 4) >> 4, 0), 512 * 256 * 4, FRAMEBUFFER_TRANSFER_FLAGS);
 }
 
-void sDraw_interface::cleanup()
+void sdraw::cleanup()
 {
 	C3D_FrameSplit(0); //We need to wait for everything to finish before shutting it down
 	// Free the textures

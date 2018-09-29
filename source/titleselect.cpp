@@ -10,10 +10,10 @@ int oldselectpos;
 
 void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrows, int selectpos, bool highlighterblink)
 {
-	draw.framestart();
+	sdraw::framestart();
 	drawtopscreen();
-	draw.drawon(GFX_BOTTOM);
-	draw.drawtexture(backgroundbot, 0, 0);
+	sdraw::drawon(GFX_BOTTOM);
+	sdraw::drawtexture(backgroundbot, 0, 0);
 	int x = -39, y = 26; //Start at a smaller X coordinate as it'll be advanced in the first loop iteration
 	int i = 0;
 	static float highlighterinterpfactor = 0;
@@ -27,7 +27,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 	y -= 70 * scrollsubtractrows;
 
 	if (scrollsubtractrows == 0)
-		draw.drawtexture(titleselectioncartridge, 22, 17);
+		sdraw::drawtexture(titleselectioncartridge, 22, 17);
 
 	for (vector<smdhdata>::iterator iter = icons.begin(); iter < icons.end(); iter++)
 	{
@@ -39,7 +39,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 		}
 		if (i == selectpos)
 		{
-			draw.drawtext(tid2str((*iter).titl).c_str(), 0, 0, .4, .4);
+			sdraw::drawtext(tid2str((*iter).titl).c_str(), 0, 0, .4, .4);
 			if (selectpos != oldselectpos)
 			{
 				oldselectpos = selectpos;
@@ -95,7 +95,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 				/C3D_TexEnvColor(tev, RGBA8(0, 0, 255, highlighteralpha));
 			}*/
 			//If the highlighter blink is active, we need to give a full alpha, seeing as it's "blinking"
-			draw.drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, \
+			sdraw::drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, \
 				highlighterblink ? 255 : highlighteralpha, x - 9, y - 9, highlighterinterpfactor);
 			//Now we need to reset stage 1
 			if (highlighterblink)
@@ -106,14 +106,14 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 		}
 		i++;
 		if(iter->titl != 0) //Not a null cartridge
-			draw.drawSMDHicon((*iter).icon, x, y);
+			sdraw::drawSMDHicon((*iter).icon, x, y);
 	}
-	draw.drawtexture(titleselectionboxes, 26, 21);
-	draw.drawframebuffer(prevfb, 0, 0, false, 0, -240, fbinterpfactor);
-	draw.settextcolor(RGBA8(165, 165, 165, 255));
+	sdraw::drawtexture(titleselectionboxes, 26, 21);
+	sdraw::drawframebuffer(prevfb, 0, 0, false, 0, -240, fbinterpfactor);
+	sdraw::settextcolor(RGBA8(165, 165, 165, 255));
 	string versiontext = getversion();
-	draw.drawtext(versiontext.c_str(), 320 - 18 - draw.gettextmaxwidth(versiontext.c_str(), .4, .5), 1, .45, .45);
-	draw.frameend();
+	sdraw::drawtext(versiontext.c_str(), 320 - 18 - sdraw::gettextmaxwidth(versiontext.c_str(), .4, .5), 1, .45, .45);
+	sdraw::frameend();
 }
 
 
@@ -122,7 +122,7 @@ void titleselect()
 	C3D_Tex prevbot;
 	//Save the framebuffer from the previous menu
 	C3D_TexInit(&prevbot, 256, 512, GPU_RGBA8);
-	draw.retrieveframebuffers(NULL, &prevbot);
+	sdraw::retrieveframebuffers(NULL, &prevbot);
 	icons = getSMDHdata();
 	static int selectpos = currenttidpos;
 	oldselectpos = selectpos;

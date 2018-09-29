@@ -92,10 +92,9 @@ struct sdraw_highlighter : public sdraw_stex
 };
 
 
-class sDraw_interface
+namespace sdraw
 {
-	public:
-	sDraw_interface();
+	int init();
 	void cleanup();
 	void drawon(gfxScreen_t window);
 	void framestart();
@@ -133,21 +132,20 @@ class sDraw_interface
 	//Sets up "dark mode". This inverts all colors of the UI, except pieces that need
 	//to be displayed normally. The bool mentions whether dark mode is enabled at all,
 	//the function enables it (if it needs to be, based on the bool).
-	bool darkmodeshouldactivate = false;
+	extern bool darkmodeshouldactivate;
 	void enabledarkmode(bool enabled);
 	
-	int expand_baseloc, expand_expandloc;
-	int twocds_interploc, twocds_baseloc, twocds_baseinterploc;
-	int sdrawTwoCdsVtxArrayPos;
-	int sdrawVtxArrayPos;
-	int sdrawThreeTexturesVtxArrayPos;
-	
-	private:
-	C3D_Tex lastfbtop;
-	C3D_Tex lastfbbot;
-	gfxScreen_t currentoutput = GFX_TOP;
+	extern int expand_baseloc, expand_expandloc;
+	extern int twocds_interploc, twocds_baseloc, twocds_baseinterploc;
+	extern int sdrawTwoCdsVtxArrayPos;
+	extern int sdrawVtxArrayPos;
+	extern int sdrawThreeTexturesVtxArrayPos;
+
+	extern C3D_Tex lastfbtop;
+	extern C3D_Tex lastfbbot;
+	extern gfxScreen_t currentoutput;
 	void sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text);
-};
+} //namespace sdraw
 
 
 C3D_Tex* loadpng(string filepath);

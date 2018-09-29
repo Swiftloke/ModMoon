@@ -1,7 +1,6 @@
 //TODO: Once the revamp to support many titles occurs and that define in main.hpp is removed, change "title" back to "titleid"
 //(It conflicted with the define, but "title" doesn't explain a whole lot)
 
-#include "sdraw.hpp"
 #include "workerfunction.hpp"
 #include <string>
 #include <vector>

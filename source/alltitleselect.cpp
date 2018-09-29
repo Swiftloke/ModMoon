@@ -23,10 +23,10 @@ void queuetitleforactivationwithinmenu(u64 titleid, int mediatype)
 
 void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsubtractrows, int selectpos)
 {
-	draw.framestart();
+	sdraw::framestart();
 	drawtopscreen();
-	draw.drawon(GFX_BOTTOM);
-	draw.drawtexture(backgroundbot, 0, 0);
+	sdraw::drawon(GFX_BOTTOM);
+	sdraw::drawtexture(backgroundbot, 0, 0);
 	int x = -39, y = 26; //Start at a smaller X coordinate as it'll be advanced in the first loop iteration
 	int i = 0;
 	static float highlighterinterpfactor = 0;
@@ -49,7 +49,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 	y -= 70 * scrollsubtractrows;
 
 	if(scrollsubtractrows == 0)
-		draw.drawtexture(titleselectioncartridge, 22, 17);
+		sdraw::drawtexture(titleselectioncartridge, 22, 17);
 
 	for (vector<smdhdata>::iterator iter = allicons.begin(); iter < allicons.end(); iter++)
 	{
@@ -61,7 +61,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 		}
 		if (i == selectpos)
 		{
-			draw.drawtext(tid2str((*iter).titl).c_str(), 0, 0, .4, .4);
+			sdraw::drawtext(tid2str((*iter).titl).c_str(), 0, 0, .4, .4);
 			if (selectpos != alloldselectpos)
 			{
 				alloldselectpos = selectpos;
@@ -86,24 +86,24 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			}
 			if(iter->isactive)
 				C3D_SetTexEnv(1, &coloroverride);
-			draw.drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, highlighteralpha, x - 9, y - 9, highlighterinterpfactor);
+			sdraw::drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, highlighteralpha, x - 9, y - 9, highlighterinterpfactor);
 			if(iter->isactive)
 				C3D_TexEnvInit(C3D_GetTexEnv(1));
 		}
 		else if (iter->isactive && i != 0)
 		{
 			C3D_SetTexEnv(1, &coloroverride);
-			draw.drawtexture(titleselecthighlighter, x - 9, y - 9);
+			sdraw::drawtexture(titleselecthighlighter, x - 9, y - 9);
 			//Now we need to reset stage 1
 			C3D_TexEnvInit(C3D_GetTexEnv(1));
 		}
 		i++;
 		if (iter->titl != 0) //Not a null cartridge
-			draw.drawSMDHicon((*iter).icon, x, y);
+			sdraw::drawSMDHicon((*iter).icon, x, y);
 	}
-	draw.drawtexture(titleselectionboxes, 26, 21);
-	draw.drawframebuffer(prevbotfb, 0, 0, false, 0, -240, fbinterpfactor);
-	draw.frameend();
+	sdraw::drawtexture(titleselectionboxes, 26, 21);
+	sdraw::drawframebuffer(prevbotfb, 0, 0, false, 0, -240, fbinterpfactor);
+	sdraw::frameend();
 }
 
 void activetitleselect()
@@ -112,7 +112,7 @@ void activetitleselect()
 	//Save the framebuffer from the previous menu
 	C3D_TexInit(&prevtop, 256, 512, GPU_RGBA8);
 	C3D_TexInit(&prevbot, 256, 512, GPU_RGBA8);
-	draw.retrieveframebuffers(&prevtop, &prevbot);
+	sdraw::retrieveframebuffers(&prevtop, &prevbot);
 	//A while after this was written, it was revamped...
 	//Wait on the other thread to finish title loading
 	SMDHworker.displayprogress();

@@ -45,13 +45,13 @@ void controlsdraw()
 	cursorprint = (cursor == 13) ? "(x)" : "( )";
 	enabledordisabled = (buttons[13] == 1) ? "Enabled" : "Disabled";
 	strout << cursorprint << " A+B Smash Attack: <" << enabledordisabled << ">" << '\n';
-	draw.framestart();
+	sdraw::framestart();
 	drawtopscreen();
-	draw.drawon(GFX_BOTTOM);
-	draw.drawtexture(backgroundbot, 0, 0);
-	draw.settextcolor(RGBA8(0, 0, 0, 255));
-	draw.drawtext(strout.str().c_str(), 0, 0, 0.6, 0.55);
-	draw.frameend();
+	sdraw::drawon(GFX_BOTTOM);
+	sdraw::drawtexture(backgroundbot, 0, 0);
+	sdraw::settextcolor(RGBA8(0, 0, 0, 255));
+	sdraw::drawtext(strout.str().c_str(), 0, 0, 0.6, 0.55);
+	sdraw::frameend();
 }
 
 void controlsmodifier() {

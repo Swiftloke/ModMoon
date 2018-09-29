@@ -13,7 +13,7 @@
 
 #include <3ds.h>
 
-#include "sdraw.hpp"
+#include "sdraw/sdraw.hpp"
 #include "config.hpp"
 #include "utils.hpp"
 #include "main.hpp"
@@ -26,8 +26,8 @@
 
 using namespace std;
 
-Result res = romfsInit(); //Preinit romfs so we can load the spritesheet
-sDraw_interface draw;
+Result notused = romfsInit(); //Preinit romfs so we can load textures
+int unused = sdraw::init(); //We need this preinited as well
 
 Config config("/3ds/ModMoon/", "settings.txt");
 
@@ -165,13 +165,13 @@ int movemodsin()
 int startup()
 {
 	//Draw a blank frame to allow error calls to retrieve a valid framebuffer
-	draw.framestart();
-	draw.drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
-	draw.drawon(GFX_BOTTOM);
-	draw.drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
-	draw.frameend();
+	sdraw::framestart();
+	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
+	sdraw::drawon(GFX_BOTTOM);
+	sdraw::drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
+	sdraw::frameend();
 	//Configure dark mode
-	draw.darkmodeshouldactivate = config.read("DarkModeEnabled", false);
+	sdraw::darkmodeshouldactivate = config.read("DarkModeEnabled", false);
 	//Rename mods
 	int renamefailed = 0;
 	if(modsenabled)
@@ -251,15 +251,15 @@ void mainmenushiftin()
 {
 	for (float i = 0; i <= 1.0; i += 0.08)
 	{
-		draw.framestart();
+		sdraw::framestart();
 		drawtopscreen();
-		draw.drawon(GFX_BOTTOM);
-		draw.drawtexture(backgroundbot, 0, 0);
-		draw.drawtexture(leftbuttonmoon, -leftbuttonmoon.width, 13, 0, 13, i);
-		draw.drawtexture(leftbutton, -leftbutton.width, 13, 0, 13, i);
-		draw.drawtexture(rightbutton, 320, 13, 169, 13, i);
-		draw.drawtexture(selector, 0, 240, 0, 159, i);
-		draw.frameend();
+		sdraw::drawon(GFX_BOTTOM);
+		sdraw::drawtexture(backgroundbot, 0, 0);
+		sdraw::drawtexture(leftbuttonmoon, -leftbuttonmoon.width, 13, 0, 13, i);
+		sdraw::drawtexture(leftbutton, -leftbutton.width, 13, 0, 13, i);
+		sdraw::drawtexture(rightbutton, 320, 13, 169, 13, i);
+		sdraw::drawtexture(selector, 0, 240, 0, 159, i);
+		sdraw::frameend();
 	}
 }
 
@@ -269,7 +269,7 @@ const unsigned int codes[] = {
 
 void secretcodedraw()
 {
-	draw.drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 255, 255));
+	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 255, 255));
 	//This secret is hidden from view in the spritesheet. It has only an alpha of 1 and no color.
 	//This is to prevent it from easily being seen in the source code. ;)
 	//Also because I'm a sucker for playing with graphics (as evidenced by my own rendering engine)
@@ -287,7 +287,7 @@ void secretcodedraw()
 	C3D_TexEnvColor(tev, RGBA8(255, 255, 0, 254));
 
 	C3D_AlphaTest(true, GPU_EQUAL, 255); //1 + 254 = 255, ignore everything else
-	draw.drawquad(secret, 0, 0);
+	sdraw::drawquad(secret, 0, 0);
 	C3D_AlphaTest(true, GPU_GREATER, 0); //sdraw's default behavior
 }
 
@@ -308,12 +308,12 @@ bool secretcodeadvance(u32 kDown)
 			//An error call gets this thing to work properly? Something something massaging the GPU
 			//right? IDK. Not worth investigating, especially when I can just put in another meme :)
 			error("Congrats! You have gained\n30 extra lives!");
-			draw.framestart();
-			draw.drawon(GFX_TOP);
+			sdraw::framestart();
+			sdraw::drawon(GFX_TOP);
 			secretcodedraw();
-			draw.drawon(GFX_BOTTOM);
+			sdraw::drawon(GFX_BOTTOM);
 			secretcodedraw();
-			draw.frameend();
+			sdraw::frameend();
 			for (;;) {} //Freeze! EVERYBODY CLAP YOUR HANDS
 		}
 	}
@@ -334,16 +334,16 @@ void mainmenushiftout()
 	//Opposite of shifting in (just some numbers changed)
 	for(int l = 0, r = 169, b = 159; l > -((signed int)leftbutton.width); l -= 10, r += 10)
 	{
-		draw.framestart();
+		sdraw::framestart();
 		drawtopscreen();
-		draw.drawon(GFX_BOTTOM);
-		draw.drawtexture(backgroundbot, 0, 0);
-		draw.drawtexture(leftbuttonmoon, l, 13);
-		draw.drawtexture(leftbutton, l, 13);
-		draw.drawtexture(rightbutton, r, 13);
-		draw.drawtexture(selector, 0, b);
-		draw.drawtextinrec(slotname.c_str(), 35, 21 + b, 251, 1.4, 1.4);
-		draw.frameend();
+		sdraw::drawon(GFX_BOTTOM);
+		sdraw::drawtexture(backgroundbot, 0, 0);
+		sdraw::drawtexture(leftbuttonmoon, l, 13);
+		sdraw::drawtexture(leftbutton, l, 13);
+		sdraw::drawtexture(rightbutton, r, 13);
+		sdraw::drawtexture(selector, 0, b);
+		sdraw::drawtextinrec(slotname.c_str(), 35, 21 + b, 251, 1.4, 1.4);
+		sdraw::frameend();
 		if(b < 240) b += 6;
 	}
 }
@@ -393,14 +393,14 @@ void updateslots(bool plus)
 //All the things happen on the bottom screen, very rarely do we deviate from this pattern on the top screen
 void drawtopscreen()
 {
-	draw.drawtexture(backgroundtop, 0, 0);
+	sdraw::drawtexture(backgroundtop, 0, 0);
 	int bannerx = 400 / 2 - banner.width / 2;
 	float bannery = 240 / 2 - banner.height / 2;
 	//From new-hbmenu
 	minusy -= 0.0052; // 1/192, the compiler didn't like assigning a division value for some reason.
 	float addy = 6.0f*sinf(C3D_Angle(minusy));
 	bannery += addy;
-	draw.drawtexture(banner, bannerx, bannery);
+	sdraw::drawtexture(banner, bannerx, bannery);
 
 	//Animate the moon colors...
 	const int moonx = 191, moony = 13; //Position of the moon in the banner
@@ -423,7 +423,7 @@ void drawtopscreen()
 	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);
 	
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 256, false);
-	draw.drawmultipletextures(bannerx + moonx, bannery + moony, bannermoonalpha, temp, temp);
+	sdraw::drawmultipletextures(bannerx + moonx, bannery + moony, bannermoonalpha, temp, temp);
 
 	//At some point, the PICA200 just doesn't like texcoords of an extremely high value and stops repeating.
 	//A quick debugging session yielded that it got to 30000 without issue, and that's something like 10
@@ -434,20 +434,20 @@ void drawtopscreen()
 	animationplus += .75;
 
 	//Draw the title selection text
-	draw.settextcolor(RGBA8(165, 165, 165, 255));
-	draw.drawtext(": Help", 5, 240 - 40, 0.55, 0.55);
-	draw.drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
+	sdraw::settextcolor(RGBA8(165, 165, 165, 255));
+	sdraw::drawtext(": Help", 5, 240 - 40, 0.55, 0.55);
+	sdraw::drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
 	//Draw the current title
 	if (getSMDHdata()[currenttidpos].titl != 0) //This may be a cartridge that's not inserted, if it is, don't draw it
 	{
-		draw.drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
+		sdraw::drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
 	}
-	draw.drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
+	sdraw::drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
 }
 
 void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapos, bool highlighterblink)
 {
-	draw.drawtexture(backgroundbot, 0, 0);
+	sdraw::drawtexture(backgroundbot, 0, 0);
 
 	//Draw the rainbow (or not) moon first.
 	//A bit like the banner animation but not quite.
@@ -480,7 +480,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	C3D_TexEnvColor(tev, RGBA8(0, 0, 0, rainbowinterp));
 
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 40, false);
-	draw.drawmultipletextures(0, 13, leftbuttonmoon, temp, temp);
+	sdraw::drawmultipletextures(0, 13, leftbuttonmoon, temp, temp);
 		
 	//See above for why this is done
 	if (animationplus >= 29952)
@@ -488,20 +488,20 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	animationplus += 0.5;
 
 	if (dpadpos == 0)
-		draw.drawtexturewithhighlight(leftbutton, 0, 13, \
+		sdraw::drawtexturewithhighlight(leftbutton, 0, 13, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
-	else draw.drawtexture(leftbutton, 0, 13);
+	else sdraw::drawtexture(leftbutton, 0, 13);
 
 	if (dpadpos == 1)
-		draw.drawtexturewithhighlight(rightbutton, 169, 13, \
+		sdraw::drawtexturewithhighlight(rightbutton, 169, 13, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
-	else draw.drawtexture(rightbutton, 169, 13);
+	else sdraw::drawtexture(rightbutton, 169, 13);
 	if (dpadpos == 2 || dpadpos == 3)
-		draw.drawtexturewithhighlight(selector, 0, 159, \
+		sdraw::drawtexturewithhighlight(selector, 0, 159, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
-	else draw.drawtexture(selector, 0, 159);
-	draw.settextcolor(RGBA8(0, 0, 0, 255));
-	draw.drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
+	else sdraw::drawtexture(selector, 0, 159);
+	sdraw::settextcolor(RGBA8(0, 0, 0, 255));
+	sdraw::drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
 }
 
 
@@ -700,12 +700,12 @@ int main(int argc, char **argv) {
 			mainmenushiftin();
 		}
 
-		draw.framestart();
+		sdraw::framestart();
 		drawtopscreen();
-		draw.drawon(GFX_BOTTOM);
+		sdraw::drawon(GFX_BOTTOM);
 		highlighterhandle(alphapos, alphaplus);
 		mainmenudraw(dpadpos, tpos, alphapos, false);
-		draw.frameend();
+		sdraw::frameend();
 	}
 
 	/*int rgb[3] = {255, 255, 255}; //Fade to white 
@@ -749,7 +749,7 @@ int main(int argc, char **argv) {
 	//C3D_TexDelete(spritesheet);
 	//C3D_TexDelete(progressfiller);
 	//freeSMDHdata();
-	draw.cleanup();
+	sdraw::cleanup();
 	srv::exit();
 	romfsExit();
 	gfxExit();

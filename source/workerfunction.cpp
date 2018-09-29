@@ -34,7 +34,7 @@ void WorkerFunction::displayprogress()
 		return;
 	C3D_TexInit(&this->progressfbtop, 256, 512, GPU_RGBA8);
 	C3D_TexInit(&this->progressfbbot, 256, 512, GPU_RGBA8);
-	draw.retrieveframebuffers(&progressfbtop, &progressfbbot);
+	sdraw::retrieveframebuffers(&progressfbtop, &progressfbbot);
 	float expandpos = 0;
 	string actualtext;
 	do

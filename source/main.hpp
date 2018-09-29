@@ -17,7 +17,7 @@ typedef SSIZE_T ssize_t;
 #endif
 
 #pragma once
-#include "sdraw.hpp"
+#include "sdraw/sdraw.hpp"
 #include "config.hpp"
 #include "smdh.hpp"
 #include <string>
@@ -26,7 +26,6 @@ typedef SSIZE_T ssize_t;
 using namespace std;
 
 //Globals
-extern sDraw_interface draw;
 extern std::pair<C3D_Tex*, Tex3DS_Texture> spritesheet;
 extern C3D_Tex* progressfiller; //This needs to be in its own texture due to usage of wrapping for animation
 extern sdraw_stex leftbutton;

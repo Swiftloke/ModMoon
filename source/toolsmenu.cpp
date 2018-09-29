@@ -53,29 +53,29 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 	//Where the highlighter goes to actually be over the button... Some buttons have
 	//parts that stick out.
 	const int highlighteradds[] = { 3, 0, 2, 7, 4 };
-	draw.framestart();
+	sdraw::framestart();
 	if (shouldblink)
 	{
-		draw.drawrectangle(0, 0, 400, 240, RGBA8(255, 255, 255, 255));
-		draw.drawon(GFX_BOTTOM);
-		draw.drawrectangle(0, 0, 320, 240, RGBA8(255, 255, 255, 255));
+		sdraw::drawrectangle(0, 0, 400, 240, RGBA8(255, 255, 255, 255));
+		sdraw::drawon(GFX_BOTTOM);
+		sdraw::drawrectangle(0, 0, 320, 240, RGBA8(255, 255, 255, 255));
 	}
 	else
 	{
 		drawtopscreen();
-		draw.drawon(GFX_BOTTOM);
-		draw.drawtexture(backgroundbot, 0, 0);
-		draw.drawhighlighter(toolsmenuhighlighter, initialxvals[position] - 13, \
+		sdraw::drawon(GFX_BOTTOM);
+		sdraw::drawtexture(backgroundbot, 0, 0);
+		sdraw::drawhighlighter(toolsmenuhighlighter, initialxvals[position] - 13, \
 			toolsyvals[position] - 9 + highlighteradds[position], \
 			highlighteralpha, 18 - 13, toolsyvals[position] - 9 + highlighteradds[position], interpfactor);
-		draw.drawtexture(activetitlesbutton,  initialxvals[0], toolsyvals[0], 18, toolsyvals[0], interpfactor);
-		draw.drawtexture(smashcontrolsbutton, initialxvals[1], toolsyvals[1], 18, toolsyvals[1], interpfactor);
-		draw.drawtexture(tutorialbutton,      initialxvals[2], toolsyvals[2], 18, toolsyvals[2], interpfactor);
-		draw.drawtexture(migrationbutton,     initialxvals[3], toolsyvals[3], 18, toolsyvals[3], interpfactor);
-		draw.drawtexture(draw.darkmodeshouldactivate ? lightmodebutton : darkmodebutton, \
+		sdraw::drawtexture(activetitlesbutton,  initialxvals[0], toolsyvals[0], 18, toolsyvals[0], interpfactor);
+		sdraw::drawtexture(smashcontrolsbutton, initialxvals[1], toolsyvals[1], 18, toolsyvals[1], interpfactor);
+		sdraw::drawtexture(tutorialbutton,      initialxvals[2], toolsyvals[2], 18, toolsyvals[2], interpfactor);
+		sdraw::drawtexture(migrationbutton,     initialxvals[3], toolsyvals[3], 18, toolsyvals[3], interpfactor);
+		sdraw::drawtexture(sdraw::darkmodeshouldactivate ? lightmodebutton : darkmodebutton, \
 											  initialxvals[4], toolsyvals[4], 18, toolsyvals[4], interpfactor);
 	}
-	draw.frameend();
+	sdraw::frameend();
 }
 
 void toolsmenushiftout()
@@ -215,7 +215,7 @@ void toolsmenu()
 				helptext2 = "This functionality is activated\nautomatically at first boot."; 
 				break; 
 			}
-			case 4: helptext = " Mode:\nChange the theme of ModMoon!"; helptext.insert(0, draw.darkmodeshouldactivate ? "Light" : "Dark");
+			case 4: helptext = " Mode:\nChange the theme of ModMoon!"; helptext.insert(0, sdraw::darkmodeshouldactivate ? "Light" : "Dark");
 			}
 			error(helptext);
 			if(helptext2 != "None")
@@ -276,7 +276,7 @@ void toolsmenu()
 
 void toggledarkmode()
 {
-	bool currentdarkmodestatus = draw.darkmodeshouldactivate;
-	draw.darkmodeshouldactivate = !currentdarkmodestatus;
+	bool currentdarkmodestatus = sdraw::darkmodeshouldactivate;
+	sdraw::darkmodeshouldactivate = !currentdarkmodestatus;
 	config.write("DarkModeEnabled", !currentdarkmodestatus);
 }
