@@ -569,6 +569,8 @@ int main(int argc, char **argv) {
 				error("Update complete. The system\nwill now reboot.");
 				nsRebootSystemClean();
 			}
+			else
+				shoulddisableupdater = true; //Disable it for the rest of this run
 		}
 		if (issaltysdupdateavailable() && !shoulddisableupdater)
 		{
@@ -579,6 +581,8 @@ int main(int argc, char **argv) {
 				saltysdupdaterworker.displayprogress();
 				error("SaltySD update complete.");
 			}
+			else
+				shoulddisableupdater = true; //Disable it for the rest of this run
 		}
 
 		hidScanInput();
