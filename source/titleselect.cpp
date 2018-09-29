@@ -112,9 +112,10 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 	draw.drawframebuffer(prevfb, 0, 0, false, 0, -240, fbinterpfactor);
 	draw.settextcolor(RGBA8(165, 165, 165, 255));
 	string versiontext = getversion();
-	draw.drawtext(versiontext.c_str(), 320 - 18 - draw.gettextmaxwidth(versiontext.c_str(), .4, .5), 0, .45, .45);
+	draw.drawtext(versiontext.c_str(), 320 - 18 - draw.gettextmaxwidth(versiontext.c_str(), .4, .5), 1, .45, .45);
 	draw.frameend();
 }
+
 
 void titleselect()
 {
