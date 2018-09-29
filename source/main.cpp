@@ -9,6 +9,7 @@
 #include <cmath>
 #include <errno.h>
 #include <algorithm>
+#include <cctype>
 
 #include <3ds.h>
 
@@ -94,6 +95,23 @@ bool shoulddisableupdater = config.read("DisableUpdater", true);
 string slotname = "";
 
 float minusy = 0;
+
+string getversion()
+{
+	//After each digit, insert a period.
+	string version = to_string(config.read("ModMoonVersion", 0));
+	//Don't count the last digit.
+	for (unsigned int i = 0; i < version.size() - 1; i++)
+	{
+		char c = version.at(i);
+		if (isdigit(c))
+		{
+			version.insert(i + 1, ".");
+		}
+	}
+	version.insert(0, "Version: ");
+	return version;
+}
 
 string tid2str(u64 in)
 {
@@ -417,7 +435,6 @@ void drawtopscreen()
 
 	//Draw the title selection text
 	draw.settextcolor(RGBA8(165, 165, 165, 255));
-	//Not implemented...
 	draw.drawtext(": Help", 5, 240 - 40, 0.55, 0.55);
 	draw.drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
 	//Draw the current title

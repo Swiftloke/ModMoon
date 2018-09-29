@@ -90,3 +90,4 @@ bool issaltysdtitle(u64 optionaltitleid = 0);
 string saltysdtidtoregion(u64 optionaltitleid = 0);
 void drawtopscreen();
 bool secretcodeadvance(u32 kDown);
+string getversion();

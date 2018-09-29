@@ -112,12 +112,16 @@ Config::Config(string path, string filename)
 	delete[] buf;
 	in.close();
 	}
+	if(this->read("ModMoonVersion", 0) < MODMOON_VERSION)
+		this->write("ModMoonVersion", MODMOON_VERSION);
 	//if(read("ConfigFileVersion", 0) < CONFIG_FILE_VERSION) updateconfig();
 }
 
 string Config::read(string configsetting)
 {
 	int pos = configfile.find(configsetting, 0);
+	if(pos == string::npos)
+		return "";
 	pos += configsetting.size() + 1; //Now pos is after the '{' of the config setting
 	int posb = configfile.find('}', pos);
 	return configfile.substr(pos, posb-pos);
