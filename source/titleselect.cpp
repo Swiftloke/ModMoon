@@ -95,8 +95,9 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 				/C3D_TexEnvColor(tev, RGBA8(0, 0, 255, highlighteralpha));
 			}*/
 			//If the highlighter blink is active, we need to give a full alpha, seeing as it's "blinking"
-			sdraw::drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, \
-				highlighterblink ? 255 : highlighteralpha, x - 9, y - 9, highlighterinterpfactor);
+			sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(titleselecthighlighter.highlightercolor, highlighterblink ? 255 : highlighteralpha));
+			sdraw::drawtexture(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, \
+				x - 9, y - 9, highlighterinterpfactor);
 			//Now we need to reset stage 1
 			if (highlighterblink)
 			{
@@ -110,7 +111,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 	}
 	sdraw::drawtexture(titleselectionboxes, 26, 21);
 	sdraw::drawframebuffer(prevfb, 0, 0, false, 0, -240, fbinterpfactor);
-	sdraw::settextcolor(RGBA8(165, 165, 165, 255));
+	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));
 	string versiontext = getversion();
 	sdraw::drawtext(versiontext.c_str(), 320 - 18 - sdraw::gettextmaxwidth(versiontext.c_str(), .4, .5), 1, .45, .45);
 	sdraw::frameend();

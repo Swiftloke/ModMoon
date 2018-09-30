@@ -28,10 +28,13 @@ better for your own projects.
 #include <vector>
 #include <string>
 #include <utility>
+
+//#include "fragment.hpp" //See below
 using namespace std;
 
 #define CENTERED 1920 //A random number that no one will ever use realistically
 #define RGBA8(r, g, b, a) ((((r)&0xFF)<<0) | (((g)&0xFF)<<8) | (((b)&0xFF)<<16) | (((a)&0xFF)<<24))
+#define HIGHLIGHTERCOLORANDALPHA(color, alpha) ((color & 0xFFFFFF) | ((alpha & 0xFF) << 24))
 
 #define FRAMEBUFFER_TRANSFER_FLAGS GX_TRANSFER_RAW_COPY(1)
 
@@ -82,6 +85,9 @@ struct sdraw_stex
 	bool usesdarkmode;
 };
 
+//Unfortunately, I can't put this at the top, due to this file requiring that sdraw_stex is defined :/
+#include "fragment.hpp"
+
 struct sdraw_highlighter : public sdraw_stex
 {
 	u32 highlightercolor;
@@ -110,13 +116,10 @@ namespace sdraw
 	void drawrectangle(int x, int y, int width, int height, u32 color, bool shouldusedarkmode = false);
 	void drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3);
 	void frameend();
-	void settextcolor(u32 color);
 	float gettextheight(const char* text, float sizeY);
 	vector<float> gettextwidths(const char* text, float sizeX, float sizeY);
 	float gettextmaxwidth(const char* text, float sizeX, float sizeY);
 	
-	void drawblendedtexture(C3D_Tex* texture1, C3D_Tex* texture2, int x, int y, int blendfactor);
-	void drawhighlighter(sdraw_highlighter info, int x, int y, int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void usebasicshader();
 	void useeventualshader();

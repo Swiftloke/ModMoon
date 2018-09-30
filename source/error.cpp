@@ -38,7 +38,8 @@ void drawerrorbox(string text, int alphapos, float expandpos)
 	sdraw::drawtexture(textboxokbutton, 112, 163);
 	//I did it this way before I wrote the stencil test highlighter, and besides which that wouldn't work because it uses
 	//The eventual shader itself so the popup wouldn't show properly for this
-	sdraw::drawhighlighter(textboxokbuttonhighlight, 111, 162, alphapos);
+	sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(textboxokbuttonhighlight.highlightercolor, alphapos));
+	sdraw::drawtexture(textboxokbuttonhighlight, 111, 162);
 	sdraw::frameend();
 }
 
@@ -57,12 +58,13 @@ void drawerrorfade(string text, int alphapos, float fadepos)
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::expand_expandloc, expandpos, 0, 0, 0);
 	sdraw::drawtexture(textbox, 10, 20);*/
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
-	sdraw::settextcolor(RGBA8(255, 255, 255, fade * 2));
+	sdraw::setfs("textColor", 0, RGBA8(255, 255, 255, fade * 2));
 	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
 	sdraw::drawtexture(textboxokbutton, 112, 163);
 	//I did it this way before I wrote the stencil test highlighter, and besides which that wouldn't work because it uses
 	//The eventual shader itself so the popup wouldn't show properly for this
-	sdraw::drawhighlighter(textboxokbuttonhighlight, 111, 162, alphapos);
+	sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(textboxokbuttonhighlight.highlightercolor, alphapos));
+	sdraw::drawtexture(textboxokbuttonhighlight, 111, 162);
 	sdraw::frameend();
 }
 

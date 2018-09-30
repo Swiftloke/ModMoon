@@ -164,6 +164,8 @@ int movemodsin()
 
 int startup()
 {
+	initmodmoontevkeys();
+
 	//Draw a blank frame to allow error calls to retrieve a valid framebuffer
 	sdraw::framestart();
 	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
@@ -434,12 +436,13 @@ void drawtopscreen()
 	animationplus += .75;
 
 	//Draw the title selection text
-	sdraw::settextcolor(RGBA8(165, 165, 165, 255));
+	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));
 	sdraw::drawtext(": Help", 5, 240 - 40, 0.55, 0.55);
 	sdraw::drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
 	//Draw the current title
 	if (getSMDHdata()[currenttidpos].titl != 0) //This may be a cartridge that's not inserted, if it is, don't draw it
 	{
+		sdraw::setfs("texture");
 		sdraw::drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
 	}
 	sdraw::drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
@@ -500,7 +503,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 		sdraw::drawtexturewithhighlight(selector, 0, 159, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else sdraw::drawtexture(selector, 0, 159);
-	sdraw::settextcolor(RGBA8(0, 0, 0, 255));
+	sdraw::setfs("textColor", 0, RGBA8(0, 0, 0, 255));
 	sdraw::drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
 }
 

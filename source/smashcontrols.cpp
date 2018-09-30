@@ -49,7 +49,7 @@ void controlsdraw()
 	drawtopscreen();
 	sdraw::drawon(GFX_BOTTOM);
 	sdraw::drawtexture(backgroundbot, 0, 0);
-	sdraw::settextcolor(RGBA8(0, 0, 0, 255));
+	sdraw::setfs("textColor", 0, RGBA8(0, 0, 0, 255));
 	sdraw::drawtext(strout.str().c_str(), 0, 0, 0.6, 0.55);
 	sdraw::frameend();
 }

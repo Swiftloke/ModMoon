@@ -333,6 +333,7 @@ int sdraw::init()
 	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_ONE_MINUS_SRC_COLOR);
 	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
 	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);*/
+
 	return 0;
 }
 
@@ -355,29 +356,12 @@ void sdraw::drawtext(const char* text, float x, float y, float sizeX, float size
 	enabledarkmode(false);
 }
 
-void sdraw::settextcolor(u32 color)
-{
-	C3D_TexEnv* env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_RGB, GPU_CONSTANT);
-	C3D_TexEnvSrc(env, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
-	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(env, C3D_RGB, GPU_REPLACE);
-	C3D_TexEnvFunc(env, C3D_Alpha, GPU_MODULATE);
-	C3D_TexEnvColor(env, color);
-}
-
 void sdraw::drawrectangle(int x, int y, int width, int height, u32 color, bool shouldusedarkmode)
 {
 	if(shouldusedarkmode)
 		enabledarkmode(true);
 	//Override the color entirely
-	C3D_TexEnv *env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_CONSTANT, GPU_CONSTANT);
-	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
-	C3D_TexEnvColor(env, color);
+	setfs("constColor", 0, color);
 
 	sDrawi_addTextVertex(x, y + height, 0, 0); //What texture
 	sDrawi_addTextVertex(x + width, y + height, 0, 0);
@@ -622,11 +606,6 @@ void sdraw::drawtexture(C3D_Tex* tex, int x, float y)
 {
 	C3D_TexBind(0, tex);
 	
-	C3D_TexEnv	*env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
-	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (tex->width / 2); y = (240 / 2) - (tex->height / 2);}
 	
     sDrawi_addTextVertex(x, y + tex->height, 0.0f, 1); //left bottom
@@ -636,39 +615,6 @@ void sdraw::drawtexture(C3D_Tex* tex, int x, float y)
 	
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
 }
-
-//Citro3D port of this https://www.khronos.org/opengl/wiki/Texture_Combiners#Example_:_Blend_tex0_and_tex1_based_on_a_blending_factor_you_supply
-// *Lack of fragment shader intensifies*
-void sdraw::drawblendedtexture(C3D_Tex* texa, C3D_Tex* texb, int x, int y, int blendfactor)
-{
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexBind(0, texa);
-	C3D_TexBind(1, texb);
-	//Configure the fragment shader to blend texture0 with texture1 based on the alpha of the constant
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
-	//One minus alpha to get it to be 0 -> all texture 0, 256 -> all texture1, whereas it would be the opposite otherwise
-	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
-	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_ONE_MINUS_SRC_ALPHA);
-	C3D_TexEnvColor(tev, RGBA8(0,0,0,blendfactor));
-	C3D_TexEnvFunc(tev, C3D_Both, GPU_INTERPOLATE);
-	
-    sDrawi_addTextVertex(x, y + texa->height, 0.0f, 1); //left bottom
-    sDrawi_addTextVertex(x + texa->width, y + texa->height, 1, 1); //right bottom
-	sDrawi_addTextVertex(x, y, 0.0f, 0.0f); //left top
-	sDrawi_addTextVertex(x + texa->width, y, 1, 0.0f); //right top
-	
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
-}
-
-/* finc's implementation
-C3D_TexEnvSrc(env, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
-C3D_TexEnvOp(env, C3D_RGB, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
-C3D_TexEnvSrc(env, C3D_Alpha, GPU_TEXTURE0, GPU_TEXTURE1, 0);
-C3D_TexEnvFunc(env, C3D_RGB, GPU_INTERPOLATE);
-C3D_TexEnvFunc(env, C3D_Alpha, GPU_MODULATE);
-C3D_TexEnvColor(tev, RGBA8(0,0,0,128));
-*/
 
 
 //Helper functions for switching shaders and providing uniforms automagically
@@ -713,13 +659,12 @@ void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float int
 {
 	if(info.usesdarkmode)
 		enabledarkmode(true);
-	C3D_TexBind(0, info.spritesheet);
-	
-	C3D_TexEnv	*env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
-	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
+	bindtex(0, info);
+	C3D_TexEnv* tev = C3D_GetTexEnv(0);
+	C3D_TexEnvSrc(tev, C3D_Both, GPU_TEXTURE0);
+	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
+	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
+	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);
 	
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2);}
 	
@@ -751,13 +696,7 @@ void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float int
 //Draw a framebuffer, it's tilted sideways and stuffed into a larger texture and flipped so we need some extra maths for this
 void sdraw::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1, int y1, float interpfactor)
 {
-	C3D_TexBind(0, &tex);
-	
-	C3D_TexEnv	*env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
-	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
+	bindtex(0, &tex);
 	const float scrwidth = 240, scrheight = istopfb ? 400 : 320;
 	const float texwidth = 256, texheight = 512;
 	
@@ -838,14 +777,7 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_expandloc, 1.10, 0, 0, 0);
 	}
 	C3D_StencilTest(true, GPU_NOTEQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it hasn't been set
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
-	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
-	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
-	C3D_TexEnvColor(tev, (color & 0xFFFFFF) | ((alpha & 0xFF) << 24));
+	setfs("highlighter", 0, (color & 0xFFFFFF) | ((alpha & 0xFF) << 24));
 	
 	//No need to add these vertices again
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, x1 != -1 ? sdrawTwoCdsVtxArrayPos - 4 : sdrawVtxArrayPos - 4, 4);
@@ -861,12 +793,7 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 //Also width/height is constant- 48x48
 void sdraw::drawSMDHicon(C3D_Tex icon, int x, int y)
 {
-	C3D_TexBind(0, &icon);
-	C3D_TexEnv	*env = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(env, C3D_Both, GPU_TEXTURE0);
-	C3D_TexEnvOpRgb(env, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(env, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(env, C3D_Both, GPU_REPLACE);
+	bindtex(0, &icon);
 	
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (48 / 2); y = (240 / 2) - (48 / 2);}
 	
@@ -904,49 +831,6 @@ void sdraw::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interp
 		sDrawi_addTextVertex(x + info.width, y, info.topright[0], info.topright[1]); //right top
 		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
 	}
-}
-
-
-//TODO: have all these different functions for individual texenv stuff configure their texenvs then call a drawquad() function.
-//It's really getting out of hand and not making sense to repeat all this code.
-void sdraw::drawhighlighter(sdraw_highlighter info, int x, int y, int alpha, int x1, int y1, float interpfactor)
-{
-	if (info.usesdarkmode)
-		enabledarkmode(true);
-	C3D_TexBind(0, info.spritesheet);
-	
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
-	C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
-	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
-	C3D_TexEnvColor(tev, (info.highlightercolor & 0xFFFFFF) | ((alpha & 0xFF) << 24));
-	
-	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2);}
-	
-	//If we have a second coordinate we need to activate the interpolation shader and add coordinates to its buffer
-	if (x1 != -1)
-	{
-		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
-		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, info.botleft[0], info.botleft[1]);
-		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, info.botright[0], info.botright[1]);
-		sDrawi_addTwoCoordsVertex(x, y, x1, y1, info.topleft[0], info.topleft[1]);
-		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, info.topright[0], info.topright[1]);
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawTwoCdsVtxArrayPos - 4, 4);
-		usebasicshader();
-	}
-	else
-	{
-		sDrawi_addTextVertex(x, y + info.height, info.botleft[0], info.botleft[1]); //left bottom
-		sDrawi_addTextVertex(x + info.width, y + info.height, info.botright[0], info.botright[1]); //right bottom
-		sDrawi_addTextVertex(x, y, info.topleft[0], info.topleft[1]); //left top
-		sDrawi_addTextVertex(x + info.width, y, info.topright[0], info.topright[1]); //right top
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
-	}
-	if (info.usesdarkmode)
-		enabledarkmode(false);
 }
 
 void sdraw::enabledarkmode(bool isenabled)

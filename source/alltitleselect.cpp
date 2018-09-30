@@ -86,7 +86,8 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			}
 			if(iter->isactive)
 				C3D_SetTexEnv(1, &coloroverride);
-			sdraw::drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, highlighteralpha, x - 9, y - 9, highlighterinterpfactor);
+			sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(titleselecthighlighter.highlightercolor, highlighteralpha));
+			sdraw::drawtexture(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, x - 9, y - 9, highlighterinterpfactor);
 			if(iter->isactive)
 				C3D_TexEnvInit(C3D_GetTexEnv(1));
 		}
