@@ -26,6 +26,7 @@ void drawerrorbox(string text, int alphapos, float expandpos)
 {
 	sdraw::framestart();
 	sdraw::usebasicshader();
+	sdraw::setfs("texture");
 	sdraw::drawframebuffer(prevtop, 0, 0, true);
 	sdraw::drawon(GFX_BOTTOM);
 	sdraw::drawframebuffer(prevbot, 0, 0, false);
@@ -139,6 +140,7 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	texcoordplus += 0.005;
 	sdraw::framestart();
 	sdraw::usebasicshader();
+	sdraw::setfs("texture");
 	if(topfb.height)
 		sdraw::drawframebuffer(topfb, 0, 0, true);
 	else

@@ -104,17 +104,8 @@ unsigned int nextPow2(unsigned int v)
     return (v >= TEX_MIN_SIZE ? v : TEX_MIN_SIZE);
 }
 
-//This code is extremely wasteful given the existence of Tex3DS.
-//However, it is essential to the proper functioning of sDraw.
-//This code was taken from the 3DS example at the very beginning
-//of its existence, in July 2017. At this time, the example
-//flipped the texcoords while doing C3D_DisplayTransfer, and all of sDraw's
-//texcoord behavior since has relied on this.
-//When attempting to convert to Tex3DS, I ran into this problem, and found
-//that it couldn't be solved, because DisplayTransfer crashed or produced garbage
-//on Tex3DS textures for some reason... So, this code will remain, for now.
-//(See below. I do have a loadTexture function ready to go.)
-C3D_Tex* loadpng(string filepath)
+//Unused. Here for historical purposes.
+/*C3D_Tex* loadpng(string filepath)
 {
 
 	unsigned char* imagebuf;
@@ -154,12 +145,12 @@ C3D_Tex* loadpng(string filepath)
 	// Convert image to 3DS tiled texture format
 	C3D_SyncDisplayTransfer((u32*)gpusrc, GX_BUFFER_DIM(width, height), (u32*)tex->data, GX_BUFFER_DIM(width, height), TEXTURE_TRANSFER_FLAGS);
 
-	/*if (filepath == "romfs:/rainbow.png")
-	{
-		ofstream out(("rainbow.bin"), ios::binary | ios::trunc);
-		out.write((char*)tex->data, width*height * 4);
-		out.close();
-	}*/
+	//if (filepath == "romfs:/rainbow.png") //Very old hack.
+	//{
+	//	ofstream out(("rainbow.bin"), ios::binary | ios::trunc);
+	//	out.write((char*)tex->data, width*height * 4);
+	//	out.close();
+	//}
 
 	C3D_TexSetFilter(tex, GPU_LINEAR, GPU_LINEAR);
 	C3D_TexSetWrap(tex, GPU_REPEAT, GPU_REPEAT);
@@ -171,14 +162,14 @@ C3D_Tex* loadpng(string filepath)
 	tex->width = width; tex->height = height; 
 
 	return tex;
-}
+}*/
 
 C3D_Tex* loadbin(string filepath, int width, int height)
 {
 	C3D_Tex* tex = new C3D_Tex;
 	C3D_TexInit(tex, width, height, GPU_RGBA8);
 	//Read the file
-	ifstream in(filepath.c_str(), ifstream::binary);
+	ifstream in((const char*)filepath.c_str(), ifstream::binary);
 	if (!in)
 	{
 		in.close();
@@ -660,11 +651,6 @@ void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float int
 	if(info.usesdarkmode)
 		enabledarkmode(true);
 	bindtex(0, info);
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_Both, GPU_TEXTURE0);
-	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);
 	
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2);}
 	
@@ -727,8 +713,6 @@ void sdraw::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1, int
 	
 }
 
-//The behavior of this is defined externally, in accordance with sDraw's future;
-//this simply passes through the texcoords.
 //All textures should be the same width/height.
 void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3)
 {
@@ -777,7 +761,16 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_expandloc, 1.10, 0, 0, 0);
 	}
 	C3D_StencilTest(true, GPU_NOTEQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it hasn't been set
-	setfs("highlighter", 0, (color & 0xFFFFFF) | ((alpha & 0xFF) << 24));
+
+	//Since we're switching shader state within the core, we need to preserve the user state.
+	//This is ONLY done within this function. And I'm thinking that this should be removed in favor
+	//of something that does this stuff externally.
+	//At the time of writing, sDraw's revision has no idea what to do about stencil testing.
+	C3D_TexEnv states[5];
+	for (int i = 0; i < 4; i++)
+		states[i] = *C3D_GetTexEnv(i);
+
+	setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(color, alpha));
 	
 	//No need to add these vertices again
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, x1 != -1 ? sdrawTwoCdsVtxArrayPos - 4 : sdrawVtxArrayPos - 4, 4);
@@ -787,6 +780,9 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0);
 	if (info.usesdarkmode)
 		enabledarkmode(false);
+
+	for(int i = 0; i < 4; i++)
+		C3D_SetTexEnv(i, &(states[i]));
 }
 
 //Draw with 0.75 texcoords as it's a 48x48 icon in a 64x64 texture (Power of two limits...)

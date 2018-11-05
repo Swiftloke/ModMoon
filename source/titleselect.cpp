@@ -27,7 +27,10 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 	y -= 70 * scrollsubtractrows;
 
 	if (scrollsubtractrows == 0)
+	{
+		sdraw::setfs("texture");
 		sdraw::drawtexture(titleselectioncartridge, 22, 17);
+	}
 
 	for (vector<smdhdata>::iterator iter = icons.begin(); iter < icons.end(); iter++)
 	{
@@ -64,36 +67,8 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			}
 			if (highlighterblink)
 			{
-				//Configure TexEnv stage 1 to "blink" the texture by making it all blue
-				C3D_TexEnv* tev = C3D_GetTexEnv(1);
-				C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
-				C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS);
-				C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-				C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
-				C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
-				C3D_TexEnvFunc(tev, C3D_Alpha, GPU_REPLACE);
-				C3D_TexEnvColor(tev, RGBA8(0, 0, 255, 0));
+				sdraw::setfs("titleSelectBlink", 1);
 			}
-			//Apply the highlighter fade. There's an sdraw function for this but it shouldn't really exist,
-			//configuring tev1 is the way it should be done.
-			/*else 
-			{
-				C3D_TexEnv* tev = C3D_GetTexEnv(1);
-				C3D_TexEnvSrc(tev, C3D_RGB, GPU_PREVIOUS);
-				C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, GPU_CONSTANT);
-				C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-				C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
-				C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
-				C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
-				C3D_TexEnvColor(tev, RGBA8(0, 0, 0, highlighteralpha));
-				//C3D_TexEnv* tev = C3D_GetTexEnv(1);
-				//C3D_TexEnvSrc(tev, C3D_RGB, GPU_PREVIOUS, GPU_CONSTANT, GPU_CONSTANT);
-				//C3D_TexEnvOp(tev, C3D_RGB, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
-				//C3D_TexEnvSrc(tev, C3D_Alpha, GPU_PREVIOUS, 0, 0);
-				//C3D_TexEnvFunc(tev, C3D_RGB, GPU_INTERPOLATE);
-				//C3D_TexEnvFunc(tev, C3D_Alpha, GPU_REPLACE);
-				/C3D_TexEnvColor(tev, RGBA8(0, 0, 255, highlighteralpha));
-			}*/
 			//If the highlighter blink is active, we need to give a full alpha, seeing as it's "blinking"
 			sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(titleselecthighlighter.highlightercolor, highlighterblink ? 255 : highlighteralpha));
 			sdraw::drawtexture(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, \
@@ -101,14 +76,14 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			//Now we need to reset stage 1
 			if (highlighterblink)
 			{
-				C3D_TexEnv* tev = C3D_GetTexEnv(1);
-				C3D_TexEnvInit(tev);
+				sdraw::setfs("blank", 1);
 			}
 		}
 		i++;
 		if(iter->titl != 0) //Not a null cartridge
 			sdraw::drawSMDHicon((*iter).icon, x, y);
 	}
+	sdraw::setfs("texture", 0);
 	sdraw::drawtexture(titleselectionboxes, 26, 21);
 	sdraw::drawframebuffer(prevfb, 0, 0, false, 0, -240, fbinterpfactor);
 	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));

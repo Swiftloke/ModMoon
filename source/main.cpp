@@ -395,6 +395,7 @@ void updateslots(bool plus)
 //All the things happen on the bottom screen, very rarely do we deviate from this pattern on the top screen
 void drawtopscreen()
 {
+	sdraw::setfs("texture");
 	sdraw::drawtexture(backgroundtop, 0, 0);
 	int bannerx = 400 / 2 - banner.width / 2;
 	float bannery = 240 / 2 - banner.height / 2;
@@ -411,18 +412,8 @@ void drawtopscreen()
 	//moon is actually animated with these colors.
 	static float animationplus = 0;
 
-	//Basically sDraw's future in a nutshell- sDraw_fs
-	//A struct containing all the information needed for
-	//fragment shading- texture pointers and TexEnv struct
-	//You bind it, then draw the texture you need.
-	//Not yet implemented. But the idea is right here.
-	//As it is several other places in the program.
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE1);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0);
-	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);
+
+	sdraw::setfs("topScreenMoon", 0);
 	
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 256, false);
 	sdraw::drawmultipletextures(bannerx + moonx, bannery + moony, bannermoonalpha, temp, temp);
@@ -439,10 +430,11 @@ void drawtopscreen()
 	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));
 	sdraw::drawtext(": Help", 5, 240 - 40, 0.55, 0.55);
 	sdraw::drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
+
+	sdraw::setfs("texture");
 	//Draw the current title
 	if (getSMDHdata()[currenttidpos].titl != 0) //This may be a cartridge that's not inserted, if it is, don't draw it
 	{
-		sdraw::setfs("texture");
 		sdraw::drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
 	}
 	sdraw::drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
@@ -450,6 +442,7 @@ void drawtopscreen()
 
 void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapos, bool highlighterblink)
 {
+	sdraw::setfs("texture");
 	sdraw::drawtexture(backgroundbot, 0, 0);
 
 	//Draw the rainbow (or not) moon first.
@@ -460,13 +453,6 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	//glow effect on the rainbow which was stolen from it, while ALSO
 	//using that same moon as an alpha map. Pretty nice!
 	static float animationplus = 0;
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_TEXTURE1);
-	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
-	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(tev, C3D_RGB, GPU_INTERPOLATE);
-	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
 	//It's a bit jarring to enable mods and immediately
 	//have the rainbow pop up. This code smoothes it out a bit.
 	static int rainbowinterp = 0;
@@ -480,7 +466,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 		rainbowinterp -= 3;
 		if(rainbowinterp < 0) rainbowinterp = 0;
 	}
-	C3D_TexEnvColor(tev, RGBA8(0, 0, 0, rainbowinterp));
+	sdraw::setfs("launchButtonMoon", 0, RGBA8(0, 0, 0, rainbowinterp));
 
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 40, false);
 	sdraw::drawmultipletextures(0, 13, leftbuttonmoon, temp, temp);
@@ -489,6 +475,8 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	if (animationplus >= 29952)
 		animationplus = 0;
 	animationplus += 0.5;
+
+	sdraw::setfs("texture");
 
 	if (dpadpos == 0)
 		sdraw::drawtexturewithhighlight(leftbutton, 0, 13, \

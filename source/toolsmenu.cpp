@@ -69,7 +69,7 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 		sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(toolsmenuhighlighter.highlightercolor, highlighteralpha));
 		sdraw::drawtexture(toolsmenuhighlighter, initialxvals[position] - 13, \
 			toolsyvals[position] - 9 + highlighteradds[position], \
-			8 - 13, toolsyvals[position] - 9 + highlighteradds[position], interpfactor);
+			18 - 15, toolsyvals[position] - 9 + highlighteradds[position], interpfactor);
 		sdraw::setfs("texture");
 		sdraw::drawtexture(activetitlesbutton,  initialxvals[0], toolsyvals[0], 18, toolsyvals[0], interpfactor);
 		sdraw::drawtexture(smashcontrolsbutton, initialxvals[1], toolsyvals[1], 18, toolsyvals[1], interpfactor);
