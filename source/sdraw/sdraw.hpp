@@ -87,6 +87,7 @@ struct sdraw_stex
 
 //Unfortunately, I can't put this at the top, due to this file requiring that sdraw_stex is defined :/
 #include "fragment.hpp"
+#include "shader.hpp"
 
 struct sdraw_highlighter : public sdraw_stex
 {
@@ -138,11 +139,16 @@ namespace sdraw
 	extern bool darkmodeshouldactivate;
 	void enabledarkmode(bool enabled);
 	
+	//Called by vertex shaders. Updates internal structures for shaders
+	//(what shader to apply projection matrices to) + sets the projection matrix automatically.
+	void updateshaderstate(ShaderBase* shader);
+	
 	extern int expand_baseloc, expand_expandloc;
 	extern int twocds_interploc, twocds_baseloc, twocds_baseinterploc;
 	extern int sdrawTwoCdsVtxArrayPos;
 	extern int sdrawVtxArrayPos;
 	extern int sdrawThreeTexturesVtxArrayPos;
+
 
 	extern C3D_Tex lastfbtop;
 	extern C3D_Tex lastfbbot;

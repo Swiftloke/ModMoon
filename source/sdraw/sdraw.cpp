@@ -77,6 +77,8 @@ using namespace std;
 	C3D_Tex sdraw::lastfbbot;
 	gfxScreen_t sdraw::currentoutput = GFX_TOP;
 
+	sdraw::ShaderBase* currentshader;
+
 
 	enum SDRAW_SHADERINUSE
 	{
@@ -333,10 +335,11 @@ void sdraw::drawon(gfxScreen_t output)
 	currentoutput = output;
 	C3D_FrameDrawOn(currentoutput == GFX_TOP ? top : bottom);
 	// Update the uniforms
-	int loc = (shaderinuse == BASICSHADER) ?\
+	currentshader->setUniformMtx4x4("projection", output == GFX_TOP ? &projectionTop : &projectionBot);
+	/*int loc = (shaderinuse == BASICSHADER) ?\
 		uLoc_projection : (shaderinuse == EVENTUALSHADER) ? expand_projectionloc : \
 		(shaderinuse == TWOCOORDSSHADER) ? twocds_projectionloc : threetextures_projectionloc;
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, loc, output == GFX_TOP ? &projectionTop : &projectionBot);
+	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, loc, output == GFX_TOP ? &projectionTop : &projectionBot);*/
 }
 
 void sdraw::drawtext(const char* text, float x, float y, float sizeX, float sizeY)
@@ -359,7 +362,7 @@ void sdraw::drawrectangle(int x, int y, int width, int height, u32 color, bool s
 	sDrawi_addTextVertex(x, y , 0, 0);
 	sDrawi_addTextVertex(x + width, y, 0, 0);
 	
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
 	if(shouldusedarkmode)
 		enabledarkmode(false);
 }
@@ -367,11 +370,21 @@ void sdraw::drawrectangle(int x, int y, int width, int height, u32 color, bool s
 void sdraw::sDrawi_addTextVertex(float vx, float vy, float tx, float ty)
 {
 	sdraw_Vertex* vtx = &sdrawVtxArray[sdrawVtxArrayPos++];
-	vtx->position[0] = vx;
+	/*vtx->position[0] = vx;
 	vtx->position[1] = vy;
 	vtx->position[2] = 0.5f;
 	vtx->texcoord[0] = tx;
-	vtx->texcoord[1] = ty;
+	vtx->texcoord[1] = ty;*/
+	sdraw::internal_vertex vert = { vx, vy, 0.5, 0, 0, 0.5, tx, ty, 0, 0, 0, 0 };
+	currentshader->appendVertex(vert);
+	/*Shader<MM::vertex_basic>* shader = dynamic_cast<Shader<MM::vertex_basic>*>(currentshader);
+	if (shader)
+	{
+		MM::vertex_basic vtx = { vx, vy, 0.5, tx, ty };
+		shader->appendVertex(vtx);
+	}
+	else
+		svcBreak(USERBREAK_PANIC);*/
 }
 
 void sdraw::sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty)
@@ -608,14 +621,20 @@ void sdraw::drawtexture(C3D_Tex* tex, int x, float y)
 }
 
 
-//Helper functions for switching shaders and providing uniforms automagically
+void sdraw::updateshaderstate(ShaderBase* shader)
+{
+	currentshader = shader;
+	drawon(currentoutput); //Set the projection matrix
+}
+
 void sdraw::usebasicshader()
 {
-	C3D_SetAttrInfo(&basicinfo);
-	C3D_SetBufInfo(&basicbuf);
+	//C3D_SetAttrInfo(&basicinfo);
 	shaderinuse = BASICSHADER;
-	C3D_BindProgram(&basicprogram);
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
+	//C3D_BindProgram(&basicprogram);
+	MM::shader_basic.bind();
+	//C3D_SetBufInfo(&basicbuf);
+	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
 void sdraw::useeventualshader()
@@ -736,6 +755,10 @@ void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info
 		enabledarkmode(false);
 }
 
+/*
+CURRENTLY AWFULLY HACKED INTO FUNCTIONALITY DUE TO HALF-IMPLEMENTATION OF THE NEW SHADER SYSTEM.
+SHOULD BE RESOLVED SOON.
+*/
 void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1, int y1, float interpfactor)
 {
 	if (info.usesdarkmode)
@@ -743,23 +766,23 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 	//Enable writing to the stencil buffer and draw the texture
 	C3D_StencilTest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
 	C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
-	drawtexture(info, x, y, x1, y1, interpfactor);
+	drawtexture(info, x, y, x, y, interpfactor);
 	
 	float middlex = x + info.width/2;
 	float middley = y + info.height/2;
-	if (x1 != -1)
-	{
+	//if (x1 != -1)
+	//{
 		usetwocoordsshader();
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1.10, 0, 0, 0);
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseloc, middlex, middley, 0, 0);
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
-	}
+	/*}
 	else
 	{
 		useeventualshader(); //We can also use this to extrapolate beyond the eventual value, allowing us to make a highlighter
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_baseloc, middlex, middley, 0, 0);
 		C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_expandloc, 1.10, 0, 0, 0);
-	}
+	}*/
 	C3D_StencilTest(true, GPU_NOTEQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it hasn't been set
 
 	//Since we're switching shader state within the core, we need to preserve the user state.
@@ -773,8 +796,8 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 	setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(color, alpha));
 	
 	//No need to add these vertices again
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, x1 != -1 ? sdrawTwoCdsVtxArrayPos - 4 : sdrawVtxArrayPos - 4, 4);
-	
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, /*x1 != -1 ?*/ sdrawTwoCdsVtxArrayPos - 4 /*: sdrawVtxArrayPos - 4*/, 4);
+
 	//TODO: Ensure previous shader state is kept instead of switching back to the basic shader
 	usebasicshader();
 	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0);
@@ -842,6 +865,7 @@ void sdraw::framestart()
 {
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	sdrawVtxArrayPos = 0; //Reset the vertex arrays
+	MM::shader_basic.resetArrayPos();
 	sdrawTwoCdsVtxArrayPos = 0;
 	sdrawThreeTexturesVtxArrayPos = 0;
 	//Of all things, this is what breaks the framebuffer copy.

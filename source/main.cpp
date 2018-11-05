@@ -165,6 +165,8 @@ int movemodsin()
 int startup()
 {
 	initmodmoontevkeys();
+	sdraw::MM::initmodmoonshaders();
+	sdraw::MM::shader_basic.bind();
 
 	//Draw a blank frame to allow error calls to retrieve a valid framebuffer
 	sdraw::framestart();
