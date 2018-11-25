@@ -357,64 +357,20 @@ void sdraw::drawrectangle(int x, int y, int width, int height, u32 color, bool s
 	//Override the color entirely
 	setfs("constColor", 0, color);
 
-	sDrawi_addTextVertex(x, y + height, 0, 0); //What texture
-	sDrawi_addTextVertex(x + width, y + height, 0, 0);
-	sDrawi_addTextVertex(x, y , 0, 0);
-	sDrawi_addTextVertex(x + width, y, 0, 0);
+	appendVertex(x, y + height, 0, 0); //What texture
+	appendVertex(x + width, y + height, 0, 0);
+	appendVertex(x, y , 0, 0);
+	appendVertex(x + width, y, 0, 0);
 	
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
 	if(shouldusedarkmode)
 		enabledarkmode(false);
 }
 
-void sdraw::sDrawi_addTextVertex(float vx, float vy, float tx, float ty)
+void sdraw::appendVertex(float vx, float vy, float tx, float ty, float vx1, float vy1, float tx2, float ty2, float tx3, float ty3)
 {
-	sdraw_Vertex* vtx = &sdrawVtxArray[sdrawVtxArrayPos++];
-	/*vtx->position[0] = vx;
-	vtx->position[1] = vy;
-	vtx->position[2] = 0.5f;
-	vtx->texcoord[0] = tx;
-	vtx->texcoord[1] = ty;*/
-	sdraw::internal_vertex vert = { vx, vy, 0.5, 0, 0, 0.5, tx, ty, 0, 0, 0, 0 };
+	sdraw::internal_vertex vert = { vx, vy, 0.5, vx1, vx1, 0.5, tx, ty, tx2, ty2, tx3, ty3 };
 	currentshader->appendVertex(vert);
-	/*Shader<MM::vertex_basic>* shader = dynamic_cast<Shader<MM::vertex_basic>*>(currentshader);
-	if (shader)
-	{
-		MM::vertex_basic vtx = { vx, vy, 0.5, tx, ty };
-		shader->appendVertex(vtx);
-	}
-	else
-		svcBreak(USERBREAK_PANIC);*/
-}
-
-void sdraw::sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty)
-{
-	sdraw_TwoCdsVertex* vtx = &twocdsVtxArray[sdrawTwoCdsVtxArrayPos++];
-	vtx->pos1[0] = vx1;
-	vtx->pos1[1] = vy1;
-	vtx->pos1[2] = 0.5f;
-	vtx->pos2[0] = vx2;
-	vtx->pos2[1] = vy2;
-	vtx->pos2[2] = 0.5f;
-	vtx->texcoord[0] = tx;
-	vtx->texcoord[1] = ty;
-}
-
-void sdraw::sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float tc0y, float tc1x, float tc1y, float tc2x, float tc2y)
-{
-	sdraw_ThreeTexVertex* vtx = &threetexturesVtxArray[sdrawThreeTexturesVtxArrayPos++];
-	vtx->position[0] = vx;
-	vtx->position[1] = vy;
-	vtx->position[2] = 0.5f;
-
-	vtx->tc0[0] = tc0x;
-	vtx->tc0[1] = tc0y;
-
-	vtx->tc1[0] = tc1x;
-	vtx->tc1[1] = tc1y;
-
-	vtx->tc2[0] = tc2x;
-	vtx->tc2[1] = tc2y;
 }
 
 void sdraw::sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text)
@@ -452,15 +408,15 @@ void sdraw::sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool
 				C3D_TexBind(0, &glyphSheets[lastSheet]);
 			}
 
-			int arrayIndex = sdrawVtxArrayPos;
+			int arrayIndex = currentshader->getArrayPos();
 			if ((arrayIndex+4) >= TEXT_VTX_ARRAY_COUNT)
 				break; // We can't render more characters
 
 			// Add the vertices to the array
-			sDrawi_addTextVertex(x+data.vtxcoord.left,  y+data.vtxcoord.bottom, data.texcoord.left,  data.texcoord.bottom);
-			sDrawi_addTextVertex(x+data.vtxcoord.right, y+data.vtxcoord.bottom, data.texcoord.right, data.texcoord.bottom);
-			sDrawi_addTextVertex(x+data.vtxcoord.left,  y+data.vtxcoord.top,    data.texcoord.left,  data.texcoord.top);
-			sDrawi_addTextVertex(x+data.vtxcoord.right, y+data.vtxcoord.top,    data.texcoord.right, data.texcoord.top);
+			appendVertex(x+data.vtxcoord.left,  y+data.vtxcoord.bottom, data.texcoord.left,  data.texcoord.bottom);
+			appendVertex(x+data.vtxcoord.right, y+data.vtxcoord.bottom, data.texcoord.right, data.texcoord.bottom);
+			appendVertex(x+data.vtxcoord.left,  y+data.vtxcoord.top,    data.texcoord.left,  data.texcoord.top);
+			appendVertex(x+data.vtxcoord.right, y+data.vtxcoord.top,    data.texcoord.right, data.texcoord.top);
 
 			// Draw the glyph
 			C3D_DrawArrays(GPU_TRIANGLE_STRIP, arrayIndex, 4);
@@ -567,15 +523,15 @@ void sdraw::drawcenteredtext(const char* text, float scaleX, float scaleY, float
 				C3D_TexBind(0, &glyphSheets[lastSheet]);
 			}
 
-			int arrayIndex = sdrawVtxArrayPos;
+			int arrayIndex = currentshader->getArrayPos();
 			if ((arrayIndex+4) >= TEXT_VTX_ARRAY_COUNT)
 				break; // We can't render more characters
 
 			// Add the vertices to the array
-			sDrawi_addTextVertex(x+data.vtxcoord.left,  y+data.vtxcoord.bottom, data.texcoord.left,  data.texcoord.bottom);
-			sDrawi_addTextVertex(x+data.vtxcoord.right, y+data.vtxcoord.bottom, data.texcoord.right, data.texcoord.bottom);
-			sDrawi_addTextVertex(x+data.vtxcoord.left,  y+data.vtxcoord.top,    data.texcoord.left,  data.texcoord.top);
-			sDrawi_addTextVertex(x+data.vtxcoord.right, y+data.vtxcoord.top,    data.texcoord.right, data.texcoord.top);
+			appendVertex(x+data.vtxcoord.left,  y+data.vtxcoord.bottom, data.texcoord.left,  data.texcoord.bottom);
+			appendVertex(x+data.vtxcoord.right, y+data.vtxcoord.bottom, data.texcoord.right, data.texcoord.bottom);
+			appendVertex(x+data.vtxcoord.left,  y+data.vtxcoord.top,    data.texcoord.left,  data.texcoord.top);
+			appendVertex(x+data.vtxcoord.right, y+data.vtxcoord.top,    data.texcoord.right, data.texcoord.top);
 
 			// Draw the glyph
 			C3D_DrawArrays(GPU_TRIANGLE_STRIP, arrayIndex, 4);
@@ -612,58 +568,21 @@ void sdraw::drawtexture(C3D_Tex* tex, int x, float y)
 	
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (tex->width / 2); y = (240 / 2) - (tex->height / 2);}
 	
-    sDrawi_addTextVertex(x, y + tex->height, 0.0f, 1); //left bottom
-    sDrawi_addTextVertex(x + tex->width, y + tex->height, 1, 1); //right bottom
-	sDrawi_addTextVertex(x, y, 0.0f, 0.0f); //left top
-	sDrawi_addTextVertex(x + tex->width, y, 1, 0.0f); //right top
+    appendVertex(x, y + tex->height, 0.0f, 1); //left bottom
+    appendVertex(x + tex->width, y + tex->height, 1, 1); //right bottom
+	appendVertex(x, y, 0.0f, 0.0f); //left top
+	appendVertex(x + tex->width, y, 1, 0.0f); //right top
 	
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() -4, 4);
 }
 
 
+//Called by shader implementations upon binding
 void sdraw::updateshaderstate(ShaderBase* shader)
 {
 	currentshader = shader;
 	drawon(currentoutput); //Set the projection matrix
 }
-
-void sdraw::usebasicshader()
-{
-	//C3D_SetAttrInfo(&basicinfo);
-	shaderinuse = BASICSHADER;
-	//C3D_BindProgram(&basicprogram);
-	MM::shader_basic.bind();
-	//C3D_SetBufInfo(&basicbuf);
-	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
-}
-
-void sdraw::useeventualshader()
-{
-	C3D_SetAttrInfo(&basicinfo);
-	C3D_SetBufInfo(&basicbuf);
-	shaderinuse = EVENTUALSHADER;
-	C3D_BindProgram(&eventualprogram);
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, expand_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
-}
-
-void sdraw::usetwocoordsshader()
-{
-	C3D_SetAttrInfo(&twocoordsinfo);
-	C3D_SetBufInfo(&twocoordsbuf);
-	shaderinuse = TWOCOORDSSHADER;
-	C3D_BindProgram(&twocoordsprogram);
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, twocds_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
-}
-
-void sdraw::usethreetexturesshader()
-{
-	C3D_SetAttrInfo(&threetexturesinfo);
-	C3D_SetBufInfo(&threetexturesbuf);
-	shaderinuse = THREETEXTURESSHADER;
-	C3D_BindProgram(&threetexturesprogram);
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, threetextures_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
-}
-
 
 void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
 {
@@ -672,28 +591,19 @@ void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float int
 	bindtex(0, info);
 	
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2);}
-	
-	//If we have a second coordinate we need to activate the interpolation shader and add coordinates to its buffer
+
 	if (x1 != -1)
 	{
-		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
-		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, info.botleft[0], info.botleft[1]);
-		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, info.botright[0], info.botright[1]);
-		sDrawi_addTwoCoordsVertex(x, y, x1, y1, info.topleft[0], info.topleft[1]);
-		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, info.topright[0], info.topright[1]);
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawTwoCdsVtxArrayPos - 4, 4);
-		usebasicshader();
+		currentshader->setUniformF("interpfactor", interpfactor);
+		currentshader->setUniformF("baseinterpfactor", 1);
 	}
-	else
-	{
-		sDrawi_addTextVertex(x, y + info.height, info.botleft[0], info.botleft[1]); //left bottom
-		sDrawi_addTextVertex(x + info.width, y + info.height, info.botright[0], info.botright[1]); //right bottom
-		sDrawi_addTextVertex(x, y, info.topleft[0], info.topleft[1]); //left top
-		sDrawi_addTextVertex(x + info.width, y, info.topright[0], info.topright[1]); //right top
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
-	}
+	
+	appendVertex(x, y + info.height, info.botleft[0], info.botleft[1], x1, y1 + info.height); //left bottom
+	appendVertex(x + info.width, y + info.height, info.botright[0], info.botright[1], x1 + info.width, y1 + info.height); //right bottom
+	appendVertex(x, y, info.topleft[0], info.topleft[1], x1, y1); //left top
+	appendVertex(x + info.width, y, info.topright[0], info.topright[1], x1 + info.width, y1); //right top
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
+
 	if(info.usesdarkmode)
 		enabledarkmode(false);
 }
@@ -705,26 +615,15 @@ void sdraw::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1, int
 	const float scrwidth = 240, scrheight = istopfb ? 400 : 320;
 	const float texwidth = 256, texheight = 512;
 	
-	if (x1 != -1) //See above function
-	{
-		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
-		sDrawi_addTwoCoordsVertex(x, y + scrwidth, x1, y1 + scrwidth, 0, (scrheight / texheight)); //left bottom
-		sDrawi_addTwoCoordsVertex(x + scrheight, y + scrwidth, x1 + scrheight, y1 + scrwidth, 0, 0); //right bottom
-		sDrawi_addTwoCoordsVertex(x, y, x1, y1, (scrwidth / texwidth), (scrheight / texheight)); //left top
-		sDrawi_addTwoCoordsVertex(x + scrheight, y, x1 + scrheight, y1, (scrwidth / texwidth), 0); //right top
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawTwoCdsVtxArrayPos - 4, 4);
-		usebasicshader();
-	}
-	else
-	{
-		sDrawi_addTextVertex(x, y + scrwidth, 0, (scrheight / texheight)); //left bottom
-		sDrawi_addTextVertex(x + scrheight, y + scrwidth, 0, 0); //right bottom
-		sDrawi_addTextVertex(x, y, (scrwidth / texwidth), (scrheight / texheight)); //left top
-		sDrawi_addTextVertex(x + scrheight, y, (scrwidth / texwidth), 0); //right top
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
-	}
+	//C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
+	//C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
+	sdraw::MM::shader_twocoords.setUniformF("baseinterpfactor", 1);
+	sdraw::MM::shader_twocoords.setUniformF("interpfactor", interpfactor);
+	appendVertex(x, y + scrwidth, 0, (scrheight / texheight), x1, y1 + scrwidth); //left bottom
+	appendVertex(x + scrheight, y + scrwidth, 0, 0, x1 + scrheight, y1 + scrwidth); //right bottom
+	appendVertex(x, y, (scrwidth / texwidth), (scrheight / texheight), x1, y1); //left top
+	appendVertex(x + scrheight, y, (scrwidth / texwidth), 0, x1 + scrheight, y1); //right top
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
 	/*sDrawi_addTextVertex(x, y + tex.height - 450, 0, 0); //left bottom
     sDrawi_addTextVertex(x + tex.width, y + tex.height - 450, 1, 0); //right bottom
 	sDrawi_addTextVertex(x, y - 450, 0, 1); //left top
@@ -737,19 +636,17 @@ void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info
 {
 	if(info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
 		enabledarkmode(true);
-	usethreetexturesshader();
 
 	C3D_TexBind(0, info1.spritesheet);
 	C3D_TexBind(1, info2.spritesheet);
 	C3D_TexBind(2, info3.spritesheet);
 
-	sDrawi_addThreeTexturesVertex(x, y + info1.height,				 info1.botleft[0],  info1.botleft[1],  info2.botleft[0],  info2.botleft[1],  info3.botleft[0],  info3.botleft[1]); //left bottom
-	sDrawi_addThreeTexturesVertex(x + info1.width, y + info1.height, info1.botright[0], info1.botright[1], info2.botright[0], info2.botright[1], info3.botright[0], info3.botright[1]); //right bottom
-	sDrawi_addThreeTexturesVertex(x, y,								 info1.topleft[0],	info1.topleft[1],  info2.topleft[0],  info2.topleft[1],  info3.topleft[0], info3.topleft[1]); //left top
-	sDrawi_addThreeTexturesVertex(x + info1.width, y,				 info1.topright[0], info1.topright[1], info2.topright[0], info2.topright[1], info3.topright[0], info3.topright[1]); //right top
+	appendVertex(x, y + info1.height,				 info1.botleft[0], 0, 0,  info1.botleft[1],  info2.botleft[0],  info2.botleft[1],  info3.botleft[0],  info3.botleft[1]); //left bottom
+	appendVertex(x + info1.width, y + info1.height, info1.botright[0], 0, 0, info1.botright[1], info2.botright[0], info2.botright[1], info3.botright[0], info3.botright[1]); //right bottom
+	appendVertex(x, y,								 info1.topleft[0], 0, 0, info1.topleft[1],  info2.topleft[0],  info2.topleft[1],  info3.topleft[0], info3.topleft[1]); //left top
+	appendVertex(x + info1.width, y,				info1.topright[0], 0, 0, info1.topright[1], info2.topright[0], info2.topright[1], info3.topright[0], info3.topright[1]); //right top
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawThreeTexturesVtxArrayPos - 4, 4);
 
-	usebasicshader();
 
 	if (info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
 		enabledarkmode(false);
@@ -772,10 +669,12 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 	float middley = y + info.height/2;
 	//if (x1 != -1)
 	//{
-		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1.10, 0, 0, 0);
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseloc, middlex, middley, 0, 0);
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
+	sdraw::MM::shader_twocoords.setUniformF("baseinterpfactor", 1.10);
+	sdraw::MM::shader_twocoords.setUniformF("base", middlex, middley);
+	sdraw::MM::shader_twocoords.setUniformF("interpfactor", interpfactor);
+	//	C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1.10, 0, 0, 0);
+	//	C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseloc, middlex, middley, 0, 0);
+	//	C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
 	/*}
 	else
 	{
@@ -796,10 +695,7 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 	setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(color, alpha));
 	
 	//No need to add these vertices again
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, /*x1 != -1 ?*/ sdrawTwoCdsVtxArrayPos - 4 /*: sdrawVtxArrayPos - 4*/, 4);
-
-	//TODO: Ensure previous shader state is kept instead of switching back to the basic shader
-	usebasicshader();
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, /*x1 != -1 ?*/ currentshader->getArrayPos() - 4 /*: sdrawVtxArrayPos - 4*/, 4);
 	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0);
 	if (info.usesdarkmode)
 		enabledarkmode(false);
@@ -816,12 +712,12 @@ void sdraw::drawSMDHicon(C3D_Tex icon, int x, int y)
 	
 	if(x == CENTERED && y == CENTERED) {x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (48 / 2); y = (240 / 2) - (48 / 2);}
 	
-    sDrawi_addTextVertex(x, y + 48, 0, 0); //left bottom
-    sDrawi_addTextVertex(x + 48, y + 48, 0.75, 0); //right bottom
-	sDrawi_addTextVertex(x, y, 0, 0.75); //left top
-	sDrawi_addTextVertex(x + 48, y, 0.75, 0.75); //right top
+    appendVertex(x, y + 48, 0, 0); //left bottom
+    appendVertex(x + 48, y + 48, 0.75, 0); //right bottom
+	appendVertex(x, y, 0, 0.75); //left top
+	appendVertex(x + 48, y, 0.75, 0.75); //right top
 	
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos-4, 4);
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() -4, 4);
 }
 
 void sdraw::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
@@ -829,27 +725,11 @@ void sdraw::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interp
 
 	if (x == CENTERED && y == CENTERED) { x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2); }
 
-	//If we have a second coordinate we need to activate the interpolation shader and add coordinates to its buffer
-	if (x1 != -1)
-	{
-		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
-		sDrawi_addTwoCoordsVertex(x, y + info.height, x1, y1 + info.height, info.botleft[0], info.botleft[1]);
-		sDrawi_addTwoCoordsVertex(x + info.width, y + info.height, x1 + info.width, y1 + info.height, info.botright[0], info.botright[1]);
-		sDrawi_addTwoCoordsVertex(x, y, x1, y1, info.topleft[0], info.topleft[1]);
-		sDrawi_addTwoCoordsVertex(x + info.width, y, x1 + info.width, y1, info.topright[0], info.topright[1]);
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawTwoCdsVtxArrayPos - 4, 4);
-		usebasicshader();
-	}
-	else
-	{
-		sDrawi_addTextVertex(x, y + info.height, info.botleft[0], info.botleft[1]); //left bottom
-		sDrawi_addTextVertex(x + info.width, y + info.height, info.botright[0], info.botright[1]); //right bottom
-		sDrawi_addTextVertex(x, y, info.topleft[0], info.topleft[1]); //left top
-		sDrawi_addTextVertex(x + info.width, y, info.topright[0], info.topright[1]); //right top
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdrawVtxArrayPos - 4, 4);
-	}
+	appendVertex(x, y + info.height, info.botleft[0], info.botleft[1], x1, y1 + info.height); //left bottom
+	appendVertex(x + info.width, y + info.height, info.botright[0], info.botright[1], x1 + info.width, y1 + info.height); //right bottom
+	appendVertex(x, y, info.topleft[0], info.topleft[1], x1, y1); //left top
+	appendVertex(x + info.width, y, info.topright[0], info.topright[1], x1 + info.width, y1); //right top
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
 }
 
 void sdraw::enabledarkmode(bool isenabled)
@@ -865,7 +745,14 @@ void sdraw::framestart()
 {
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	sdrawVtxArrayPos = 0; //Reset the vertex arrays
+
+	//HACKY HACKY HACK HACK
+
 	MM::shader_basic.resetArrayPos();
+	MM::shader_eventual.resetArrayPos();
+	MM::shader_twocoords.resetArrayPos();
+	MM::shader_threetextures.resetArrayPos();
+
 	sdrawTwoCdsVtxArrayPos = 0;
 	sdrawThreeTexturesVtxArrayPos = 0;
 	//Of all things, this is what breaks the framebuffer copy.

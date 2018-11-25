@@ -193,6 +193,7 @@ void MM::initmodmoonshaders()
 	shader_basic.appendVAO<float[2]>();
 	shader_basic.finalizeVAO();
 
+	shader_eventual = Shader<MM::vertex_basic>(eventualvertex_shbin, eventualvertex_shbin_size);
 	shader_eventual.appendVAO<float[3]>();
 	shader_eventual.appendVAO<float[2]>();
 	shader_eventual.finalizeVAO();

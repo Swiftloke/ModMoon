@@ -122,14 +122,16 @@ namespace sdraw
 	float gettextmaxwidth(const char* text, float sizeX, float sizeY);
 	
 	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
-	void usebasicshader();
+
+	void appendVertex(float vx, float vy, float tx, float ty, float vx1 = -1, float vy1 = -1, float tx2 = -1, float ty2 = -1, float tx3 = -1, float ty3 = -1);
+	/*void usebasicshader();
 	void useeventualshader();
 	void usetwocoordsshader();
 	void usethreetexturesshader();
 	void sDrawi_addTextVertex(float vx, float vy, float tx, float ty);
 	void sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty);
 	void sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float tc0y, float tc1x, float tc1y, float tc2x, float tc2y);
-
+	*/
 	//Copies last frame to provided textures of 256x512 dimensions.
 	void retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb);
 

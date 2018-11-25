@@ -170,9 +170,9 @@ int startup()
 
 	//Draw a blank frame to allow error calls to retrieve a valid framebuffer
 	sdraw::framestart();
-	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
+	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(255, 0, 0, 255));
 	sdraw::drawon(GFX_BOTTOM);
-	sdraw::drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
+	sdraw::drawrectangle(0, 0, 320, 240, RGBA8(255, 0, 0, 255));
 	sdraw::frameend();
 	//Configure dark mode
 	sdraw::darkmodeshouldactivate = config.read("DarkModeEnabled", false);
@@ -397,6 +397,7 @@ void updateslots(bool plus)
 //All the things happen on the bottom screen, very rarely do we deviate from this pattern on the top screen
 void drawtopscreen()
 {
+	sdraw::MM::shader_basic.bind();
 	sdraw::setfs("texture");
 	sdraw::drawtexture(backgroundtop, 0, 0);
 	int bannerx = 400 / 2 - banner.width / 2;
@@ -414,6 +415,7 @@ void drawtopscreen()
 	//moon is actually animated with these colors.
 	static float animationplus = 0;
 
+	sdraw::MM::shader_threetextures.bind();
 
 	sdraw::setfs("topScreenMoon", 0);
 	
@@ -427,6 +429,8 @@ void drawtopscreen()
 	if(animationplus >= 29952)
 		animationplus = 0;
 	animationplus += .75;
+
+	sdraw::MM::shader_basic.bind();
 
 	//Draw the title selection text
 	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));
@@ -444,6 +448,8 @@ void drawtopscreen()
 
 void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapos, bool highlighterblink)
 {
+	sdraw::MM::shader_basic.bind();
+
 	sdraw::setfs("texture");
 	sdraw::drawtexture(backgroundbot, 0, 0);
 
@@ -470,6 +476,8 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	}
 	sdraw::setfs("launchButtonMoon", 0, RGBA8(0, 0, 0, rainbowinterp));
 
+	sdraw::MM::shader_threetextures.bind();
+
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 40, false);
 	sdraw::drawmultipletextures(0, 13, leftbuttonmoon, temp, temp);
 		
@@ -478,6 +486,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 		animationplus = 0;
 	animationplus += 0.5;
 
+	sdraw::MM::shader_basic.bind();
 	sdraw::setfs("texture");
 
 	if (dpadpos == 0)
