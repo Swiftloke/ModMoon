@@ -1,8 +1,3 @@
-//This needs a major revamp at this point.
-//sDraw should be redesigned to not couple TexEnv states and vertex handling, but instead
-//Have functions to set TexEnv states then functions to add + draw vertices.
-//new-hbmenu does this right.
-
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -376,15 +371,8 @@ void sdraw::sDrawi_addTextVertex(float vx, float vy, float tx, float ty)
 	vtx->texcoord[0] = tx;
 	vtx->texcoord[1] = ty;*/
 	sdraw::internal_vertex vert = { vx, vy, 0.5, 0, 0, 0.5, tx, ty, 0, 0, 0, 0 };
-	currentshader->appendVertex(vert);
-	/*Shader<MM::vertex_basic>* shader = dynamic_cast<Shader<MM::vertex_basic>*>(currentshader);
-	if (shader)
-	{
-		MM::vertex_basic vtx = { vx, vy, 0.5, tx, ty };
-		shader->appendVertex(vtx);
-	}
-	else
-		svcBreak(USERBREAK_PANIC);*/
+	MM::shader_basic->appendVertex(vert);
+	MM::shader_eventual->appendVertex(vert);
 }
 
 void sdraw::sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty)
@@ -398,6 +386,8 @@ void sdraw::sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2
 	vtx->pos2[2] = 0.5f;
 	vtx->texcoord[0] = tx;
 	vtx->texcoord[1] = ty;
+	sdraw::internal_vertex vert = { vx1, vy1, 0.5, vx2, vy2, 0.5, tx, ty, 0, 0, 0, 0 };
+	MM::shader_twocoords->appendVertex(vert);
 }
 
 void sdraw::sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float tc0y, float tc1x, float tc1y, float tc2x, float tc2y)
@@ -415,6 +405,9 @@ void sdraw::sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float 
 
 	vtx->tc2[0] = tc2x;
 	vtx->tc2[1] = tc2y;
+
+	sdraw::internal_vertex vert = { vx, vy, 0.5, 0, 0, 0, tc0x, tc0y, tc1x, tc1y, tc2x, tc2y };
+	currentshader->appendVertex(vert);
 }
 
 void sdraw::sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text)
@@ -632,36 +625,39 @@ void sdraw::usebasicshader()
 	//C3D_SetAttrInfo(&basicinfo);
 	shaderinuse = BASICSHADER;
 	//C3D_BindProgram(&basicprogram);
-	MM::shader_basic.bind();
+	MM::shader_basic->bind();
 	//C3D_SetBufInfo(&basicbuf);
 	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
 void sdraw::useeventualshader()
 {
-	C3D_SetAttrInfo(&basicinfo);
-	C3D_SetBufInfo(&basicbuf);
+	//C3D_SetAttrInfo(&basicinfo);
+	//C3D_SetBufInfo(&basicbuf);
 	shaderinuse = EVENTUALSHADER;
-	C3D_BindProgram(&eventualprogram);
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, expand_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
+	//C3D_BindProgram(&eventualprogram);
+	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, expand_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
+	MM::shader_eventual->bind();
 }
 
 void sdraw::usetwocoordsshader()
 {
-	C3D_SetAttrInfo(&twocoordsinfo);
-	C3D_SetBufInfo(&twocoordsbuf);
+	MM::shader_twocoords->bind();
+	//C3D_SetAttrInfo(&twocoordsinfo);
+	//C3D_SetBufInfo(&twocoordsbuf);
 	shaderinuse = TWOCOORDSSHADER;
-	C3D_BindProgram(&twocoordsprogram);
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, twocds_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
+	//C3D_BindProgram(&twocoordsprogram);
+	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, twocds_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
 void sdraw::usethreetexturesshader()
 {
-	C3D_SetAttrInfo(&threetexturesinfo);
-	C3D_SetBufInfo(&threetexturesbuf);
+	MM::shader_threetextures->bind();
+	//C3D_SetAttrInfo(&threetexturesinfo);
+	//C3D_SetBufInfo(&threetexturesbuf);
 	shaderinuse = THREETEXTURESSHADER;
-	C3D_BindProgram(&threetexturesprogram);
-	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, threetextures_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
+	//C3D_BindProgram(&threetexturesprogram);
+	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, threetextures_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
 }
 
 
@@ -773,9 +769,9 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 	//if (x1 != -1)
 	//{
 		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1.10, 0, 0, 0);
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseloc, middlex, middley, 0, 0);
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
+		MM::shader_twocoords->setUniformF("baseinterpfactor", 1.10);
+		MM::shader_twocoords->setUniformF("base", middlex, middley);
+		MM::shader_twocoords->setUniformF("interpfactor", interpfactor);
 	/*}
 	else
 	{
@@ -796,7 +792,7 @@ void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, i
 	setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(color, alpha));
 	
 	//No need to add these vertices again
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, /*x1 != -1 ?*/ sdrawTwoCdsVtxArrayPos - 4 /*: sdrawVtxArrayPos - 4*/, 4);
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, /*x1 != -1 ?*/ currentshader->getArrayPos() - 4 /*: sdrawVtxArrayPos - 4*/, 4);
 
 	//TODO: Ensure previous shader state is kept instead of switching back to the basic shader
 	usebasicshader();
@@ -865,9 +861,14 @@ void sdraw::framestart()
 {
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
 	sdrawVtxArrayPos = 0; //Reset the vertex arrays
-	MM::shader_basic.resetArrayPos();
 	sdrawTwoCdsVtxArrayPos = 0;
 	sdrawThreeTexturesVtxArrayPos = 0;
+
+
+	MM::shader_basic->resetArrayPos();
+	MM::shader_eventual->resetArrayPos();
+	MM::shader_twocoords->resetArrayPos();
+	MM::shader_threetextures->resetArrayPos();
 	//Of all things, this is what breaks the framebuffer copy.
 	//Well, OK, I don't really need or use this functionality anyway.
 	//C3D_RenderTargetClear(top, C3D_CLEAR_ALL, CLEAR_COLOR, 0);

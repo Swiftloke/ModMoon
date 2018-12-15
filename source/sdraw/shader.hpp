@@ -32,6 +32,7 @@ namespace sdraw
 		virtual void setUniformMtx4x4(const char* uniform, C3D_Mtx* matrix) = 0;
 		virtual void setUniformI(const char* uniform, int x, int y = 0, int z = 0, int w = 0) = 0;
 		virtual void setUniformB(const char* uniform, bool value) = 0;
+		virtual ~ShaderBase() {};
 	};
 
 	template<typename T> class Shader : ShaderBase
@@ -51,18 +52,6 @@ namespace sdraw
 			shaderProgramSetVsh(&program, &DVLB->DVLE[0]);
 		}
 		~Shader() { linearFree(vertexlist); }
-		/*void appendVertex(internal_vertex& vert)
-		{
-			vertexlist[arraypos++] = (*vertexconverter)(vert);
-		}*/
-		//How is this going to work?
-		/*
-		The engine will dynamic_cast to the type of the Shader it wants and call that appendVertex function.
-		*/
-		/*void appendVertex(T& vert)
-		{
-			vertexlist[arraypos++] = vert;
-		}*/
 		void appendVertex(internal_vertex& vert)
 		{
 			vertexlist[arraypos++] = T(vert);
@@ -143,8 +132,8 @@ namespace sdraw
 		x(vert.x1), y(vert.y1), z(vert.z1), tcx(vert.tc0x), tcy(vert.tc0y) {}
 	};
 
-	extern Shader<vertex_basic> shader_basic;
-	extern Shader<vertex_basic> shader_eventual;
+	extern Shader<vertex_basic>* shader_basic;
+	extern Shader<vertex_basic>* shader_eventual;
 
 	struct vertex_twocoords
 	{
@@ -152,11 +141,11 @@ namespace sdraw
 		float x2, y2, z2;
 		float tcx, tcy;
 		vertex_twocoords(internal_vertex& vert) :
-		x1(vert.x1), y1(vert.y1), z1(vert.z1), x2(vert.x2), y2(vert.y2), z2(vert.x2),
+		x1(vert.x1), y1(vert.y1), z1(vert.z1), x2(vert.x2), y2(vert.y2), z2(vert.z2),
 		tcx(vert.tc0x), tcy(vert.tc0y) {}
 	};
 
-	extern Shader<vertex_twocoords> shader_twocoords;
+	extern Shader<vertex_twocoords>* shader_twocoords;
 
 	struct vertex_threetextures
 	{
@@ -168,9 +157,11 @@ namespace sdraw
 		x(vert.x1), y(vert.y1), z(vert.z1), tc0x(vert.tc0x), tc0y(vert.tc0y),
 		tc1x(vert.tc1x), tc1y(vert.tc1y), tc2x(vert.tc2x), tc2y(vert.tc2y) {}
 	};
-	extern Shader<vertex_threetextures> shader_threetextures;
+	extern Shader<vertex_threetextures>* shader_threetextures;
 
 	void initmodmoonshaders();
+
+	void destroymodmoonshaders();
 
 	} //namespace MM
 

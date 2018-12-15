@@ -294,6 +294,7 @@ void launch(){
 	svcWaitSynchronization(event_fadefinished, U64_MAX);
 	
 	sdraw::cleanup();
+	sdraw::MM::destroymodmoonshaders();
 	srv::exit();
 
 	updatecheckworker.shutdown();

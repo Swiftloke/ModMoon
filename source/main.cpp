@@ -166,7 +166,7 @@ int startup()
 {
 	initmodmoontevkeys();
 	sdraw::MM::initmodmoonshaders();
-	sdraw::MM::shader_basic.bind();
+	sdraw::MM::shader_basic->bind();
 
 	//Draw a blank frame to allow error calls to retrieve a valid framebuffer
 	sdraw::framestart();
@@ -495,6 +495,11 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	else sdraw::drawtexture(selector, 0, 159);
 	sdraw::setfs("textColor", 0, RGBA8(0, 0, 0, 255));
 	sdraw::drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
+
+
+	//sdraw::drawtext(to_string(sdraw::MM::shader_basic->getArrayPos()).c_str(), 0, 0, 1, 1);
+
+	//sdraw::drawtext(to_string(sdraw::MM::shader_twocoords->getArrayPos()).c_str(), 0, 50, 1, 1);
 }
 
 
@@ -743,6 +748,7 @@ int main(int argc, char **argv) {
 	//C3D_TexDelete(progressfiller);
 	//freeSMDHdata();
 	sdraw::cleanup();
+	sdraw::MM::destroymodmoonshaders();
 	srv::exit();
 	romfsExit();
 	gfxExit();
