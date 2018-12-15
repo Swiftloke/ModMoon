@@ -63,20 +63,21 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <NMakeBuildCommandLine>make run</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>make -j8 run</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>make clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>make clean run</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
-    <IncludePath>C:\devkitPro\libctru\include;C:\devkitPro\devkitARM\arm-none-eabi\include;$(IncludePath)</IncludePath>
+    <IncludePath>C:\Users\qwe\Documents\GitHub\ModMoon\build;$(IncludePath)</IncludePath>
     <NMakeIncludeSearchPath>C:\devkitPro\libctru\include;C:\devkitPro\devkitARM\arm-none-eabi\include</NMakeIncludeSearchPath>
     <OutDir>.</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <NMakeBuildCommandLine>make run</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>make -j8 run</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>make clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>make clean run</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
     <OutDir>.</OutDir>
+    <IncludePath>C:\Users\qwe\Documents\GitHub\ModMoon\build;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <NMakeBuildCommandLine>make run</NMakeBuildCommandLine>
@@ -121,6 +122,7 @@
     <ClInclude Include="source\main.hpp" />
     <ClInclude Include="source\migrators\migrators.hpp" />
     <ClInclude Include="source\sdraw\sdraw.hpp" />
+    <ClInclude Include="source\sdraw\shader.hpp" />
     <ClInclude Include="source\workerfunction.hpp" />
     <ClInclude Include="source\smdh.hpp" />
     <ClInclude Include="source\srv.hpp" />
