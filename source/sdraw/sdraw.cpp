@@ -49,23 +49,7 @@ using namespace std;
 
 	#define TEXT_VTX_ARRAY_COUNT (4*1024)
 
-
-
-
-
 #define TEX_MIN_SIZE 64
-//Grabbed from: http://graphics.stanford.edu/~seander/bithacks.html#RoundUpPowerOf2
-unsigned int nextPow2(unsigned int v)
-{
-	v--;
-	v |= v >> 1;
-	v |= v >> 2;
-	v |= v >> 4;
-	v |= v >> 8;
-	v |= v >> 16;
-	v++;
-	return (v >= TEX_MIN_SIZE ? v : TEX_MIN_SIZE);
-}
 
 //Unused. Here for historical purposes.
 /*C3D_Tex* loadpng(string filepath)

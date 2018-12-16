@@ -33,11 +33,19 @@ better for your own projects.
 using namespace std;
 
 #define CENTERED 1920 //A random number that no one will ever use realistically
+///Standard macro for 32-bit RGBA colors.
 #define RGBA8(r, g, b, a) ((((r)&0xFF)<<0) | (((g)&0xFF)<<8) | (((b)&0xFF)<<16) | (((a)&0xFF)<<24))
+///Macro for combining an RGB color and an alpha value.
 #define HIGHLIGHTERCOLORANDALPHA(color, alpha) ((color & 0xFFFFFF) | ((alpha & 0xFF) << 24))
 
 #define FRAMEBUFFER_TRANSFER_FLAGS GX_TRANSFER_RAW_COPY(1)
 
+///Primary drawing object in sDraw.
+///This struct contains information about an object in a spritesheet. It can be constructed
+///with Tex3DS (see Tex3DS documentation and examples for details about subtextures, TL;DR is that
+///the subtextures are 0-indexed and based on the order of the textures you place in your atlas file).
+///It also contains information about whether the object should have sDraw's "dark mode" (color inversion)
+///applied to it.
 struct sdraw_stex
 {
 
@@ -84,6 +92,7 @@ struct sdraw_stex
 #include "fragment.hpp"
 #include "shader.hpp"
 
+///Extension of sdraw_stex that also contains a color.
 struct sdraw_highlighter : public sdraw_stex
 {
 	u32 highlightercolor;
@@ -96,28 +105,50 @@ struct sdraw_highlighter : public sdraw_stex
 
 namespace sdraw
 {
+	//Initializes the engine.
 	int init();
+	//Finalizes the engine.
 	void cleanup();
+	//Changes the screen on which to draw objects.
 	void drawon(gfxScreen_t window);
+	//Starts a frame. All rendering actions must take place within a frame (obviously).
 	void framestart();
+	//Draws a plain old texture to the screen.
 	void drawtexture(C3D_Tex* tex, int x, float y);
+	///Draws an sdraw_stex to the screen. This is the recommended and most common drawing action.
+	///info is the stex to be drawn. x and y are the coordinates to draw it at.
+	///x1, y1, and interpfactor are optional arguments that send a second set of coordinates and
+	///how far to interpolate between the two sets.
 	void drawtexture(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0); //Second coords are optional
+	///Draws a framebuffer to the screen. Because the 3DS' screens are tilted and C3D_Tex textures
+	///must be powers of two, this function exists to handle the insane texcoord math to deal with it.
+	///istopfb should be provided to let the engine know whether the framebuffer is for the top screen or
+	///the bottom. This is because the two screens have different dimensions.
 	void drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1 = -1, int y1 = -1, float interpfactor = 0);
+	///Draws a C3D_Tex that contains an SMDH icon.
+	///It draws with 0.75 texcoords as it's a 48x48 icon in a 64x64 texture, due to power of two limits.
 	void drawSMDHicon(C3D_Tex icon, int x, int y);
+	///Draws text to the screen. text is the text, x and y are the coordinates,
+	///and sizeX / sizeY are the font sizes.
 	void drawtext(const char* text, float x, float y, float sizeX, float sizeY);
+	///Draws text squished into a rectangle of size "width". scalex will be modified within
+	///the function if necessary.
 	void drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley);
+	///Draws text in the center of the screen. No x argument is allowed.
 	void drawcenteredtext(const char* text, float scaleX, float scaleY, float y);
+	///Draws a blank rectangle to the screen. A fragment shader is usually provided to colorize it.
 	void drawrectangle(int x, int y, int width, int height, bool shouldusedarkmode = false);
+	///Draws a texture and sends three texture coordinates from three sdraw_stex structs.
 	void drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3);
+	///Ends a frame.
 	void frameend();
+	///Gets the height of text given the text and the font height.
 	float gettextheight(const char* text, float sizeY);
+	///Gets the width of the text input, accounting for newlines by using a vector of possible widths.
 	vector<float> gettextwidths(const char* text, float sizeX);
+	///Returns the largest width from gettextwidths (above) for utility.
 	float gettextmaxwidth(const char* text, float sizeX);
 	
-	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
-
-	void addVertex(float vx1, float vy1, float tx1, float ty1, float vx2 = -1, float vy2 = -1, float tx2 = -1, float ty2 = -1, float tx3 = -1, float ty3 = -1);
-
 	//Copies last frame to provided textures of 256x512 dimensions.
 	void retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb);
 
@@ -131,14 +162,23 @@ namespace sdraw
 	//(what shader to apply actions to) + sets the projection matrix automatically.
 	void updateshaderstate(ShaderBase* shader);
 
+	///Internal structs. Should not be used externally.
 	extern C3D_Tex lastfbtop;
 	extern C3D_Tex lastfbbot;
 	extern gfxScreen_t currentoutput;
 	void sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text);
+
+	///Internal function to actually draw quads. Should not be used externally.
+	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
+
+	///Internal function to add vertices to the currently bound shader. Should not be used externally.
+	void addVertex(float vx1, float vy1, float tx1, float ty1, float vx2 = -1, float vy2 = -1, float tx2 = -1, float ty2 = -1, float tx3 = -1, float ty3 = -1);
+
 } //namespace sdraw
 
 
 //C3D_Tex* loadpng(string filepath);
+///Loads a raw binary texture file.
 C3D_Tex* loadbin(string filepath, int width, int height);
+///Loads a Tex3DS texture file.
 std::pair<C3D_Tex*, Tex3DS_Texture> loadTextureFromFile(const char* filename);
-unsigned int nextPow2(unsigned int v);
