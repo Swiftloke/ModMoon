@@ -258,6 +258,7 @@ void mainmenushiftin()
 		sdraw::framestart();
 		drawtopscreen();
 		sdraw::drawon(GFX_BOTTOM);
+		sdraw::MM::shader_twocoords->bind();
 		sdraw::drawtexture(backgroundbot, 0, 0);
 		sdraw::drawtexture(leftbuttonmoon, -leftbuttonmoon.width, 13, 0, 13, i);
 		sdraw::drawtexture(leftbutton, -leftbutton.width, 13, 0, 13, i);
@@ -273,6 +274,7 @@ const unsigned int codes[] = {
 
 void secretcodedraw()
 {
+	sdraw::MM::shader_basic->bind();
 	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 255, 255));
 	//This secret is hidden from view in the spritesheet. It has only an alpha of 1 and no color.
 	//This is to prevent it from easily being seen in the source code. ;)
@@ -333,6 +335,10 @@ bool secretcodeadvance(u32 kDown)
 	return false;
 }
 
+//This code was brought into existence at the very beginning of this project,
+//before sDraw had any notion of interpolation.
+//It should have been removed ages ago, but it actually proves very useful to have this kind
+//of basic use case left around for debugging by comparing it to the modernized mainmenushiftin().
 void mainmenushiftout()
 {
 	//Opposite of shifting in (just some numbers changed)
@@ -340,6 +346,7 @@ void mainmenushiftout()
 	{
 		sdraw::framestart();
 		drawtopscreen();
+		sdraw::MM::shader_basic->bind();
 		sdraw::drawon(GFX_BOTTOM);
 		sdraw::drawtexture(backgroundbot, 0, 0);
 		sdraw::drawtexture(leftbuttonmoon, l, 13);
@@ -397,6 +404,7 @@ void updateslots(bool plus)
 //All the things happen on the bottom screen, very rarely do we deviate from this pattern on the top screen
 void drawtopscreen()
 {
+	sdraw::MM::shader_basic->bind();
 	sdraw::setfs("texture");
 	sdraw::drawtexture(backgroundtop, 0, 0);
 	int bannerx = 400 / 2 - banner.width / 2;
@@ -416,6 +424,7 @@ void drawtopscreen()
 
 
 	sdraw::setfs("topScreenMoon", 0);
+	sdraw::MM::shader_threetextures->bind();
 	
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 256, false);
 	sdraw::drawmultipletextures(bannerx + moonx, bannery + moony, bannermoonalpha, temp, temp);
@@ -429,6 +438,7 @@ void drawtopscreen()
 	animationplus += .75;
 
 	//Draw the title selection text
+	sdraw::MM::shader_basic->bind();
 	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));
 	sdraw::drawtext(": Help", 5, 240 - 40, 0.55, 0.55);
 	sdraw::drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
@@ -445,6 +455,9 @@ void drawtopscreen()
 void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapos, bool highlighterblink)
 {
 	sdraw::setfs("texture");
+
+	sdraw::MM::shader_basic->bind();
+
 	sdraw::drawtexture(backgroundbot, 0, 0);
 
 	//Draw the rainbow (or not) moon first.
@@ -471,6 +484,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	sdraw::setfs("launchButtonMoon", 0, RGBA8(0, 0, 0, rainbowinterp));
 
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 40, false);
+	sdraw::MM::shader_threetextures->bind();
 	sdraw::drawmultipletextures(0, 13, leftbuttonmoon, temp, temp);
 		
 	//See above for why this is done
@@ -479,20 +493,23 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	animationplus += 0.5;
 
 	sdraw::setfs("texture");
+	sdraw::MM::shader_twocoords->bind();
 
 	if (dpadpos == 0)
-		sdraw::drawtexturewithhighlight(leftbutton, 0, 13, \
+		drawtexturewithhighlight(leftbutton, 0, 13, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else sdraw::drawtexture(leftbutton, 0, 13);
 
 	if (dpadpos == 1)
-		sdraw::drawtexturewithhighlight(rightbutton, 169, 13, \
+		drawtexturewithhighlight(rightbutton, 169, 13, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else sdraw::drawtexture(rightbutton, 169, 13);
 	if (dpadpos == 2 || dpadpos == 3)
-		sdraw::drawtexturewithhighlight(selector, 0, 159, \
+		drawtexturewithhighlight(selector, 0, 159, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else sdraw::drawtexture(selector, 0, 159);
+
+	sdraw::MM::shader_basic->bind();
 	sdraw::setfs("textColor", 0, RGBA8(0, 0, 0, 255));
 	sdraw::drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
 

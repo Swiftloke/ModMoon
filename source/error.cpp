@@ -25,14 +25,14 @@ bool errorwasstartpressed()
 void drawerrorbox(string text, int alphapos, float expandpos)
 {
 	sdraw::framestart();
-	sdraw::usebasicshader();
+	sdraw::MM::shader_basic->bind();
 	sdraw::setfs("texture");
 	sdraw::drawframebuffer(prevtop, 0, 0, true);
 	sdraw::drawon(GFX_BOTTOM);
 	sdraw::drawframebuffer(prevbot, 0, 0, false);
-	sdraw::useeventualshader();
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::expand_baseloc, 320 / 2, 240 / 2, 0, 0);
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::expand_expandloc, expandpos, 0, 0, 0);
+	sdraw::MM::shader_eventual->bind();
+	sdraw::MM::shader_eventual->setUniformF("base", 320 / 2, 240 / 2);
+	sdraw::MM::shader_eventual->setUniformF("expansion", expandpos);
 	sdraw::drawtexture(textbox, 10, 20);
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
 	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
@@ -123,7 +123,7 @@ void error(string text)
 		handleerror(expandpos, text);
 	}
 	handleerror(0, text);
-	sdraw::usebasicshader();
+	sdraw::MM::shader_basic->bind();
 	C3D_TexDelete(&prevtop);
 	C3D_TexDelete(&prevbot);
 }
@@ -139,7 +139,7 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	static float texcoordplus = 0; //Constantly increase this for an animation
 	texcoordplus += 0.005;
 	sdraw::framestart();
-	sdraw::usebasicshader();
+	sdraw::MM::shader_basic->bind();
 	sdraw::setfs("texture");
 	if(topfb.height)
 		sdraw::drawframebuffer(topfb, 0, 0, true);
@@ -150,9 +150,9 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 		sdraw::drawframebuffer(botfb, 0, 0, false);
 	else
 		sdraw::drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
-	sdraw::useeventualshader();
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::expand_baseloc, 320 / 2, 240 / 2, 0, 0);
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::expand_expandloc, expandpos, 0, 0, 0);
+	sdraw::MM::shader_eventual->bind();
+	sdraw::MM::shader_eventual->setUniformF("base", 320 / 2, 240 / 2);
+	sdraw::MM::shader_eventual->setUniformF("expansion", expandpos);
 	sdraw::drawtexture(textbox, 10, 20);
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
 	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
@@ -168,10 +168,10 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	//Calculate the right side's texcoord of how much we need to repeat for the texture to look right
 	float rightsidex = ((1 - progress) * x) + (progress * (x + 260));
 	float rightsidetexcoord = rightsidex / 32;
-	sdraw::usetwocoordsshader();
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::twocds_interploc, progress, 0, 0, 0);
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::twocds_baseloc, 320 / 2, 240 / 2, 0, 0);
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::twocds_baseinterploc, expandpos, 0, 0, 0);
+	sdraw::MM::shader_twocoords->bind();
+	sdraw::MM::shader_twocoords->setUniformF("interpfactor", progress);
+	sdraw::MM::shader_twocoords->setUniformF("base", 320 / 2, 240 / 2);
+	sdraw::MM::shader_twocoords->setUniformF("baseinterpfactor", expandpos);
 	sdraw::addVertex(x, y, texcoordplus, 0, x, y);
 	sdraw::addVertex(x, y + 35, texcoordplus, 1, x, y + 35);
 	sdraw::addVertex(x, y, texcoordplus + rightsidetexcoord, 0, x + 260, y);
@@ -180,7 +180,7 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	//TexEnv for basic texture is already set from the last drawtexture call so we don't need to bother
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdraw::MM::shader_twocoords->getArrayPos() - 4, 4);
 	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0); //Turn off the stencil test
-	sdraw::usebasicshader();
+	sdraw::MM::shader_basic->bind();
 	sdraw::frameend();
 }
 

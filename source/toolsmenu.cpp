@@ -54,6 +54,7 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 	//parts that stick out.
 	const int highlighteradds[] = { 3, 0, 2, 7, 4 };
 	sdraw::framestart();
+	sdraw::MM::shader_basic->bind();
 	if (shouldblink)
 	{
 		sdraw::drawrectangle(0, 0, 400, 240, RGBA8(255, 255, 255, 255));
@@ -64,6 +65,7 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 	{
 		drawtopscreen();
 		sdraw::drawon(GFX_BOTTOM);
+		sdraw::MM::shader_twocoords->bind();
 		sdraw::setfs("texture");
 		sdraw::drawtexture(backgroundbot, 0, 0);
 		sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(toolsmenuhighlighter.highlightercolor, highlighteralpha));

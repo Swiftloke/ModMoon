@@ -89,22 +89,26 @@ namespace sdraw
 		void setUniformF(const char* uniform, float x, float y = 0, float z = 0, float w = 0)
 		{
 			int id = shaderInstanceGetUniformLocation(program.vertexShader, uniform);
-			C3D_FVUnifSet(GPU_VERTEX_SHADER, id, x, y, z, w);
+			if(id != -1)
+				C3D_FVUnifSet(GPU_VERTEX_SHADER, id, x, y, z, w);
 		}
 		void setUniformMtx4x4(const char* uniform, C3D_Mtx* matrix)
 		{
 			int id = shaderInstanceGetUniformLocation(program.vertexShader, uniform);
-			C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, id, matrix);
+			if(id != -1)
+				C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, id, matrix);
 		}
 		void setUniformI(const char* uniform, int x, int y = 0, int z = 0, int w = 0)
 		{
 			int id = shaderInstanceGetUniformLocation(program.vertexShader, uniform);
-			C3D_IVUnifSet(GPU_VERTEX_SHADER, id, x, y, z, w);
+			if(id != -1)
+				C3D_IVUnifSet(GPU_VERTEX_SHADER, id, x, y, z, w);
 		}
 		void setUniformB(const char* uniform, bool value)
 		{
 			int id = shaderInstanceGetUniformLocation(program.vertexShader, uniform);
-			C3D_BoolUnifSet(GPU_VERTEX_SHADER, id, value);
+			if(id != -1)
+				C3D_BoolUnifSet(GPU_VERTEX_SHADER, id, value);
 		}
 
 	private:

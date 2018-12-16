@@ -13,6 +13,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 	sdraw::framestart();
 	drawtopscreen();
 	sdraw::drawon(GFX_BOTTOM);
+	sdraw::MM::shader_basic->bind();
 	sdraw::drawtexture(backgroundbot, 0, 0);
 	int x = -39, y = 26; //Start at a smaller X coordinate as it'll be advanced in the first loop iteration
 	int i = 0;
@@ -85,10 +86,12 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 	}
 	sdraw::setfs("texture", 0);
 	sdraw::drawtexture(titleselectionboxes, 26, 21);
-	sdraw::drawframebuffer(prevfb, 0, 0, false, 0, -240, fbinterpfactor);
 	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));
 	string versiontext = getversion();
 	sdraw::drawtext(versiontext.c_str(), 320 - 18 - sdraw::gettextmaxwidth(versiontext.c_str(), .4, .5), 1, .45, .45);
+	sdraw::setfs("texture", 0);
+	sdraw::MM::shader_twocoords->bind();
+	sdraw::drawframebuffer(prevfb, 0, 0, false, 0, -240, fbinterpfactor);
 	sdraw::frameend();
 }
 

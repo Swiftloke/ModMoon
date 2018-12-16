@@ -2,7 +2,11 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <string>
+#include "sdraw/sdraw.hpp"
 using namespace std;
+
+void drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, 
+	int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0); 
 
 Result nsRebootSystemClean();
 

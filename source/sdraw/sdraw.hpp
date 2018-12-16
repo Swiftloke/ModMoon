@@ -38,11 +38,6 @@ using namespace std;
 
 #define FRAMEBUFFER_TRANSFER_FLAGS GX_TRANSFER_RAW_COPY(1)
 
-
-struct sdraw_Vertex { float position[3]; float texcoord[2]; };
-struct sdraw_TwoCdsVertex { float pos1[3]; float pos2[3]; float texcoord[2]; };
-struct sdraw_ThreeTexVertex {float position[3]; float tc0[2]; float tc1[2]; float tc2[2]; };
-
 struct sdraw_stex
 {
 
@@ -108,8 +103,6 @@ namespace sdraw
 	void drawtexture(C3D_Tex* tex, int x, float y);
 	void drawtexture(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0); //Second coords are optional
 	void drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1 = -1, int y1 = -1, float interpfactor = 0);
-	//Second coords functionality of this is broken
-	void drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	void drawSMDHicon(C3D_Tex icon, int x, int y);
 	void drawtext(const char* text, float x, float y, float sizeX, float sizeY);
 	void drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley);
@@ -122,14 +115,6 @@ namespace sdraw
 	float gettextmaxwidth(const char* text, float sizeX, float sizeY);
 	
 	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
-	void usebasicshader();
-	void useeventualshader();
-	void usetwocoordsshader();
-	void usethreetexturesshader();
-
-	void sDrawi_addTextVertex(float vx, float vy, float tx, float ty);
-	void sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty);
-	void sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float tc0y, float tc1x, float tc1y, float tc2x, float tc2y);
 
 	void addVertex(float vx1, float vy1, float tx1, float ty1, float vx2 = -1, float vy2 = -1, float tx2 = -1, float ty2 = -1, float tx3 = -1, float ty3 = -1);
 
@@ -142,16 +127,9 @@ namespace sdraw
 	extern bool darkmodeshouldactivate;
 	void enabledarkmode(bool enabled);
 	
-	//Called by vertex shaders. Updates internal structures for shaders
-	//(what shader to apply projection matrices to) + sets the projection matrix automatically.
+	//Called by vertex shader classes. Updates internal structures for shaders
+	//(what shader to apply actions to) + sets the projection matrix automatically.
 	void updateshaderstate(ShaderBase* shader);
-	
-	extern int expand_baseloc, expand_expandloc;
-	extern int twocds_interploc, twocds_baseloc, twocds_baseinterploc;
-	extern int sdrawTwoCdsVtxArrayPos;
-	extern int sdrawVtxArrayPos;
-	extern int sdrawThreeTexturesVtxArrayPos;
-
 
 	extern C3D_Tex lastfbtop;
 	extern C3D_Tex lastfbbot;
@@ -160,7 +138,7 @@ namespace sdraw
 } //namespace sdraw
 
 
-C3D_Tex* loadpng(string filepath);
+//C3D_Tex* loadpng(string filepath);
 C3D_Tex* loadbin(string filepath, int width, int height);
 std::pair<C3D_Tex*, Tex3DS_Texture> loadTextureFromFile(const char* filename);
 unsigned int nextPow2(unsigned int v);

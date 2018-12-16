@@ -26,6 +26,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 	sdraw::framestart();
 	drawtopscreen();
 	sdraw::drawon(GFX_BOTTOM);
+	sdraw::MM::shader_basic->bind();
 	sdraw::drawtexture(backgroundbot, 0, 0);
 	int x = -39, y = 26; //Start at a smaller X coordinate as it'll be advanced in the first loop iteration
 	int i = 0;
@@ -94,6 +95,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 			sdraw::drawSMDHicon((*iter).icon, x, y);
 	}
 	sdraw::drawtexture(titleselectionboxes, 26, 21);
+	sdraw::MM::shader_twocoords->bind();
 	sdraw::drawframebuffer(prevbotfb, 0, 0, false, 0, -240, fbinterpfactor);
 	sdraw::frameend();
 }

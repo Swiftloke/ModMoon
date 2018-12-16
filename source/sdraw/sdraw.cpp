@@ -33,39 +33,11 @@ using namespace std;
 	GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
 	GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
-	static DVLB_s* basicvshader_dvlb;
-	static DVLB_s* eventualvshader_dvlb;
-	static DVLB_s* twocoordsinterp_dvlb;
-	static DVLB_s* threetextures_dvlb;
-	static int uLoc_projection;
-	int expand_projectionloc;
-	int twocds_projectionloc;
-	int threetextures_projectionloc;
 	static C3D_Mtx projectionTop, projectionBot;
 	static C3D_Tex* glyphSheets;
-	shaderProgram_s basicprogram;
-	shaderProgram_s eventualprogram;
-	shaderProgram_s twocoordsprogram;
-	shaderProgram_s threetexturesprogram;
-
-	C3D_AttrInfo basicinfo;
-	C3D_AttrInfo twocoordsinfo;
-	C3D_AttrInfo threetexturesinfo;
-	C3D_BufInfo basicbuf;
-	C3D_BufInfo twocoordsbuf;
-	C3D_BufInfo threetexturesbuf;
-
-	static sdraw_Vertex* sdrawVtxArray;
-	static sdraw_TwoCdsVertex* twocdsVtxArray;
-	static sdraw_ThreeTexVertex* threetexturesVtxArray;
 	C3D_RenderTarget* top;
 	C3D_RenderTarget* bottom;
 
-	int sdraw::expand_baseloc, sdraw::expand_expandloc;
-	int sdraw::twocds_interploc, sdraw::twocds_baseloc, sdraw::twocds_baseinterploc;
-	int sdraw::sdrawTwoCdsVtxArrayPos;
-	int sdraw::sdrawVtxArrayPos;
-	int sdraw::sdrawThreeTexturesVtxArrayPos;
 	bool sdraw::darkmodeshouldactivate = false;
 
 	C3D_Tex sdraw::lastfbtop;
@@ -74,13 +46,6 @@ using namespace std;
 
 	sdraw::ShaderBase* currentshader;
 	vector<sdraw::ShaderBase*> shaderlist;
-
-
-	enum SDRAW_SHADERINUSE
-	{
-		BASICSHADER, EVENTUALSHADER, TWOCOORDSSHADER, THREETEXTURESSHADER
-	};
-	SDRAW_SHADERINUSE shaderinuse = BASICSHADER;
 
 	#define TEXT_VTX_ARRAY_COUNT (4*1024)
 
@@ -216,75 +181,6 @@ int sdraw::init()
 	C3D_RenderTargetClear(top, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 	C3D_RenderTargetClear(bottom, C3D_CLEAR_ALL, CLEAR_COLOR, 0);
 
-	// Load the vertex shader, create a shader program and bind it
-	basicvshader_dvlb = DVLB_ParseFile((u32*)vshader_shbin, vshader_shbin_size);
-	shaderProgramInit(&basicprogram);
-	shaderProgramSetVsh(&basicprogram, &basicvshader_dvlb->DVLE[0]);
-	C3D_BindProgram(&basicprogram);
-
-	//Load the eventual vertex shader
-	eventualvshader_dvlb = DVLB_ParseFile((u32*)eventualvertex_shbin, eventualvertex_shbin_size);
-	shaderProgramInit(&eventualprogram);
-	shaderProgramSetVsh(&eventualprogram, &eventualvshader_dvlb->DVLE[0]);
-
-	//Load the two coordinates interpolation shader
-	twocoordsinterp_dvlb = DVLB_ParseFile((u32*)twocoordsinterp_shbin, twocoordsinterp_shbin_size);
-	shaderProgramInit(&twocoordsprogram);
-	shaderProgramSetVsh(&twocoordsprogram, &twocoordsinterp_dvlb->DVLE[0]);
-
-	//Load the three textures shader
-	threetextures_dvlb = DVLB_ParseFile((u32*)threetextures_shbin, threetextures_shbin_size);
-	shaderProgramInit(&threetexturesprogram);
-	shaderProgramSetVsh(&threetexturesprogram, &threetextures_dvlb->DVLE[0]);
-
-	// Get the location of the uniforms
-	uLoc_projection = shaderInstanceGetUniformLocation(basicprogram.vertexShader, "projection");
-
-	expand_projectionloc = shaderInstanceGetUniformLocation(eventualprogram.vertexShader, "projection");
-	expand_baseloc = shaderInstanceGetUniformLocation(eventualprogram.vertexShader, "base");
-	expand_expandloc = shaderInstanceGetUniformLocation(eventualprogram.vertexShader, "expansion");
-
-	twocds_projectionloc = shaderInstanceGetUniformLocation(twocoordsprogram.vertexShader, "projection");
-	twocds_interploc = shaderInstanceGetUniformLocation(twocoordsprogram.vertexShader, "interpfactor");
-	twocds_baseloc = shaderInstanceGetUniformLocation(twocoordsprogram.vertexShader, "base");
-	twocds_baseinterploc = shaderInstanceGetUniformLocation(twocoordsprogram.vertexShader, "baseinterpfactor");
-
-	threetextures_projectionloc = shaderInstanceGetUniformLocation(threetexturesprogram.vertexShader, "projection");
-
-	//Configure AttrInfos for use with the vertex shader
-	//Basic AttrInfos are the same in the eventual shader but position is actually the eventual position
-	AttrInfo_Init(&basicinfo);
-	AttrInfo_AddLoader(&basicinfo, 0, GPU_FLOAT, 3); // v0=position
-	AttrInfo_AddLoader(&basicinfo, 1, GPU_FLOAT, 2); // v1=texcoord
-	C3D_SetAttrInfo(&basicinfo); //This is the default
-	//Two coordinates, different AttrInfo
-	AttrInfo_Init(&twocoordsinfo);
-	AttrInfo_AddLoader(&twocoordsinfo, 0, GPU_FLOAT, 3); // v0 = position 1
-	AttrInfo_AddLoader(&twocoordsinfo, 1, GPU_FLOAT, 3); // v1 = position 2
-	AttrInfo_AddLoader(&twocoordsinfo, 2, GPU_FLOAT, 2); // v2 = texcoords
-	//Three textures
-	AttrInfo_Init(&threetexturesinfo);
-	AttrInfo_AddLoader(&threetexturesinfo, 0, GPU_FLOAT, 3); //Position
-	AttrInfo_AddLoader(&threetexturesinfo, 1, GPU_FLOAT, 2); //tc0
-	AttrInfo_AddLoader(&threetexturesinfo, 2, GPU_FLOAT, 2); //tc1
-	AttrInfo_AddLoader(&threetexturesinfo, 3, GPU_FLOAT, 2); //tc2
-
-	// Create the vertex arrays
-	sdrawVtxArray = (sdraw_Vertex*)linearAlloc(sizeof(sdraw_Vertex)*TEXT_VTX_ARRAY_COUNT);
-	twocdsVtxArray = (sdraw_TwoCdsVertex*)linearAlloc(sizeof(sdraw_TwoCdsVertex) * TEXT_VTX_ARRAY_COUNT);
-	threetexturesVtxArray = (sdraw_ThreeTexVertex*)linearAlloc(sizeof(sdraw_ThreeTexVertex) * TEXT_VTX_ARRAY_COUNT);
-
-	// Configure buffers
-	BufInfo_Init(&basicbuf);
-	BufInfo_Add(&basicbuf, sdrawVtxArray, sizeof(sdraw_Vertex), 2, 0x10);
-	C3D_SetBufInfo(&basicbuf);
-
-	BufInfo_Init(&twocoordsbuf);
-	BufInfo_Add(&twocoordsbuf, twocdsVtxArray, sizeof(sdraw_TwoCdsVertex), 3, 0x210);
-
-	BufInfo_Init(&threetexturesbuf);
-	BufInfo_Add(&threetexturesbuf, threetexturesVtxArray, sizeof(sdraw_ThreeTexVertex), 4, 0x3210);
-
 	// Compute the projection matrix
 	Mtx_OrthoTilt(&projectionTop, 0.0, 400.0, 240.0, 0.0, 0.0, 1.0, true);
 	Mtx_OrthoTilt(&projectionBot, 0.0, 320.0, 240.0, 0.0, 0.0, 1.0, true);
@@ -363,53 +259,8 @@ void sdraw::drawrectangle(int x, int y, int width, int height, u32 color, bool s
 		enabledarkmode(false);
 }
 
-void sdraw::sDrawi_addTextVertex(float vx, float vy, float tx, float ty)
-{
-	sdraw_Vertex* vtx = &sdrawVtxArray[sdrawVtxArrayPos++];
-	/*vtx->position[0] = vx;
-	vtx->position[1] = vy;
-	vtx->position[2] = 0.5f;
-	vtx->texcoord[0] = tx;
-	vtx->texcoord[1] = ty;*/
-	sdraw::internal_vertex vert = { vx, vy, 0.5, 0, 0, 0.5, tx, ty, 0, 0, 0, 0 };
-	currentshader->appendVertex(vert);
-	//MM::shader_eventual->appendVertex(vert);
-}
-
-void sdraw::sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty)
-{
-	sdraw_TwoCdsVertex* vtx = &twocdsVtxArray[sdrawTwoCdsVtxArrayPos++];
-	vtx->pos1[0] = vx1;
-	vtx->pos1[1] = vy1;
-	vtx->pos1[2] = 0.5f;
-	vtx->pos2[0] = vx2;
-	vtx->pos2[1] = vy2;
-	vtx->pos2[2] = 0.5f;
-	vtx->texcoord[0] = tx;
-	vtx->texcoord[1] = ty;
-	sdraw::internal_vertex vert = { vx1, vy1, 0.5, vx2, vy2, 0.5, tx, ty, 0, 0, 0, 0 };
-	currentshader->appendVertex(vert);
-}
-
 void sdraw::addVertex(float vx1, float vy1, float tx1, float ty1, float vx2, float vy2, float tx2, float ty2, float tx3, float ty3)
 {
-	/*sdraw_ThreeTexVertex* vtx = &threetexturesVtxArray[sdrawThreeTexturesVtxArrayPos++];
-	vtx->position[0] = vx1;
-	vtx->position[1] = vy1;
-	vtx->position[2] = 0.5f;
-
-	vtx->tc0[0] = tx1;
-	vtx->tc0[1] = ty1;
-
-	vtx->tc1[0] = tx2;
-	vtx->tc1[1] = ty2;
-
-	vtx->tc2[0] = tx3;
-	vtx->tc2[1] = ty3;*/
-	sdrawVtxArrayPos++;
-	sdrawTwoCdsVtxArrayPos++;
-	sdrawThreeTexturesVtxArrayPos++;
-
 	sdraw::internal_vertex vert = { vx1, vy1, 0.5, vx2, vy2, 0.5, tx1, ty1, tx2, ty2, tx3, ty3 };
 	currentshader->appendVertex(vert);
 }
@@ -626,47 +477,6 @@ void sdraw::updateshaderstate(ShaderBase* shader)
 	drawon(currentoutput); //Set the projection matrix
 }
 
-void sdraw::usebasicshader()
-{
-	//C3D_SetAttrInfo(&basicinfo);
-	shaderinuse = BASICSHADER;
-	//C3D_BindProgram(&basicprogram);
-	MM::shader_basic->bind();
-	//C3D_SetBufInfo(&basicbuf);
-	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, uLoc_projection, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
-}
-
-void sdraw::useeventualshader()
-{
-	//C3D_SetAttrInfo(&basicinfo);
-	//C3D_SetBufInfo(&basicbuf);
-	shaderinuse = EVENTUALSHADER;
-	//C3D_BindProgram(&eventualprogram);
-	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, expand_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
-	MM::shader_eventual->bind();
-}
-
-void sdraw::usetwocoordsshader()
-{
-	MM::shader_twocoords->bind();
-	//C3D_SetAttrInfo(&twocoordsinfo);
-	//C3D_SetBufInfo(&twocoordsbuf);
-	shaderinuse = TWOCOORDSSHADER;
-	//C3D_BindProgram(&twocoordsprogram);
-	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, twocds_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
-}
-
-void sdraw::usethreetexturesshader()
-{
-	MM::shader_threetextures->bind();
-	//C3D_SetAttrInfo(&threetexturesinfo);
-	//C3D_SetBufInfo(&threetexturesbuf);
-	shaderinuse = THREETEXTURESSHADER;
-	//C3D_BindProgram(&threetexturesprogram);
-	//C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, threetextures_projectionloc, currentoutput == GFX_TOP ? &projectionTop : &projectionBot);
-}
-
-
 void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
 {
 	if (info.usesdarkmode)
@@ -688,26 +498,15 @@ void sdraw::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1, int
 	const float scrwidth = 240, scrheight = istopfb ? 400 : 320;
 	const float texwidth = 256, texheight = 512;
 
-	if (x1 != -1) //See above function
-	{
-		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
-		addVertex(x, y + scrwidth, 0, (scrheight / texheight), x1, y1 + scrwidth); //left bottom
-		addVertex(x + scrheight, y + scrwidth, 0, 0, x1 + scrheight, y1 + scrwidth); //right bottom
-		addVertex(x, y, (scrwidth / texwidth), (scrheight / texheight), x1, y1); //left top
-		addVertex(x + scrheight, y, (scrwidth / texwidth), 0, x1 + scrheight, y1); //right top
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
-		usebasicshader();
-	}
-	else
-	{
-		addVertex(x, y + scrwidth, 0, (scrheight / texheight)); //left bottom
-		addVertex(x + scrheight, y + scrwidth, 0, 0); //right bottom
-		addVertex(x, y, (scrwidth / texwidth), (scrheight / texheight)); //left top
-		addVertex(x + scrheight, y, (scrwidth / texwidth), 0); //right top
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
-	}
+	//The existence of these uniforms is assumed. If a shader that does not have them
+	//is currently bound, they are simply ignored.
+	currentshader->setUniformF("baseinterpfactor", 1); //No base interpolation
+	currentshader->setUniformF("interpfactor", interpfactor);
+	addVertex(x, y + scrwidth, 0, (scrheight / texheight), x1, y1 + scrwidth); //left bottom
+	addVertex(x + scrheight, y + scrwidth, 0, 0, x1 + scrheight, y1 + scrwidth); //right bottom
+	addVertex(x, y, (scrwidth / texwidth), (scrheight / texheight), x1, y1); //left top
+	addVertex(x + scrheight, y, (scrwidth / texwidth), 0, x1 + scrheight, y1); //right top
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
 	/*sDrawi_addTextVertex(x, y + tex.height - 450, 0, 0); //left bottom
 	sDrawi_addTextVertex(x + tex.width, y + tex.height - 450, 1, 0); //right bottom
 	sDrawi_addTextVertex(x, y - 450, 0, 1); //left top
@@ -720,7 +519,6 @@ void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info
 {
 	if (info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
 		enabledarkmode(true);
-	usethreetexturesshader();
 
 	C3D_TexBind(0, info1.spritesheet);
 	C3D_TexBind(1, info2.spritesheet);
@@ -732,63 +530,9 @@ void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info
 	addVertex(x + info1.width, y, info1.topright[0], info1.topright[1], 0, 0, info2.topright[0], info2.topright[1], info3.topright[0], info3.topright[1]); //right top
 	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
 
-	usebasicshader();
 
 	if (info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
 		enabledarkmode(false);
-}
-
-/*
-CURRENTLY AWFULLY HACKED INTO FUNCTIONALITY DUE TO HALF-IMPLEMENTATION OF THE NEW SHADER SYSTEM.
-SHOULD BE RESOLVED SOON.
-*/
-void sdraw::drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1, int y1, float interpfactor)
-{
-	if (info.usesdarkmode)
-		enabledarkmode(true);
-	//Enable writing to the stencil buffer and draw the texture
-	C3D_StencilTest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
-	C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
-	drawtexture(info, x, y, x, y, interpfactor);
-
-	float middlex = x + info.width / 2;
-	float middley = y + info.height / 2;
-	//if (x1 != -1)
-	//{
-	usetwocoordsshader();
-	MM::shader_twocoords->setUniformF("baseinterpfactor", 1.10);
-	MM::shader_twocoords->setUniformF("base", middlex, middley);
-	MM::shader_twocoords->setUniformF("interpfactor", interpfactor);
-	/*}
-	else
-	{
-	useeventualshader(); //We can also use this to extrapolate beyond the eventual value, allowing us to make a highlighter
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_baseloc, middlex, middley, 0, 0);
-	C3D_FVUnifSet(GPU_VERTEX_SHADER, expand_expandloc, 1.10, 0, 0, 0);
-	}*/
-	C3D_StencilTest(true, GPU_NOTEQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it hasn't been set
-
-	//Since we're switching shader state within the core, we need to preserve the user state.
-	//This is ONLY done within this function. And I'm thinking that this should be removed in favor
-	//of something that does this stuff externally.
-	//At the time of writing, sDraw's revision has no idea what to do about stencil testing.
-	C3D_TexEnv states[5];
-	for (int i = 0; i < 4; i++)
-		states[i] = *C3D_GetTexEnv(i);
-
-	setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(color, alpha));
-
-	//No need to add these vertices again
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, /*x1 != -1 ?*/ currentshader->getArrayPos() - 4 /*: sdrawVtxArrayPos - 4*/, 4);
-
-	//TODO: Ensure previous shader state is kept instead of switching back to the basic shader
-	usebasicshader();
-	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0);
-	if (info.usesdarkmode)
-		enabledarkmode(false);
-
-	for (int i = 0; i < 4; i++)
-		C3D_SetTexEnv(i, &(states[i]));
 }
 
 //Draw with 0.75 texcoords as it's a 48x48 icon in a 64x64 texture (Power of two limits...)
@@ -812,29 +556,16 @@ void sdraw::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interp
 
 	if (x == CENTERED && y == CENTERED) { x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2); }
 
-	//If we have a second coordinate we need to activate the interpolation shader and add coordinates to its buffer
-	if (x1 != -1)
-	{
-		usetwocoordsshader();
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_baseinterploc, 1, 0, 0, 0); //No base interpolation
-		C3D_FVUnifSet(GPU_VERTEX_SHADER, twocds_interploc, interpfactor, 0, 0, 0);
-		currentshader->setUniformF("baseinterpfactor", 1);
-		currentshader->setUniformF("interpfactor", interpfactor);
-		addVertex(x, y + info.height, info.botleft[0], info.botleft[1], x1, y1 + info.height);
-		addVertex(x + info.width, y + info.height, info.botright[0], info.botright[1], x1 + info.width, y1 + info.height);
-		addVertex(x, y, info.topleft[0], info.topleft[1], x1, y1);
-		addVertex(x + info.width, y, info.topright[0], info.topright[1], x1 + info.width, y1);
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
-		usebasicshader();
-	}
-	else
-	{
-		addVertex(x, y + info.height, info.botleft[0], info.botleft[1]); //left bottom
-		addVertex(x + info.width, y + info.height, info.botright[0], info.botright[1]); //right bottom
-		addVertex(x, y, info.topleft[0], info.topleft[1]); //left top
-		addVertex(x + info.width, y, info.topright[0], info.topright[1]); //right top
-		C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
-	}
+	//The existence of these uniforms is assumed. If a shader that does not have them
+	//is currently bound, they are simply ignored.
+	currentshader->setUniformF("baseinterpfactor", 1);
+	currentshader->setUniformF("interpfactor", interpfactor);
+	
+	addVertex(x, y + info.height, info.botleft[0], info.botleft[1], x1, y1 + info.height);
+	addVertex(x + info.width, y + info.height, info.botright[0], info.botright[1], x1 + info.width, y1 + info.height);
+	addVertex(x, y, info.topleft[0], info.topleft[1], x1, y1);
+	addVertex(x + info.width, y, info.topright[0], info.topright[1], x1 + info.width, y1);
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
 }
 
 void sdraw::enabledarkmode(bool isenabled)
@@ -849,14 +580,7 @@ void sdraw::enabledarkmode(bool isenabled)
 void sdraw::framestart()
 {
 	C3D_FrameBegin(C3D_FRAME_SYNCDRAW);
-	sdrawVtxArrayPos = 0; //Reset the vertex arrays
-	sdrawTwoCdsVtxArrayPos = 0;
-	sdrawThreeTexturesVtxArrayPos = 0;
 
-	//MM::shader_basic->resetArrayPos();
-	//MM::shader_eventual->resetArrayPos();
-	//MM::shader_twocoords->resetArrayPos();
-	//MM::shader_threetextures->resetArrayPos();
 	for (auto iter = shaderlist.begin(); iter != shaderlist.end(); iter++)
 		(*iter)->resetArrayPos();
 
@@ -901,14 +625,9 @@ void sdraw::retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb)
 void sdraw::cleanup()
 {
 	C3D_FrameSplit(0); //We need to wait for everything to finish before shutting it down
-					   // Free the textures
+	// Free the textures
 	free(glyphSheets);
 	C3D_TexDelete(&lastfbtop);
 	C3D_TexDelete(&lastfbbot);
-	// Free the shader programs
-	shaderProgramFree(&basicprogram);
-	DVLB_Free(basicvshader_dvlb);
-	shaderProgramFree(&eventualprogram);
-	DVLB_Free(eventualvshader_dvlb);
 	C3D_Fini();
 }

@@ -47,6 +47,7 @@ void controlsdraw()
 	strout << cursorprint << " A+B Smash Attack: <" << enabledordisabled << ">" << '\n';
 	sdraw::framestart();
 	drawtopscreen();
+	sdraw::MM::shader_basic->bind();
 	sdraw::drawon(GFX_BOTTOM);
 	sdraw::drawtexture(backgroundbot, 0, 0);
 	sdraw::setfs("textColor", 0, RGBA8(0, 0, 0, 255));

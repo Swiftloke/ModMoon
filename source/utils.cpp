@@ -18,6 +18,44 @@ using namespace std;
 
 Handle event_fadefinished;
 
+//This function is strange. It clobbers state and switches shaders to provide an effect.
+//It used to be within the core, but I don't think that makes sense anymore. It will go in here instead.
+void drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alpha, int x1, int y1, float interpfactor)
+{
+	if (info.usesdarkmode)
+		sdraw::enabledarkmode(true);
+	//Enable writing to the stencil buffer and draw the texture
+	C3D_StencilTest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
+	C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
+	sdraw::drawtexture(info, x, y, x, y, interpfactor);
+
+	float middlex = x + info.width / 2;
+	float middley = y + info.height / 2;
+	sdraw::MM::shader_twocoords->bind();
+	sdraw::MM::shader_twocoords->setUniformF("baseinterpfactor", 1.10);
+	sdraw::MM::shader_twocoords->setUniformF("base", middlex, middley);
+	sdraw::MM::shader_twocoords->setUniformF("interpfactor", interpfactor);
+
+	C3D_StencilTest(true, GPU_NOTEQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it hasn't been set
+
+	//Preserve state...
+	C3D_TexEnv states[5];
+	for (int i = 0; i < 4; i++)
+		states[i] = *C3D_GetTexEnv(i);
+
+	sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(color, alpha));
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdraw::MM::shader_twocoords->getArrayPos() - 4, 4);
+	
+	//TODO: Ensure previous shader state is kept instead of switching back to the basic shader
+	sdraw::MM::shader_basic->bind();
+	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0);
+	if (info.usesdarkmode)
+		sdraw::enabledarkmode(false);
+
+	for (int i = 0; i < 4; i++)
+		C3D_SetTexEnv(i, &(states[i]));
+}
+
 Result nsRebootSystemClean()
 {
 	static Handle nsHandle;
@@ -81,6 +119,7 @@ void threadfunc_fade(void* main)
 	{
 		alpha += 3;
 		sdraw::framestart();
+		sdraw::MM::shader_basic->bind();
 		//sdraw::drawframebuffer(fbtop, 0, 0, true);
 		sdraw::drawrectangle(0, 0, 400, 240, RGBA8(rgbvalues[0], rgbvalues[1], rgbvalues[2], alpha)); //Overlay an increasingly covering rectangle for a fade effect
 		sdraw::drawon(GFX_BOTTOM);
