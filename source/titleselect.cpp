@@ -88,7 +88,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 	sdraw::drawtexture(titleselectionboxes, 26, 21);
 	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));
 	string versiontext = getversion();
-	sdraw::drawtext(versiontext.c_str(), 320 - 18 - sdraw::gettextmaxwidth(versiontext.c_str(), .4, .5), 1, .45, .45);
+	sdraw::drawtext(versiontext.c_str(), 320 - 18 - sdraw::gettextmaxwidth(versiontext.c_str(), .4), 1, .45, .45);
 	sdraw::setfs("texture", 0);
 	sdraw::MM::shader_twocoords->bind();
 	sdraw::drawframebuffer(prevfb, 0, 0, false, 0, -240, fbinterpfactor);

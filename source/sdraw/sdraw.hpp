@@ -111,8 +111,8 @@ namespace sdraw
 	void drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3);
 	void frameend();
 	float gettextheight(const char* text, float sizeY);
-	vector<float> gettextwidths(const char* text, float sizeX, float sizeY);
-	float gettextmaxwidth(const char* text, float sizeX, float sizeY);
+	vector<float> gettextwidths(const char* text, float sizeX);
+	float gettextmaxwidth(const char* text, float sizeX);
 	
 	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
 

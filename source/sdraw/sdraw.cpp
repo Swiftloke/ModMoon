@@ -327,7 +327,7 @@ float sdraw::gettextheight(const char* text, float sizeY)
 }
 
 //Get the width of the text input. Account for \n by using a vector of possible widths. Use gettextmaxwidth to return the longest one
-vector<float> sdraw::gettextwidths(const char* text, float sizeX, float sizeY)
+vector<float> sdraw::gettextwidths(const char* text, float sizeX)
 {
 	ssize_t  units;
 	uint32_t code;
@@ -356,7 +356,7 @@ vector<float> sdraw::gettextwidths(const char* text, float sizeX, float sizeY)
 		{
 			int glyphIdx = fontGlyphIndexFromCodePoint(code);
 			fontGlyphPos_s data;
-			fontCalcGlyphPos(&data, glyphIdx, flags, sizeX, sizeY);
+			fontCalcGlyphPos(&data, glyphIdx, flags, sizeX, 0);
 
 			x += data.xAdvance;
 
@@ -366,9 +366,9 @@ vector<float> sdraw::gettextwidths(const char* text, float sizeX, float sizeY)
 	return xvalues;
 }
 
-float sdraw::gettextmaxwidth(const char* text, float sizeX, float sizeY)
+float sdraw::gettextmaxwidth(const char* text, float sizeX)
 {
-	vector<float> widths = gettextwidths(text, sizeX, sizeY);
+	vector<float> widths = gettextwidths(text, sizeX);
 	//Compare the X values to see which one is the longest.
 	return *std::max_element(widths.begin(), widths.end());
 }
@@ -379,7 +379,7 @@ void sdraw::drawcenteredtext(const char* text, float scaleX, float scaleY, float
 {
 	//Always enable dark mode for text.
 	enabledarkmode(true);
-	vector<float> widths = gettextwidths(text, scaleX, scaleY);
+	vector<float> widths = gettextwidths(text, scaleX);
 	vector<float>::iterator widthiterator = widths.begin();
 	float x = (((currentoutput == GFX_TOP) ? 400 : 320) / 2 - (*widthiterator / 2)) - 5; //-5 to make it look a bit better
 
@@ -439,12 +439,12 @@ void sdraw::drawtextinrec(const char* text, int x, int y, int width, float scale
 {
 	//Always enable dark mode for text.
 	enabledarkmode(true);
-	float textwidth = gettextmaxwidth(text, scalex, scaley);
+	float textwidth = gettextmaxwidth(text, scalex);
 	float finalsizex;
 	if (textwidth > width)
 	{
 		scalex *= (width / textwidth);
-		finalsizex = gettextmaxwidth(text, scalex, scaley);
+		finalsizex = gettextmaxwidth(text, scalex);
 	}
 	else finalsizex = textwidth;
 	//Center it
