@@ -170,9 +170,10 @@ int startup()
 
 	//Draw a blank frame to allow error calls to retrieve a valid framebuffer
 	sdraw::framestart();
-	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
+	sdraw::setfs("constColor", 0, RGBA8(0, 0, 0, 255));
+	sdraw::drawrectangle(0, 0, 400, 240);
 	sdraw::drawon(GFX_BOTTOM);
-	sdraw::drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
+	sdraw::drawrectangle(0, 0, 320, 240);
 	sdraw::frameend();
 	//Configure dark mode
 	sdraw::darkmodeshouldactivate = config.read("DarkModeEnabled", false);
@@ -275,7 +276,8 @@ const unsigned int codes[] = {
 void secretcodedraw()
 {
 	sdraw::MM::shader_basic->bind();
-	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 255, 255));
+	sdraw::setfs("constColor", 0, RGBA8(0, 0, 0, 255));
+	sdraw::drawrectangle(0, 0, 400, 240);
 	//This secret is hidden from view in the spritesheet. It has only an alpha of 1 and no color.
 	//This is to prevent it from easily being seen in the source code. ;)
 	//Also because I'm a sucker for playing with graphics (as evidenced by my own rendering engine)

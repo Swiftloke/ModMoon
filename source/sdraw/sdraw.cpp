@@ -242,12 +242,10 @@ void sdraw::drawtext(const char* text, float x, float y, float sizeX, float size
 	enabledarkmode(false);
 }
 
-void sdraw::drawrectangle(int x, int y, int width, int height, u32 color, bool shouldusedarkmode)
+void sdraw::drawrectangle(int x, int y, int width, int height, bool shouldusedarkmode)
 {
 	if (shouldusedarkmode)
 		enabledarkmode(true);
-	//Override the color entirely
-	setfs("constColor", 0, color);
 
 	addVertex(x, y + height, 0, 0); //What texture
 	addVertex(x + width, y + height, 0, 0);

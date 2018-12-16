@@ -107,7 +107,7 @@ namespace sdraw
 	void drawtext(const char* text, float x, float y, float sizeX, float sizeY);
 	void drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley);
 	void drawcenteredtext(const char* text, float scaleX, float scaleY, float y);
-	void drawrectangle(int x, int y, int width, int height, u32 color, bool shouldusedarkmode = false);
+	void drawrectangle(int x, int y, int width, int height, bool shouldusedarkmode = false);
 	void drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3);
 	void frameend();
 	float gettextheight(const char* text, float sizeY);

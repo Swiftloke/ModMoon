@@ -121,10 +121,11 @@ void threadfunc_fade(void* main)
 		sdraw::framestart();
 		sdraw::MM::shader_basic->bind();
 		//sdraw::drawframebuffer(fbtop, 0, 0, true);
-		sdraw::drawrectangle(0, 0, 400, 240, RGBA8(rgbvalues[0], rgbvalues[1], rgbvalues[2], alpha)); //Overlay an increasingly covering rectangle for a fade effect
+		sdraw::setfs("constColor", 0, RGBA8(rgbvalues[0], rgbvalues[1], rgbvalues[2], alpha));
+		sdraw::drawrectangle(0, 0, 400, 240); //Overlay an increasingly covering rectangle for a fade effect
 		sdraw::drawon(GFX_BOTTOM);
 		//sdraw::drawframebuffer(fbbot, 0, 0, false);
-		sdraw::drawrectangle(0, 0, 320, 240, RGBA8(rgbvalues[0], rgbvalues[1], rgbvalues[2], alpha));
+		sdraw::drawrectangle(0, 0, 320, 240);
 		sdraw::frameend();
 	}
 	//C3D_TexDelete(&fbtop);

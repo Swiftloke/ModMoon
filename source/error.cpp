@@ -50,10 +50,13 @@ void drawerrorfade(string text, int alphapos, float fadepos)
 	//sdraw::usebasicshader();
 	sdraw::drawframebuffer(prevtop, 0, 0, true);
 	int fade = fadepos * 127;
-	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, fade));
+	sdraw::setfs("constColor", 0, RGBA8(0, 0, 0, fade));
+	sdraw::drawrectangle(0, 0, 400, 240);
 	sdraw::drawon(GFX_BOTTOM);
+	sdraw::setfs("texture", 0);
 	sdraw::drawframebuffer(prevbot, 0, 0, false);
-	sdraw::drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, fade), true);
+	sdraw::setfs("constColor", 0, RGBA8(0, 0, 0, fade));
+	sdraw::drawrectangle(0, 0, 320, 240, true);
 	/*sdraw::useeventualshader();
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::expand_baseloc, 320 / 2, 240 / 2, 0, 0);
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::expand_expandloc, expandpos, 0, 0, 0);
@@ -140,11 +143,16 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	texcoordplus += 0.005;
 	sdraw::framestart();
 	sdraw::MM::shader_basic->bind();
-	sdraw::setfs("texture");
-	if(topfb.height)
+	if (topfb.height)
+	{
+		sdraw::setfs("texture");
 		sdraw::drawframebuffer(topfb, 0, 0, true);
+	}
 	else
+	{
+		sdraw::setfs("constColor", 0, RGBA8(0, 0, 0, 255));
 		sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
+	}
 	sdraw::drawon(GFX_BOTTOM);
 	if (botfb.height)
 		sdraw::drawframebuffer(botfb, 0, 0, false);

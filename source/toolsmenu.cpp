@@ -57,9 +57,10 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 	sdraw::MM::shader_basic->bind();
 	if (shouldblink)
 	{
-		sdraw::drawrectangle(0, 0, 400, 240, RGBA8(255, 255, 255, 255));
+		sdraw::setfs("constColor", 0, RGBA8(255, 255, 255, 255));
+		sdraw::drawrectangle(0, 0, 400, 240);
 		sdraw::drawon(GFX_BOTTOM);
-		sdraw::drawrectangle(0, 0, 320, 240, RGBA8(255, 255, 255, 255));
+		sdraw::drawrectangle(0, 0, 320, 240);
 	}
 	else
 	{
