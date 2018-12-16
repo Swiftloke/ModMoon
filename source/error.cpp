@@ -172,13 +172,13 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::twocds_interploc, progress, 0, 0, 0);
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::twocds_baseloc, 320 / 2, 240 / 2, 0, 0);
 	C3D_FVUnifSet(GPU_VERTEX_SHADER, sdraw::twocds_baseinterploc, expandpos, 0, 0, 0);
-	sdraw::sDrawi_addTwoCoordsVertex(x, y, x, y, texcoordplus, 0);
-	sdraw::sDrawi_addTwoCoordsVertex(x, y + 35, x, y + 35, texcoordplus, 1);
-	sdraw::sDrawi_addTwoCoordsVertex(x, y, x + 260, y, texcoordplus + rightsidetexcoord, 0);
-	sdraw::sDrawi_addTwoCoordsVertex(x, y + 35, x + 260, y + 35, texcoordplus + rightsidetexcoord, 1);
+	sdraw::addVertex(x, y, texcoordplus, 0, x, y);
+	sdraw::addVertex(x, y + 35, texcoordplus, 1, x, y + 35);
+	sdraw::addVertex(x, y, texcoordplus + rightsidetexcoord, 0, x + 260, y);
+	sdraw::addVertex(x, y + 35, texcoordplus + rightsidetexcoord, 1, x + 260, y + 35);
 	C3D_TexBind(0, progressfiller);
 	//TexEnv for basic texture is already set from the last drawtexture call so we don't need to bother
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdraw::sdrawTwoCdsVtxArrayPos-4, 4);
+	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdraw::MM::shader_twocoords->getArrayPos() - 4, 4);
 	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0); //Turn off the stencil test
 	sdraw::usebasicshader();
 	sdraw::frameend();

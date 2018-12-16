@@ -27,6 +27,7 @@ namespace sdraw
 	{
 	public:
 		virtual unsigned int getArrayPos() = 0;
+		virtual void resetArrayPos() = 0;
 		virtual void appendVertex(internal_vertex& vert) = 0;
 		virtual void setUniformF(const char* uniform, float x, float y = 0, float z = 0, float w = 0) = 0;
 		virtual void setUniformMtx4x4(const char* uniform, C3D_Mtx* matrix) = 0;
@@ -40,10 +41,9 @@ namespace sdraw
 	public:
 		T* vertexlist;
 		Shader() {} //Allows for defining shaders as extern
-		Shader(const u8* vshaderbin, u32 vshadersize)
+		Shader(const u8* vshaderbin, u32 vshadersize) : arraypos(0)
 		{
 			vertexlist = (T*)linearAlloc(sizeof(T) * 1024);
-			resetArrayPos();
 			AttrInfo_Init(&attrinfo);
 			BufInfo_Init(&bufinfo);
 

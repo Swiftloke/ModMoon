@@ -126,9 +126,12 @@ namespace sdraw
 	void useeventualshader();
 	void usetwocoordsshader();
 	void usethreetexturesshader();
+
 	void sDrawi_addTextVertex(float vx, float vy, float tx, float ty);
 	void sDrawi_addTwoCoordsVertex(float vx1, float vy1, float vx2, float vy2, float tx, float ty);
 	void sDrawi_addThreeTexturesVertex(float vx, float vy, float tc0x, float tc0y, float tc1x, float tc1y, float tc2x, float tc2y);
+
+	void addVertex(float vx1, float vy1, float tx1, float ty1, float vx2 = -1, float vy2 = -1, float tx2 = -1, float ty2 = -1, float tx3 = -1, float ty3 = -1);
 
 	//Copies last frame to provided textures of 256x512 dimensions.
 	void retrieveframebuffers(C3D_Tex* topfb, C3D_Tex* botfb);
