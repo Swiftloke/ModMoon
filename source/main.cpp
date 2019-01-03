@@ -449,7 +449,7 @@ void drawtopscreen()
 	//Draw the current title
 	if (getSMDHdata()[currenttidpos].titl != 0) //This may be a cartridge that's not inserted, if it is, don't draw it
 	{
-		sdraw::drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
+		sdraw::drawtexture(constructSMDHtex(&(getSMDHdata()[currenttidpos].icon)), 400 - 48 - 7, 240 - 48 - 7);
 	}
 	sdraw::drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
 }

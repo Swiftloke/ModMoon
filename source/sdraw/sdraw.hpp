@@ -125,9 +125,6 @@ namespace sdraw
 	///istopfb should be provided to let the engine know whether the framebuffer is for the top screen or
 	///the bottom. This is because the two screens have different dimensions.
 	void drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1 = -1, int y1 = -1, float interpfactor = 0);
-	///Draws a C3D_Tex that contains an SMDH icon.
-	///It draws with 0.75 texcoords as it's a 48x48 icon in a 64x64 texture, due to power of two limits.
-	void drawSMDHicon(C3D_Tex icon, int x, int y);
 	///Draws text to the screen. text is the text, x and y are the coordinates,
 	///and sizeX / sizeY are the font sizes.
 	void drawtext(const char* text, float x, float y, float sizeX, float sizeY);

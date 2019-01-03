@@ -82,7 +82,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 		}
 		i++;
 		if(iter->titl != 0) //Not a null cartridge
-			sdraw::drawSMDHicon((*iter).icon, x, y);
+			sdraw::drawtexture(constructSMDHtex(&(iter->icon)), x, y);
 	}
 	sdraw::setfs("texture", 0);
 	sdraw::drawtexture(titleselectionboxes, 26, 21);

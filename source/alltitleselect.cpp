@@ -92,7 +92,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 		}
 		i++;
 		if (iter->titl != 0) //Not a null cartridge
-			sdraw::drawSMDHicon((*iter).icon, x, y);
+			sdraw::drawtexture(constructSMDHtex(&(iter->icon)), x, y);
 	}
 	sdraw::drawtexture(titleselectionboxes, 26, 21);
 	sdraw::MM::shader_twocoords->bind();

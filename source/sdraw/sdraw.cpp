@@ -517,22 +517,6 @@ void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info
 		enabledarkmode(false);
 }
 
-//Draw with 0.75 texcoords as it's a 48x48 icon in a 64x64 texture (Power of two limits...)
-//Also width/height is constant- 48x48
-void sdraw::drawSMDHicon(C3D_Tex icon, int x, int y)
-{
-	bindtex(0, &icon);
-
-	if (x == CENTERED && y == CENTERED) { x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (48 / 2); y = (240 / 2) - (48 / 2); }
-
-	addVertex(x, y + 48, 0, 0); //left bottom
-	addVertex(x + 48, y + 48, 0.75, 0); //right bottom
-	addVertex(x, y, 0, 0.75); //left top
-	addVertex(x + 48, y, 0.75, 0.75); //right top
-
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
-}
-
 void sdraw::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
 {
 
