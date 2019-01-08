@@ -33,23 +33,24 @@ using namespace std;
 	GX_TRANSFER_IN_FORMAT(GX_TRANSFER_FMT_RGBA8) | GX_TRANSFER_OUT_FORMAT(GX_TRANSFER_FMT_RGBA8) | \
 	GX_TRANSFER_SCALING(GX_TRANSFER_SCALE_NO))
 
-	static C3D_Mtx projectionTop, projectionBot;
-	static C3D_Tex* glyphSheets;
+	C3D_Mtx projectionTop, projectionBot;
+	C3D_Tex* glyphSheets;
 	C3D_RenderTarget* top;
 	C3D_RenderTarget* bottom;
 
 	bool sdraw::darkmodeshouldactivate = false;
+	bool darkmodeenabled = false;
 
 	C3D_Tex sdraw::lastfbtop;
 	C3D_Tex sdraw::lastfbbot;
 	gfxScreen_t sdraw::currentoutput = GFX_TOP;
 
-	sdraw::ShaderBase* currentshader;
+	sdraw::ShaderBase* sdraw::currentshader;
 	vector<sdraw::ShaderBase*> shaderlist;
 
-	#define TEXT_VTX_ARRAY_COUNT (4*1024)
+	int sdraw::vtxstartindex = 0; //Keeps track of vertices for the next draw call
+	bool sdraw::vtxbufflushed = true;
 
-#define TEX_MIN_SIZE 64
 
 //Unused. Here for historical purposes.
 /*C3D_Tex* loadpng(string filepath)
@@ -158,6 +159,7 @@ int sdraw::init()
 	// Initialize the render targets
 	top = C3D_RenderTargetCreate(240, 400, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
 	C3D_RenderTargetSetOutput(top, GFX_TOP, GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
+	//consoleInit(GFX_TOP, NULL);
 
 	bottom = C3D_RenderTargetCreate(240, 320, GPU_RB_RGBA8, GPU_RB_DEPTH24_STENCIL8);
 	C3D_RenderTargetSetOutput(bottom, GFX_BOTTOM, GFX_LEFT, DISPLAY_TRANSFER_FLAGS);
@@ -205,6 +207,18 @@ int sdraw::init()
 
 	return 0;
 }
+//#include <iostream>
+void sdraw::drawCall()
+{
+	//Flush vertices
+	if (!vtxbufflushed)
+	{
+		//std::cout << "Start: " << vtxstartindex << " Finish: " << currentshader->getArrayPos() << " Count: " << currentshader->getArrayPos() - vtxstartindex << std::endl;
+		C3D_DrawArrays(GPU_TRIANGLES, vtxstartindex, currentshader->getArrayPos() - vtxstartindex);
+		vtxstartindex = currentshader->getArrayPos();
+		vtxbufflushed = true;
+	}
+}
 
 void sdraw::drawon(gfxScreen_t output)
 {
@@ -218,13 +232,13 @@ void sdraw::drawon(gfxScreen_t output)
 	C3D_FVUnifMtx4x4(GPU_VERTEX_SHADER, loc, output == GFX_TOP ? &projectionTop : &projectionBot);*/
 }
 
-void sdraw::drawtext(const char* text, float x, float y, float sizeX, float sizeY)
+/*void sdraw::drawtext(const char* text, float x, float y, float sizeX, float sizeY)
 {
 	//Always enable dark mode for text.
 	enabledarkmode(true);
 	sDrawi_renderText(x, y, sizeX, sizeY, false, text);
 	enabledarkmode(false);
-}
+}*/
 
 void sdraw::drawrectangle(int x, int y, int width, int height, bool shouldusedarkmode)
 {
@@ -234,20 +248,24 @@ void sdraw::drawrectangle(int x, int y, int width, int height, bool shouldusedar
 	addVertex(x, y + height, 0, 0); //What texture
 	addVertex(x + width, y + height, 0, 0);
 	addVertex(x, y, 0, 0);
+
+	addVertex(x, y, 0, 0);
+	addVertex(x + width, y + height, 0, 0);
 	addVertex(x + width, y, 0, 0);
 
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
+	//C3D_DrawArrays(GPU_TRIANGLES, currentshader->getArrayPos() - 6, 6);
 	if (shouldusedarkmode)
 		enabledarkmode(false);
 }
 
 void sdraw::addVertex(float vx1, float vy1, float tx1, float ty1, float vx2, float vy2, float tx2, float ty2, float tx3, float ty3)
 {
+	vtxbufflushed = false;
 	sdraw::internal_vertex vert = { vx1, vy1, 0.5, vx2, vy2, 0.5, tx1, ty1, tx2, ty2, tx3, ty3 };
 	currentshader->appendVertex(vert);
 }
 
-void sdraw::sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text)
+void sdraw::drawtext(const char* text, float x, float y, float sizeX, float sizeY)
 {
 	ssize_t  units;
 	uint32_t code;
@@ -255,7 +273,7 @@ void sdraw::sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool
 
 	const uint8_t* p = (const uint8_t*)text;
 	float firstX = x;
-	u32 flags = GLYPH_POS_CALC_VTXCOORD | (baseline ? GLYPH_POS_AT_BASELINE : 0);
+	u32 flags = GLYPH_POS_CALC_VTXCOORD;
 	int lastSheet = -1;
 	do
 	{
@@ -267,33 +285,35 @@ void sdraw::sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool
 		if (code == '\n')
 		{
 			x = firstX;
-			y += scaleY * fontGetInfo()->lineFeed;
+			y += sizeY * fontGetInfo()->lineFeed;
 		}
 		else if (code > 0)
 		{
 			int glyphIdx = fontGlyphIndexFromCodePoint(code);
 			fontGlyphPos_s data;
-			fontCalcGlyphPos(&data, glyphIdx, flags, scaleX, scaleY);
+			fontCalcGlyphPos(&data, glyphIdx, flags, sizeX, sizeY);
 
 			// Bind the correct texture sheet
 			if (data.sheetIndex != lastSheet)
 			{
 				lastSheet = data.sheetIndex;
-				C3D_TexBind(0, &glyphSheets[lastSheet]);
+				bindtex(0, &glyphSheets[lastSheet]);
+				//C3D_TexBind(0, &glyphSheets[lastSheet]);
 			}
 
 			int arrayIndex = currentshader->getArrayPos();
-			if ((arrayIndex + 4) >= TEXT_VTX_ARRAY_COUNT)
-				break; // We can't render more characters
 
-					   // Add the vertices to the array
+			// Add the vertices to the array
 			addVertex(x + data.vtxcoord.left, y + data.vtxcoord.bottom, data.texcoord.left, data.texcoord.bottom);
 			addVertex(x + data.vtxcoord.right, y + data.vtxcoord.bottom, data.texcoord.right, data.texcoord.bottom);
 			addVertex(x + data.vtxcoord.left, y + data.vtxcoord.top, data.texcoord.left, data.texcoord.top);
+
+			addVertex(x + data.vtxcoord.left, y + data.vtxcoord.top, data.texcoord.left, data.texcoord.top);
+			addVertex(x + data.vtxcoord.right, y + data.vtxcoord.bottom, data.texcoord.right, data.texcoord.bottom);
 			addVertex(x + data.vtxcoord.right, y + data.vtxcoord.top, data.texcoord.right, data.texcoord.top);
 
 			// Draw the glyph
-			C3D_DrawArrays(GPU_TRIANGLE_STRIP, arrayIndex, 4);
+			//C3D_DrawArrays(GPU_TRIANGLES, arrayIndex, 6);
 
 			x += data.xAdvance;
 
@@ -394,21 +414,23 @@ void sdraw::drawcenteredtext(const char* text, float scaleX, float scaleY, float
 			if (data.sheetIndex != lastSheet)
 			{
 				lastSheet = data.sheetIndex;
-				C3D_TexBind(0, &glyphSheets[lastSheet]);
+				bindtex(0, &glyphSheets[lastSheet]);
+				//C3D_TexBind(0, &glyphSheets[lastSheet]);
 			}
 
 			int arrayIndex = currentshader->getArrayPos();
-			if ((arrayIndex + 4) >= TEXT_VTX_ARRAY_COUNT)
-				break; // We can't render more characters
 
-					   // Add the vertices to the array
+			// Add the vertices to the array
 			addVertex(x + data.vtxcoord.left, y + data.vtxcoord.bottom, data.texcoord.left, data.texcoord.bottom);
 			addVertex(x + data.vtxcoord.right, y + data.vtxcoord.bottom, data.texcoord.right, data.texcoord.bottom);
 			addVertex(x + data.vtxcoord.left, y + data.vtxcoord.top, data.texcoord.left, data.texcoord.top);
+
+			addVertex(x + data.vtxcoord.left, y + data.vtxcoord.top, data.texcoord.left, data.texcoord.top);
+			addVertex(x + data.vtxcoord.right, y + data.vtxcoord.bottom, data.texcoord.right, data.texcoord.bottom);
 			addVertex(x + data.vtxcoord.right, y + data.vtxcoord.top, data.texcoord.right, data.texcoord.top);
 
 			// Draw the glyph
-			C3D_DrawArrays(GPU_TRIANGLE_STRIP, arrayIndex, 4);
+			//C3D_DrawArrays(GPU_TRIANGLES, arrayIndex, 6);
 
 			x += data.xAdvance;
 
@@ -438,22 +460,27 @@ void sdraw::drawtextinrec(const char* text, int x, int y, int width, float scale
 
 void sdraw::drawtexture(C3D_Tex* tex, int x, float y)
 {
-	C3D_TexBind(0, tex);
+	sdraw::bindtex(0, tex);
 
 	if (x == CENTERED && y == CENTERED) { x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (tex->width / 2); y = (240 / 2) - (tex->height / 2); }
 
 	addVertex(x, y + tex->height, 0.0f, 1); //left bottom
 	addVertex(x + tex->width, y + tex->height, 1, 1); //right bottom
 	addVertex(x, y, 0.0f, 0.0f); //left top
+
+	addVertex(x, y, 0.0f, 0.0f); //left top
+	addVertex(x + tex->width, y + tex->height, 1, 1); //right bottom
 	addVertex(x + tex->width, y, 1, 0.0f); //right top
 
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
+	//C3D_DrawArrays(GPU_TRIANGLES, currentshader->getArrayPos() - 6, 6);
 }
 
 
 void sdraw::updateshaderstate(ShaderBase* shader)
 {
+	drawCall();
 	currentshader = shader;
+	vtxstartindex = currentshader->getArrayPos();
 	if (std::find(shaderlist.begin(), shaderlist.end(), shader) == shaderlist.end())
 		shaderlist.push_back(shader);
 	drawon(currentoutput); //Set the projection matrix
@@ -484,11 +511,16 @@ void sdraw::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1, int
 	//is currently bound, they are simply ignored.
 	currentshader->setUniformF("baseinterpfactor", 1); //No base interpolation
 	currentshader->setUniformF("interpfactor", interpfactor);
+
 	addVertex(x, y + scrwidth, 0, (scrheight / texheight), x1, y1 + scrwidth); //left bottom
 	addVertex(x + scrheight, y + scrwidth, 0, 0, x1 + scrheight, y1 + scrwidth); //right bottom
 	addVertex(x, y, (scrwidth / texwidth), (scrheight / texheight), x1, y1); //left top
+
+	addVertex(x, y, (scrwidth / texwidth), (scrheight / texheight), x1, y1); //left top
+	addVertex(x + scrheight, y + scrwidth, 0, 0, x1 + scrheight, y1 + scrwidth); //right bottom
 	addVertex(x + scrheight, y, (scrwidth / texwidth), 0, x1 + scrheight, y1); //right top
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
+
+	//C3D_DrawArrays(GPU_TRIANGLES, currentshader->getArrayPos() - 6, 6);
 	/*sDrawi_addTextVertex(x, y + tex.height - 450, 0, 0); //left bottom
 	sDrawi_addTextVertex(x + tex.width, y + tex.height - 450, 1, 0); //right bottom
 	sDrawi_addTextVertex(x, y - 450, 0, 1); //left top
@@ -502,15 +534,19 @@ void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info
 	if (info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
 		enabledarkmode(true);
 
-	C3D_TexBind(0, info1.spritesheet);
-	C3D_TexBind(1, info2.spritesheet);
-	C3D_TexBind(2, info3.spritesheet);
+	sdraw::bindtex(0, info1.spritesheet);
+	sdraw::bindtex(1, info2.spritesheet);
+	sdraw::bindtex(2, info3.spritesheet);
 
 	addVertex(x, y + info1.height, info1.botleft[0], info1.botleft[1], 0, 0, info2.botleft[0], info2.botleft[1], info3.botleft[0], info3.botleft[1]); //left bottom
 	addVertex(x + info1.width, y + info1.height, info1.botright[0], info1.botright[1], 0, 0, info2.botright[0], info2.botright[1], info3.botright[0], info3.botright[1]); //right bottom
 	addVertex(x, y, info1.topleft[0], info1.topleft[1], 0, 0, info2.topleft[0], info2.topleft[1], info3.topleft[0], info3.topleft[1]); //left top
+
+	addVertex(x, y, info1.topleft[0], info1.topleft[1], 0, 0, info2.topleft[0], info2.topleft[1], info3.topleft[0], info3.topleft[1]); //left top
+	addVertex(x + info1.width, y + info1.height, info1.botright[0], info1.botright[1], 0, 0, info2.botright[0], info2.botright[1], info3.botright[0], info3.botright[1]); //right bottom
 	addVertex(x + info1.width, y, info1.topright[0], info1.topright[1], 0, 0, info2.topright[0], info2.topright[1], info3.topright[0], info3.topright[1]); //right top
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
+	
+	//C3D_DrawArrays(GPU_TRIANGLES, currentshader->getArrayPos() - 6, 6);
 
 
 	if (info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
@@ -530,14 +566,23 @@ void sdraw::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interp
 	addVertex(x, y + info.height, info.botleft[0], info.botleft[1], x1, y1 + info.height);
 	addVertex(x + info.width, y + info.height, info.botright[0], info.botright[1], x1 + info.width, y1 + info.height);
 	addVertex(x, y, info.topleft[0], info.topleft[1], x1, y1);
+
+	
+	addVertex(x, y, info.topleft[0], info.topleft[1], x1, y1);
+	addVertex(x + info.width, y + info.height, info.botright[0], info.botright[1], x1 + info.width, y1 + info.height);
 	addVertex(x + info.width, y, info.topright[0], info.topright[1], x1 + info.width, y1);
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, currentshader->getArrayPos() - 4, 4);
+
+	//C3D_DrawArrays(GPU_TRIANGLES, currentshader->getArrayPos() - 6, 6);
+	//drawCall();
 }
 
 void sdraw::enabledarkmode(bool isenabled)
 {
-	if (!darkmodeshouldactivate)
+	if (!darkmodeshouldactivate || darkmodeenabled == isenabled)
 		return;
+	darkmodeenabled = isenabled;
+	//Flush state. This could be removed in OpenGL with a conditional, and *maybe* in C3D with some trickery?
+	drawCall();
 	C3D_TexEnv* tev = C3D_GetTexEnv(5);
 	//Invert colors...
 	C3D_TexEnvOpRgb(tev, isenabled ? GPU_TEVOP_RGB_ONE_MINUS_SRC_COLOR : GPU_TEVOP_RGB_SRC_COLOR);
@@ -549,6 +594,7 @@ void sdraw::framestart()
 
 	for (auto iter = shaderlist.begin(); iter != shaderlist.end(); iter++)
 		(*iter)->resetArrayPos();
+	vtxstartindex = 0;
 
 	//Of all things, this is what breaks the framebuffer copy.
 	//Well, OK, I don't really need or use this functionality anyway.
@@ -563,6 +609,8 @@ void sdraw::framestart()
 
 void sdraw::frameend()
 {
+	drawCall(); //Flush remaining vertices
+
 	//Get the final framebuffer of this frame and save it
 	//So the ctrulib docs have lies, GX_BUFFER_DIM is not width and height, but rather what 16-byte blocks to copy
 	//And what 16-byte blocks to skip copying. Also >>4 because "that's how it works".

@@ -44,7 +44,7 @@ void drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alph
 		states[i] = *C3D_GetTexEnv(i);
 
 	sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(color, alpha));
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdraw::MM::shader_twocoords->getArrayPos() - 4, 4);
+	C3D_DrawArrays(GPU_TRIANGLES, sdraw::MM::shader_twocoords->getArrayPos() - 6, 6);
 	
 	//TODO: Ensure previous shader state is kept instead of switching back to the basic shader
 	sdraw::MM::shader_basic->bind();
@@ -54,6 +54,11 @@ void drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alph
 
 	for (int i = 0; i < 4; i++)
 		C3D_SetTexEnv(i, &(states[i]));
+}
+
+sdraw_stex constructSMDHtex(C3D_Tex* icon)
+{
+	return { icon, 0, 0, 48, 48, false };
 }
 
 Result nsRebootSystemClean()

@@ -285,14 +285,8 @@ void secretcodedraw()
 	//If you're reading this, you won't understand what it is until you try it for yourself, seeing as you
 	//don't know what has an alpha in this subtexture.
 	//This code brings it back up to full alpha and gives it a color.
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
-	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
-	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_ADD);
-	C3D_TexEnvColor(tev, RGBA8(255, 255, 0, 254));
+
+	sdraw::setfs("secretCode", 0, RGBA8(255, 255, 0, 254));
 
 	C3D_AlphaTest(true, GPU_EQUAL, 255); //1 + 254 = 255, ignore everything else
 	sdraw::drawquad(secret, 0, 0);
@@ -424,7 +418,6 @@ void drawtopscreen()
 	//moon is actually animated with these colors.
 	static float animationplus = 0;
 
-
 	sdraw::setfs("topScreenMoon", 0);
 	sdraw::MM::shader_threetextures->bind();
 	
@@ -483,6 +476,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 		rainbowinterp -= 3;
 		if(rainbowinterp < 0) rainbowinterp = 0;
 	}
+	rainbowinterp = 128; //For testing on Citra
 	sdraw::setfs("launchButtonMoon", 0, RGBA8(0, 0, 0, rainbowinterp));
 
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 40, false);

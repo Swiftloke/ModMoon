@@ -157,19 +157,28 @@ namespace sdraw
 	
 	//Called by vertex shader classes. Updates internal structures for shaders
 	//(what shader to apply actions to) + sets the projection matrix automatically.
+	//Note: This function triggers a draw call in order to change state.
 	void updateshaderstate(ShaderBase* shader);
 
 	///Internal structs. Should not be used externally.
 	extern C3D_Tex lastfbtop;
 	extern C3D_Tex lastfbbot;
 	extern gfxScreen_t currentoutput;
+	extern int vtxstartindex;
+	extern bool vtxbufflushed;
+	extern ShaderBase* currentshader;
 	void sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text);
+
 
 	///Internal function to actually draw quads. Should not be used externally.
 	void drawquad(sdraw_stex info, int x, int y, int x1 = -1, int y1 = -1, float interpfactor = 0);
 
 	///Internal function to add vertices to the currently bound shader. Should not be used externally.
 	void addVertex(float vx1, float vy1, float tx1, float ty1, float vx2 = -1, float vy2 = -1, float tx2 = -1, float ty2 = -1, float tx3 = -1, float ty3 = -1);
+
+	///Internal function to trigger a draw call with the currently bound state
+	///in order to flush vertices. Should not be used externally.
+	void drawCall();
 
 } //namespace sdraw
 

@@ -77,6 +77,7 @@ namespace sdraw
 			BufInfo_Add(&bufinfo, vertexlist, sizeof(T), attrcount, permutation);
 		}
 
+		//Note: This function triggers a draw call in order to change state.
 		void bind()
 		{
 			C3D_BindProgram(&program);
