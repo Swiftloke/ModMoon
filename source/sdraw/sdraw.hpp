@@ -167,7 +167,6 @@ namespace sdraw
 	extern int vtxstartindex;
 	extern bool vtxbufflushed;
 	extern ShaderBase* currentshader;
-	void sDrawi_renderText(float x, float y, float scaleX, float scaleY, bool baseline, const char* text);
 
 
 	///Internal function to actually draw quads. Should not be used externally.
