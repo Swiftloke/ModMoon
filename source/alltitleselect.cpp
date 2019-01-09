@@ -77,15 +77,16 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 				}
 			}
 			if(iter->isactive)
-				sdraw::setfs("titleSelectBlink", 1);
+				sdraw::setfs("titleSelectBlink", 1, RGBA8(0, 0, 255, 255));
 			sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(titleselecthighlighter.highlightercolor, highlighteralpha));
 			sdraw::drawtexture(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, x - 9, y - 9, highlighterinterpfactor);
 			if(iter->isactive)
 				sdraw::setfs("blank", 1);
+			sdraw::setfs("texture", 0);
 		}
 		else if (iter->isactive && i != 0)
 		{
-			sdraw::setfs("titleSelectBlink", 1);
+			sdraw::setfs("titleSelectBlink", 1, RGBA8(0, 0, 255, 255));
 			sdraw::drawtexture(titleselecthighlighter, x - 9, y - 9);
 			//Now we need to reset stage 1
 			sdraw::setfs("blank", 1);

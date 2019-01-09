@@ -164,7 +164,7 @@ void sdraw::bindtex(unsigned int texunit, sdraw_stex tex)
 
 void sdraw::bindtex(unsigned int texunit, C3D_Tex* tex)
 {
-	if (tex->data != boundtex[texunit]->data)
+	if (tex != boundtex[texunit])
 	{
 		drawCall(); //Flush state
 		boundtex[texunit] = tex;

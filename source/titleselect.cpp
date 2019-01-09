@@ -68,7 +68,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			}
 			if (highlighterblink)
 			{
-				sdraw::setfs("titleSelectBlink", 1);
+				sdraw::setfs("titleSelectBlink", 1, RGBA8(0, 0, 255, 255));
 			}
 			//If the highlighter blink is active, we need to give a full alpha, seeing as it's "blinking"
 			sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(titleselecthighlighter.highlightercolor, highlighterblink ? 255 : highlighteralpha));
@@ -79,6 +79,7 @@ void titleselectdraw(C3D_Tex prevfb, float fbinterpfactor, int scrollsubtractrow
 			{
 				sdraw::setfs("blank", 1);
 			}
+			sdraw::setfs("texture", 0);
 		}
 		i++;
 		if(iter->titl != 0) //Not a null cartridge

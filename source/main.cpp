@@ -476,7 +476,7 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 		rainbowinterp -= 3;
 		if(rainbowinterp < 0) rainbowinterp = 0;
 	}
-	rainbowinterp = 128; //For testing on Citra
+	//rainbowinterp = 128; //For testing on Citra
 	sdraw::setfs("launchButtonMoon", 0, RGBA8(0, 0, 0, rainbowinterp));
 
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 40, false);
