@@ -80,11 +80,11 @@ namespace sdraw
 		//Note: This function triggers a draw call in order to change state.
 		void bind()
 		{
+			//In namespace sdraw
+			updateshaderstate(this);
 			C3D_BindProgram(&program);
 			C3D_SetBufInfo(&bufinfo);
 			C3D_SetAttrInfo(&attrinfo);
-			//In namespace sdraw
-			updateshaderstate(this);
 		}
 
 		void setUniformF(const char* uniform, float x, float y = 0, float z = 0, float w = 0)

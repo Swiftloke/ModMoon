@@ -124,7 +124,7 @@ namespace sdraw
 	///must be powers of two, this function exists to handle the insane texcoord math to deal with it.
 	///istopfb should be provided to let the engine know whether the framebuffer is for the top screen or
 	///the bottom. This is because the two screens have different dimensions.
-	void drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1 = -1, int y1 = -1, float interpfactor = 0);
+	void drawframebuffer(C3D_Tex& tex, int x, int y, bool istopfb, int x1 = -1, int y1 = -1, float interpfactor = 0);
 	///Draws text to the screen. text is the text, x and y are the coordinates,
 	///and sizeX / sizeY are the font sizes.
 	void drawtext(const char* text, float x, float y, float sizeX, float sizeY);

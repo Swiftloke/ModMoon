@@ -222,6 +222,7 @@ void sdraw::drawCall()
 
 void sdraw::drawon(gfxScreen_t output)
 {
+	drawCall(); //Flush state
 	currentoutput = output;
 	C3D_FrameDrawOn(currentoutput == GFX_TOP ? top : bottom);
 	// Update the uniforms
@@ -501,7 +502,7 @@ void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float int
 }
 
 //Draw a framebuffer, it's tilted sideways and stuffed into a larger texture and flipped so we need some extra maths for this
-void sdraw::drawframebuffer(C3D_Tex tex, int x, int y, bool istopfb, int x1, int y1, float interpfactor)
+void sdraw::drawframebuffer(C3D_Tex& tex, int x, int y, bool istopfb, int x1, int y1, float interpfactor)
 {
 	bindtex(0, &tex);
 	const float scrwidth = 240, scrheight = istopfb ? 400 : 320;
