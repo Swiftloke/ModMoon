@@ -162,8 +162,7 @@ void sdraw::drawon(gfxScreen_t output)
 
 void sdraw::drawrectangle(int x, int y, int width, int height, bool shouldusedarkmode)
 {
-	if (shouldusedarkmode)
-		enabledarkmode(true);
+	enabledarkmode(shouldusedarkmode);
 
 	addVertex(x, y + height, 0, 0); //What texture
 	addVertex(x + width, y + height, 0, 0);
@@ -172,9 +171,6 @@ void sdraw::drawrectangle(int x, int y, int width, int height, bool shouldusedar
 	addVertex(x, y, 0, 0);
 	addVertex(x + width, y + height, 0, 0);
 	addVertex(x + width, y, 0, 0);
-
-	if (shouldusedarkmode)
-		enabledarkmode(false);
 }
 
 void sdraw::addVertex(float vx1, float vy1, float tx1, float ty1, float vx2, float vy2, float tx2, float ty2, float tx3, float ty3)
@@ -343,7 +339,6 @@ void sdraw::drawcenteredtext(const char* text, float scaleX, float scaleY, float
 
 		}
 	} while (code > 0);
-	enabledarkmode(false);
 }
 
 void sdraw::drawtextinrec(const char* text, int x, int y, int width, float scalex, float scaley)
@@ -362,7 +357,6 @@ void sdraw::drawtextinrec(const char* text, int x, int y, int width, float scale
 	float finalx = ((currentoutput == GFX_TOP ? 400 : 320) - finalsizex) / 2;
 	finalx -= 3; //Make it look better
 	drawtext(text, finalx, y, scalex, scaley);
-	enabledarkmode(false);
 }
 
 void sdraw::drawtexture(C3D_Tex* tex, int x, float y)
@@ -393,16 +387,12 @@ void sdraw::updateshaderstate(ShaderBase* shader)
 
 void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
 {
-	if (info.usesdarkmode)
-		enabledarkmode(true);
+	enabledarkmode(info.usesdarkmode);
 	bindtex(0, info);
 
 	if (x == CENTERED && y == CENTERED) { x = ((currentoutput == GFX_TOP ? 400 : 320) / 2) - (info.spritesheet->width / 2); y = (240 / 2) - (info.spritesheet->height / 2); }
 
 	drawquad(info, x, y, x1, y1, interpfactor);
-
-	if (info.usesdarkmode)
-		enabledarkmode(false);
 }
 
 //Draw a framebuffer, it's tilted sideways and stuffed into a larger texture and flipped so we need some extra maths for this
@@ -429,8 +419,7 @@ void sdraw::drawframebuffer(C3D_Tex& tex, int x, int y, bool istopfb, int x1, in
 //All textures should be the same width/height.
 void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info2, sdraw_stex info3)
 {
-	if (info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
-		enabledarkmode(true);
+	enabledarkmode(info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode);
 
 	sdraw::bindtex(0, info1.spritesheet);
 	sdraw::bindtex(1, info2.spritesheet);
@@ -443,9 +432,6 @@ void sdraw::drawmultipletextures(int x, int y, sdraw_stex info1, sdraw_stex info
 	addVertex(x, y, info1.topleft[0], info1.topleft[1], 0, 0, info2.topleft[0], info2.topleft[1], info3.topleft[0], info3.topleft[1]); //left top
 	addVertex(x + info1.width, y + info1.height, info1.botright[0], info1.botright[1], 0, 0, info2.botright[0], info2.botright[1], info3.botright[0], info3.botright[1]); //right bottom
 	addVertex(x + info1.width, y, info1.topright[0], info1.topright[1], 0, 0, info2.topright[0], info2.topright[1], info3.topright[0], info3.topright[1]); //right top
-	
-	if (info1.usesdarkmode || info2.usesdarkmode || info3.usesdarkmode)
-		enabledarkmode(false);
 }
 
 void sdraw::drawquad(sdraw_stex info, int x, int y, int x1, int y1, float interpfactor)
