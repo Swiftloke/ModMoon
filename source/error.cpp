@@ -151,16 +151,23 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	else
 	{
 		sdraw::setfs("constColor", 0, RGBA8(0, 0, 0, 255));
-		sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
+		sdraw::drawrectangle(0, 0, 400, 240);
 	}
 	sdraw::drawon(GFX_BOTTOM);
 	if (botfb.height)
+	{
+		sdraw::setfs("texture");
 		sdraw::drawframebuffer(botfb, 0, 0, false);
+	}
 	else
-		sdraw::drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
+	{
+		sdraw::setfs("constColor", 0, RGBA8(0, 0, 0, 255));
+		sdraw::drawrectangle(0, 0, 320, 240);
+	}
 	sdraw::MM::shader_eventual->bind();
 	sdraw::MM::shader_eventual->setUniformF("base", 320 / 2, 240 / 2);
 	sdraw::MM::shader_eventual->setUniformF("expansion", expandpos);
+	sdraw::setfs("texture", 0);
 	sdraw::drawtexture(textbox, 10, 20);
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
 	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
@@ -169,10 +176,10 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	int x = 30, y = 150;
 	sdraw::drawtexture(progressbar, x, y);
 	//Enable writing to the stencil buffer and draw the texture
-	C3D_StencilTest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
-	C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
+	sdraw::stenciltest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
+	sdraw::stencilop(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
 	sdraw::drawtexture(progressbarstenciltex, x, y);
-	C3D_StencilTest(true, GPU_EQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it has been set
+	sdraw::stenciltest(true, GPU_EQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it has been set
 	//Calculate the right side's texcoord of how much we need to repeat for the texture to look right
 	float rightsidex = ((1 - progress) * x) + (progress * (x + 260));
 	float rightsidetexcoord = rightsidex / 32;
@@ -180,14 +187,19 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	sdraw::MM::shader_twocoords->setUniformF("interpfactor", progress);
 	sdraw::MM::shader_twocoords->setUniformF("base", 320 / 2, 240 / 2);
 	sdraw::MM::shader_twocoords->setUniformF("baseinterpfactor", expandpos);
-	sdraw::addVertex(x, y, texcoordplus, 0, x, y);
+	sdraw::bindtex(0, progressfiller);
+
 	sdraw::addVertex(x, y + 35, texcoordplus, 1, x, y + 35);
-	sdraw::addVertex(x, y, texcoordplus + rightsidetexcoord, 0, x + 260, y);
 	sdraw::addVertex(x, y + 35, texcoordplus + rightsidetexcoord, 1, x + 260, y + 35);
-	C3D_TexBind(0, progressfiller);
+	sdraw::addVertex(x, y, texcoordplus, 0, x, y);
+
+	sdraw::addVertex(x, y, texcoordplus, 0, x, y);
+	sdraw::addVertex(x, y + 35, texcoordplus + rightsidetexcoord, 1, x + 260, y + 35);
+	sdraw::addVertex(x, y, texcoordplus + rightsidetexcoord, 0, x + 260, y);
+
+	sdraw::drawCall();
 	//TexEnv for basic texture is already set from the last drawtexture call so we don't need to bother
-	C3D_DrawArrays(GPU_TRIANGLE_STRIP, sdraw::MM::shader_twocoords->getArrayPos() - 4, 4);
-	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0); //Turn off the stencil test
+	sdraw::stenciltest(false, GPU_NEVER, 0, 0, 0); //Turn off the stencil test
 	sdraw::MM::shader_basic->bind();
 	sdraw::frameend();
 }

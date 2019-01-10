@@ -25,8 +25,8 @@ void drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alph
 	if (info.usesdarkmode)
 		sdraw::enabledarkmode(true);
 	//Enable writing to the stencil buffer and draw the texture
-	C3D_StencilTest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
-	C3D_StencilOp(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
+	sdraw::stenciltest(true, GPU_ALWAYS, 1, 0xFF, 0xFF);
+	sdraw::stencilop(GPU_STENCIL_KEEP, GPU_STENCIL_KEEP, GPU_STENCIL_REPLACE);
 	sdraw::drawtexture(info, x, y, x, y, interpfactor);
 
 	float middlex = x + info.width / 2;
@@ -36,7 +36,7 @@ void drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alph
 	sdraw::MM::shader_twocoords->setUniformF("base", middlex, middley);
 	sdraw::MM::shader_twocoords->setUniformF("interpfactor", interpfactor);
 
-	C3D_StencilTest(true, GPU_NOTEQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it hasn't been set
+	sdraw::stenciltest(true, GPU_NOTEQUAL, 1, 0xFF, 0x00); //Turn off writes and allow a pass if it hasn't been set
 
 	//Preserve state...
 	C3D_TexEnv states[5];
@@ -48,7 +48,7 @@ void drawtexturewithhighlight(sdraw_stex info, int x, int y, u32 color, int alph
 	
 	//TODO: Ensure previous shader state is kept instead of switching back to the basic shader
 	sdraw::MM::shader_basic->bind();
-	C3D_StencilTest(false, GPU_NEVER, 0, 0, 0);
+	sdraw::stenciltest(false, GPU_NEVER, 0, 0, 0);
 	if (info.usesdarkmode)
 		sdraw::enabledarkmode(false);
 

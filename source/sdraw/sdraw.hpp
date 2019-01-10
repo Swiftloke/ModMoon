@@ -179,6 +179,19 @@ namespace sdraw
 	///in order to flush vertices. Should not be used externally.
 	void drawCall();
 
+
+	///Wrapper functions for stencil test functions that issue draw calls
+	inline void stenciltest(bool enable, GPU_TESTFUNC function, int ref, int inputMask, int writeMask)
+	{
+		drawCall();
+		C3D_StencilTest(enable, function, ref, inputMask, writeMask);
+	}
+	inline void stencilop(GPU_STENCILOP sfail, GPU_STENCILOP dfail, GPU_STENCILOP pass)
+	{
+		drawCall();
+		C3D_StencilOp(sfail, dfail, pass);
+	}
+
 } //namespace sdraw
 
 
