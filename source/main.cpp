@@ -164,11 +164,16 @@ int movemodsin()
 
 int startup()
 {
+	initmodmoontevkeys();
+	sdraw::MM::initmodmoonshaders();
+	sdraw::MM::shader_basic->bind();
+
 	//Draw a blank frame to allow error calls to retrieve a valid framebuffer
 	sdraw::framestart();
-	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 0, 255));
+	sdraw::setfs("constColor", 0, RGBA8(0, 0, 0, 255));
+	sdraw::drawrectangle(0, 0, 400, 240);
 	sdraw::drawon(GFX_BOTTOM);
-	sdraw::drawrectangle(0, 0, 320, 240, RGBA8(0, 0, 0, 255));
+	sdraw::drawrectangle(0, 0, 320, 240);
 	sdraw::frameend();
 	//Configure dark mode
 	sdraw::darkmodeshouldactivate = config.read("DarkModeEnabled", false);
@@ -254,6 +259,7 @@ void mainmenushiftin()
 		sdraw::framestart();
 		drawtopscreen();
 		sdraw::drawon(GFX_BOTTOM);
+		sdraw::MM::shader_twocoords->bind();
 		sdraw::drawtexture(backgroundbot, 0, 0);
 		sdraw::drawtexture(leftbuttonmoon, -leftbuttonmoon.width, 13, 0, 13, i);
 		sdraw::drawtexture(leftbutton, -leftbutton.width, 13, 0, 13, i);
@@ -269,7 +275,9 @@ const unsigned int codes[] = {
 
 void secretcodedraw()
 {
-	sdraw::drawrectangle(0, 0, 400, 240, RGBA8(0, 0, 255, 255));
+	sdraw::MM::shader_basic->bind();
+	sdraw::setfs("constColor", 0, RGBA8(0, 0, 0, 255));
+	sdraw::drawrectangle(0, 0, 400, 240);
 	//This secret is hidden from view in the spritesheet. It has only an alpha of 1 and no color.
 	//This is to prevent it from easily being seen in the source code. ;)
 	//Also because I'm a sucker for playing with graphics (as evidenced by my own rendering engine)
@@ -277,14 +285,8 @@ void secretcodedraw()
 	//If you're reading this, you won't understand what it is until you try it for yourself, seeing as you
 	//don't know what has an alpha in this subtexture.
 	//This code brings it back up to full alpha and gives it a color.
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_CONSTANT);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_CONSTANT);
-	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(tev, C3D_RGB, GPU_REPLACE);
-	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_ADD);
-	C3D_TexEnvColor(tev, RGBA8(255, 255, 0, 254));
+
+	sdraw::setfs("secretCode", 0, RGBA8(255, 255, 0, 254));
 
 	C3D_AlphaTest(true, GPU_EQUAL, 255); //1 + 254 = 255, ignore everything else
 	sdraw::drawquad(secret, 0, 0);
@@ -329,6 +331,10 @@ bool secretcodeadvance(u32 kDown)
 	return false;
 }
 
+//This code was brought into existence at the very beginning of this project,
+//before sDraw had any notion of interpolation.
+//It should have been removed ages ago, but it actually proves very useful to have this kind
+//of basic use case left around for debugging by comparing it to the modernized mainmenushiftin().
 void mainmenushiftout()
 {
 	//Opposite of shifting in (just some numbers changed)
@@ -336,6 +342,7 @@ void mainmenushiftout()
 	{
 		sdraw::framestart();
 		drawtopscreen();
+		sdraw::MM::shader_basic->bind();
 		sdraw::drawon(GFX_BOTTOM);
 		sdraw::drawtexture(backgroundbot, 0, 0);
 		sdraw::drawtexture(leftbuttonmoon, l, 13);
@@ -393,6 +400,8 @@ void updateslots(bool plus)
 //All the things happen on the bottom screen, very rarely do we deviate from this pattern on the top screen
 void drawtopscreen()
 {
+	sdraw::MM::shader_basic->bind();
+	sdraw::setfs("texture");
 	sdraw::drawtexture(backgroundtop, 0, 0);
 	int bannerx = 400 / 2 - banner.width / 2;
 	float bannery = 240 / 2 - banner.height / 2;
@@ -409,18 +418,8 @@ void drawtopscreen()
 	//moon is actually animated with these colors.
 	static float animationplus = 0;
 
-	//Basically sDraw's future in a nutshell- sDraw_fs
-	//A struct containing all the information needed for
-	//fragment shading- texture pointers and TexEnv struct
-	//You bind it, then draw the texture you need.
-	//Not yet implemented. But the idea is right here.
-	//As it is several other places in the program.
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE1);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0);
-	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(tev, C3D_Both, GPU_REPLACE);
+	sdraw::setfs("topScreenMoon", 0);
+	sdraw::MM::shader_threetextures->bind();
 	
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 256, false);
 	sdraw::drawmultipletextures(bannerx + moonx, bannery + moony, bannermoonalpha, temp, temp);
@@ -434,19 +433,26 @@ void drawtopscreen()
 	animationplus += .75;
 
 	//Draw the title selection text
-	sdraw::settextcolor(RGBA8(165, 165, 165, 255));
+	sdraw::MM::shader_basic->bind();
+	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));
 	sdraw::drawtext(": Help", 5, 240 - 40, 0.55, 0.55);
 	sdraw::drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
+
+	sdraw::setfs("texture");
 	//Draw the current title
 	if (getSMDHdata()[currenttidpos].titl != 0) //This may be a cartridge that's not inserted, if it is, don't draw it
 	{
-		sdraw::drawSMDHicon(getSMDHdata()[currenttidpos].icon, 400 - 48 - 7, 240 - 48 - 7);
+		sdraw::drawtexture(constructSMDHtex(&(getSMDHdata()[currenttidpos].icon)), 400 - 48 - 7, 240 - 48 - 7);
 	}
 	sdraw::drawtexture(titleselectionsinglebox, 400 - 58 - 2, 240 - 58 - 2);
 }
 
 void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapos, bool highlighterblink)
 {
+	sdraw::setfs("texture");
+
+	sdraw::MM::shader_basic->bind();
+
 	sdraw::drawtexture(backgroundbot, 0, 0);
 
 	//Draw the rainbow (or not) moon first.
@@ -457,13 +463,6 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	//glow effect on the rainbow which was stolen from it, while ALSO
 	//using that same moon as an alpha map. Pretty nice!
 	static float animationplus = 0;
-	C3D_TexEnv* tev = C3D_GetTexEnv(0);
-	C3D_TexEnvSrc(tev, C3D_RGB, GPU_TEXTURE0, GPU_TEXTURE1, GPU_CONSTANT);
-	C3D_TexEnvSrc(tev, C3D_Alpha, GPU_TEXTURE0, GPU_TEXTURE1);
-	C3D_TexEnvOpRgb(tev, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_SRC_COLOR, GPU_TEVOP_RGB_ONE_MINUS_SRC_ALPHA);
-	C3D_TexEnvOpAlpha(tev, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(tev, C3D_RGB, GPU_INTERPOLATE);
-	C3D_TexEnvFunc(tev, C3D_Alpha, GPU_MODULATE);
 	//It's a bit jarring to enable mods and immediately
 	//have the rainbow pop up. This code smoothes it out a bit.
 	static int rainbowinterp = 0;
@@ -477,9 +476,11 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 		rainbowinterp -= 3;
 		if(rainbowinterp < 0) rainbowinterp = 0;
 	}
-	C3D_TexEnvColor(tev, RGBA8(0, 0, 0, rainbowinterp));
+	//rainbowinterp = 128; //For testing on Citra
+	sdraw::setfs("launchButtonMoon", 0, RGBA8(0, 0, 0, rainbowinterp));
 
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 40, false);
+	sdraw::MM::shader_threetextures->bind();
 	sdraw::drawmultipletextures(0, 13, leftbuttonmoon, temp, temp);
 		
 	//See above for why this is done
@@ -487,21 +488,31 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 		animationplus = 0;
 	animationplus += 0.5;
 
+	sdraw::setfs("texture");
+	sdraw::MM::shader_twocoords->bind();
+
 	if (dpadpos == 0)
-		sdraw::drawtexturewithhighlight(leftbutton, 0, 13, \
+		drawtexturewithhighlight(leftbutton, 0, 13, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else sdraw::drawtexture(leftbutton, 0, 13);
 
 	if (dpadpos == 1)
-		sdraw::drawtexturewithhighlight(rightbutton, 169, 13, \
+		drawtexturewithhighlight(rightbutton, 169, 13, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else sdraw::drawtexture(rightbutton, 169, 13);
 	if (dpadpos == 2 || dpadpos == 3)
-		sdraw::drawtexturewithhighlight(selector, 0, 159, \
+		drawtexturewithhighlight(selector, 0, 159, \
 			RGBA8(mainmenuhighlightcolors[0], mainmenuhighlightcolors[1], mainmenuhighlightcolors[2], 0), alphapos);
 	else sdraw::drawtexture(selector, 0, 159);
-	sdraw::settextcolor(RGBA8(0, 0, 0, 255));
+
+	sdraw::MM::shader_basic->bind();
+	sdraw::setfs("textColor", 0, RGBA8(0, 0, 0, 255));
 	sdraw::drawtextinrec(slotname.c_str(), 35, 180, 251, 1.4, 1.4);
+
+
+	//sdraw::drawtext(to_string(sdraw::MM::shader_basic->getArrayPos()).c_str(), 0, 0, 1, 1);
+
+	//sdraw::drawtext(to_string(sdraw::MM::shader_twocoords->getArrayPos()).c_str(), 0, 50, 1, 1);
 }
 
 
@@ -750,6 +761,7 @@ int main(int argc, char **argv) {
 	//C3D_TexDelete(progressfiller);
 	//freeSMDHdata();
 	sdraw::cleanup();
+	sdraw::MM::destroymodmoonshaders();
 	srv::exit();
 	romfsExit();
 	gfxExit();

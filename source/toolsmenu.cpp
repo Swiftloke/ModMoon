@@ -54,26 +54,32 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 	//parts that stick out.
 	const int highlighteradds[] = { 3, 0, 2, 7, 4 };
 	sdraw::framestart();
+	sdraw::MM::shader_basic->bind();
 	if (shouldblink)
 	{
-		sdraw::drawrectangle(0, 0, 400, 240, RGBA8(255, 255, 255, 255));
+		sdraw::setfs("constColor", 0, RGBA8(255, 255, 255, 255));
+		sdraw::drawrectangle(0, 0, 400, 240);
 		sdraw::drawon(GFX_BOTTOM);
-		sdraw::drawrectangle(0, 0, 320, 240, RGBA8(255, 255, 255, 255));
+		sdraw::drawrectangle(0, 0, 320, 240);
 	}
 	else
 	{
 		drawtopscreen();
 		sdraw::drawon(GFX_BOTTOM);
+		sdraw::MM::shader_twocoords->bind();
+		sdraw::setfs("texture");
 		sdraw::drawtexture(backgroundbot, 0, 0);
-		sdraw::drawhighlighter(toolsmenuhighlighter, initialxvals[position] - 13, \
+		sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(toolsmenuhighlighter.highlightercolor, highlighteralpha));
+		sdraw::drawtexture(toolsmenuhighlighter, initialxvals[position] - 13, \
 			toolsyvals[position] - 9 + highlighteradds[position], \
-			highlighteralpha, 18 - 13, toolsyvals[position] - 9 + highlighteradds[position], interpfactor);
+			18 - 15, toolsyvals[position] - 9 + highlighteradds[position], interpfactor);
+		sdraw::setfs("texture");
 		sdraw::drawtexture(activetitlesbutton,  initialxvals[0], toolsyvals[0], 18, toolsyvals[0], interpfactor);
 		sdraw::drawtexture(smashcontrolsbutton, initialxvals[1], toolsyvals[1], 18, toolsyvals[1], interpfactor);
 		sdraw::drawtexture(tutorialbutton,      initialxvals[2], toolsyvals[2], 18, toolsyvals[2], interpfactor);
 		sdraw::drawtexture(migrationbutton,     initialxvals[3], toolsyvals[3], 18, toolsyvals[3], interpfactor);
 		sdraw::drawtexture(sdraw::darkmodeshouldactivate ? lightmodebutton : darkmodebutton, \
-											  initialxvals[4], toolsyvals[4], 18, toolsyvals[4], interpfactor);
+											    initialxvals[4], toolsyvals[4], 18, toolsyvals[4], interpfactor);
 	}
 	sdraw::frameend();
 }

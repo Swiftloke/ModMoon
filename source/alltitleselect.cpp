@@ -26,6 +26,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 	sdraw::framestart();
 	drawtopscreen();
 	sdraw::drawon(GFX_BOTTOM);
+	sdraw::MM::shader_basic->bind();
 	sdraw::drawtexture(backgroundbot, 0, 0);
 	int x = -39, y = 26; //Start at a smaller X coordinate as it'll be advanced in the first loop iteration
 	int i = 0;
@@ -35,15 +36,6 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 	static bool highlighterismoving = false;
 	static int highlighteralpha = 0;
 	static bool highlighteralphaplus = true;
-	//Configure TexEnv stage 1 to "blink" the texture by making it all blue
-	C3D_TexEnv coloroverride;
-	C3D_TexEnvSrc(&coloroverride, C3D_RGB, GPU_CONSTANT);
-	C3D_TexEnvSrc(&coloroverride, C3D_Alpha, GPU_PREVIOUS);
-	C3D_TexEnvOpRgb(&coloroverride, GPU_TEVOP_RGB_SRC_COLOR);
-	C3D_TexEnvOpAlpha(&coloroverride, GPU_TEVOP_A_SRC_ALPHA, GPU_TEVOP_A_SRC_ALPHA);
-	C3D_TexEnvFunc(&coloroverride, C3D_RGB, GPU_REPLACE);
-	C3D_TexEnvFunc(&coloroverride, C3D_Alpha, GPU_REPLACE);
-	C3D_TexEnvColor(&coloroverride, RGBA8(0, 0, 255, 255));
 
 	highlighterhandle(highlighteralpha, highlighteralphaplus);
 	y -= 70 * scrollsubtractrows;
@@ -85,23 +77,26 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 				}
 			}
 			if(iter->isactive)
-				C3D_SetTexEnv(1, &coloroverride);
-			sdraw::drawhighlighter(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, highlighteralpha, x - 9, y - 9, highlighterinterpfactor);
+				sdraw::setfs("titleSelectBlink", 1, RGBA8(0, 0, 255, 255));
+			sdraw::setfs("highlighter", 0, HIGHLIGHTERCOLORANDALPHA(titleselecthighlighter.highlightercolor, highlighteralpha));
+			sdraw::drawtexture(titleselecthighlighter, highlighteroldx - 9, highlighteroldy - 9, x - 9, y - 9, highlighterinterpfactor);
 			if(iter->isactive)
-				C3D_TexEnvInit(C3D_GetTexEnv(1));
+				sdraw::setfs("blank", 1);
+			sdraw::setfs("texture", 0);
 		}
 		else if (iter->isactive && i != 0)
 		{
-			C3D_SetTexEnv(1, &coloroverride);
+			sdraw::setfs("titleSelectBlink", 1, RGBA8(0, 0, 255, 255));
 			sdraw::drawtexture(titleselecthighlighter, x - 9, y - 9);
 			//Now we need to reset stage 1
-			C3D_TexEnvInit(C3D_GetTexEnv(1));
+			sdraw::setfs("blank", 1);
 		}
 		i++;
 		if (iter->titl != 0) //Not a null cartridge
-			sdraw::drawSMDHicon((*iter).icon, x, y);
+			sdraw::drawtexture(constructSMDHtex(&(iter->icon)), x, y);
 	}
 	sdraw::drawtexture(titleselectionboxes, 26, 21);
+	sdraw::MM::shader_twocoords->bind();
 	sdraw::drawframebuffer(prevbotfb, 0, 0, false, 0, -240, fbinterpfactor);
 	sdraw::frameend();
 }
