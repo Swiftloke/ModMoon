@@ -19,8 +19,8 @@ and progressstring with your progress text in the constructor.
 class WorkerFunction
 {
 public:
-	WorkerFunction(std::function<void(WorkerFunction*)> infxn, string instr) :
-		worker(infxn), progressstring(instr) {};
+	WorkerFunction(std::function<void(WorkerFunction*)> infxn, string instr, bool ishighpriority = false) :
+		worker(infxn), progressstring(instr), highpriority(ishighpriority) {};
 	std::function<void(WorkerFunction*)> worker;
 	void startworker();
 	void displayprogress();
@@ -36,10 +36,12 @@ public:
 
 //protected:
 	
+	//Extremely high priority threads, such as the ZIP extractor, may set this to true.
+	bool highpriority;
 	C3D_Tex progressfbtop, progressfbbot;
 	bool functiondone = false;
 	int functionprogress = 0;
-	int functiontotal = 100;
+	int functiontotal = 1;
 	bool cancel = false;
 	Thread workerthread;
 };

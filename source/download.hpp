@@ -4,8 +4,8 @@
 class DownloadWorker : public WorkerFunction
 {
 public:
-	DownloadWorker(std::function<void(WorkerFunction*)> infxn, string instr) : \
-		WorkerFunction(infxn, instr) {};
+	DownloadWorker(std::function<void(WorkerFunction*)> infxn, string instr, bool ishighpriority = false) : \
+		WorkerFunction(infxn, instr, ishighpriority) {};
 	void startworker();
 };
 

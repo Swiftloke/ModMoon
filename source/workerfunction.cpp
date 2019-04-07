@@ -25,7 +25,7 @@ void WorkerFunction::startworker()
 		auto thisPtr = (WorkerFunction*)passedThis; 
 		thisPtr->worker(thisPtr);
 	},
-		this, 20000, mainthreadpriority + 1, -2, true);
+		this, 20000, (this->highpriority) ? 0x18 : mainthreadpriority + 1, -2, true);
 }
 
 void WorkerFunction::displayprogress()

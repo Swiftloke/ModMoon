@@ -16,11 +16,11 @@
 #include "utils.hpp"
 using namespace std;
 
-DownloadWorker updatecheckworker(threadfunc_updatechecker, "Checking for updates...\nByte [progress] of [total]");
+DownloadWorker updatecheckworker(threadfunc_updatechecker, "Checking for updates...\nByte [progress] of [total]", false);
 DownloadWorker updateinstallworker(threadfunc_downloadandinstallupdate, \
-	"Downloading update...\nByte [progress] of [total]");
+	"Downloading update...\nByte [progress] of [total]", true);
 DownloadWorker saltysdupdaterworker(threadfunc_updatesaltysd, \
-	"Updating SaltySD...\nByte [progress] of [total]");
+	"Updating SaltySD...\nByte [progress] of [total]", true);
 bool updateisavailable = false;
 bool saltysdupdateavailable = false;
 string result;
