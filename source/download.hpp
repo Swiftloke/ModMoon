@@ -23,3 +23,5 @@ extern Handle event_downloadthreadfinished;
 void threadfunc_updatechecker(WorkerFunction* notthis);
 void threadfunc_downloadandinstallupdate(WorkerFunction* notthis);
 void threadfunc_updatesaltysd(WorkerFunction* notthis);
+
+Result http_download(const char *url, string savelocation, WorkerFunction* notthis, string fileout);

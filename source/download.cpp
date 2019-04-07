@@ -105,8 +105,14 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 	}
 	notthis->functiontotal = contentsize;
 
+	ofstream out;
+	if(savelocation == "DOWNLOAD")
+		out.open(fileout, ofstream::trunc | ofstream::binary);
+
+	const int bufSize = 0x1000;
+
 	// Start with a single page buffer
-	buf = (u8*)malloc(0x1000);
+	buf = (u8*)malloc(bufSize);
 	if (buf == NULL) {
 		httpcCloseContext(&context);
 		if (newurl != NULL) free(newurl);
@@ -114,22 +120,32 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 	}
 
 	do {
-		// This download loop resizes the buffer as data is read.
 		notthis->functionprogress = size;
-		ret = httpcDownloadData(&context, buf + size, 0x1000, &readsize);
-		size += readsize;
-		if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING) {
-			lastbuf = buf; // Save the old pointer, in case realloc() fails.
-			buf = (u8*)realloc(buf, size + 0x1000);
-			if (buf == NULL) {
-				httpcCloseContext(&context);
-				free(lastbuf);
-				if (newurl != NULL) free(newurl);
-				return -1;
-			}
-		if(notthis->cancel)
-			return -5; //Let the thread die
+		if (savelocation == "DOWNLOAD")
+		{
+			// This download loop is for large files. It writes them immediately.
+			ret = httpcDownloadData(&context, buf, bufSize, &readsize);
+			size += readsize;
+			out.write((const char*)buf, readsize);
 		}
+		else
+		{
+			// This download loop resizes the buffer as data is read.
+			ret = httpcDownloadData(&context, buf + size, bufSize, &readsize);
+			size += readsize;
+			if (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING) {
+				lastbuf = buf; // Save the old pointer, in case realloc() fails.
+				buf = (u8*)realloc(buf, size + bufSize);
+				if (buf == NULL) {
+					httpcCloseContext(&context);
+					free(lastbuf);
+					if (newurl != NULL) free(newurl);
+					return -1;
+				}
+			}
+		}
+		if (notthis->cancel)
+			return -5; //Let the thread die
 	} while (ret == (s32)HTTPC_RESULTCODE_DOWNLOADPENDING);
 
 	if (ret != 0) {
@@ -177,8 +193,6 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 	}
 	else //It's a file
 	{
-		ofstream out(fileout, ofstream::trunc | ofstream::binary);
-		out.write((const char*)buf, size);
 		out.close();
 	}
 	free(buf);
