@@ -21,6 +21,37 @@ void queuetitleforactivationwithinmenu(u64 titleid, int mediatype)
 	queueforactivation.push(std::make_pair(titleid, mediatype));
 }
 
+void triggeractivationqueue()
+{
+	SMDHworker.displayprogress();
+	while (!queueforactivation.empty())
+	{
+		u64 title = queueforactivation.front().first;
+		int mediatype = queueforactivation.front().second;
+		//We don't already have it, and it's not a cartridge.
+		if (std::find(titleids.begin(), titleids.end(), title) == titleids.end() && mediatype == MEDIATYPE_SD)
+		{
+			//It won't be active in the all titles vector so we've got to do that now
+			vector<smdhdata>::iterator activepos = std::find_if(\
+				getallSMDHdata().begin() + 1, getallSMDHdata().end(), \
+				[title](const smdhdata& data) {return data.titl == title; });
+			if (!activepos->isactive && activepos != getallSMDHdata().end())
+			{
+				activepos->isactive = true;
+				getSMDHdata().push_back(*activepos);
+				titleids.push_back(title);
+				slots.push_back(1);
+				//Add the folder if it doesn't exist
+				if (!pathExist(modsfolder + tid2str(title)))
+					_mkdir((modsfolder + tid2str(title)).c_str());
+				if (issaltysdtitle(title) && !pathExist("/luma/titles/" + tid2str(title) + "/code.ips"))
+					writeSaltySD(title);
+			}
+		}
+		queueforactivation.pop();
+	}
+}
+
 void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsubtractrows, int selectpos)
 {
 	sdraw::framestart();
@@ -146,32 +177,7 @@ void activetitleselect()
 	error(isem);*/
 
 	//We may need to add some titles to the list. Done here since loading is finished here
-	while (!queueforactivation.empty())
-	{
-		u64 title = queueforactivation.front().first;
-		int mediatype = queueforactivation.front().second;
-		//We don't already have it, and it's not a cartridge.
-		if (std::find(titleids.begin(), titleids.end(), title) == titleids.end() && mediatype == MEDIATYPE_SD)
-		{
-			//It won't be active in the all titles vector so we've got to do that now
-			vector<smdhdata>::iterator activepos = std::find_if(\
-				getallSMDHdata().begin() + 1, getallSMDHdata().end(), \
-				[title](const smdhdata& data) {return data.titl == title; });
-			if (!activepos->isactive && activepos != getallSMDHdata().end())
-			{
-				activepos->isactive = true;
-				getSMDHdata().push_back(*activepos);
-				titleids.push_back(title);
-				slots.push_back(1);
-				//Add the folder if it doesn't exist
-				if (!pathExist(modsfolder + tid2str(title)))
-					_mkdir((modsfolder + tid2str(title)).c_str());
-				if (issaltysdtitle(title) && !pathExist("/luma/titles/" + tid2str(title) + "/code.ips"))
-					writeSaltySD(title);
-			}
-		}
-		queueforactivation.pop();
-	}
+	triggeractivationqueue();
 
 	static int selectpos = 0;
 	alloldselectpos = selectpos;

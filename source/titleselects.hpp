@@ -7,3 +7,6 @@ void activetitleselect();
 //needs to be activated, but all the title icons need to finish loading
 //before that can occur.
 void queuetitleforactivationwithinmenu(u64 titleid, int mediatype);
+
+//Allow this to be done manually. This use case is for modpack downloading.
+void triggeractivationqueue();
