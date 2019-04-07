@@ -9,3 +9,6 @@ void toggledarkmode();
 
 //No need for a whole header just for one function.
 void controlsmodifier();
+
+//Ditto.
+void modpackDownload();

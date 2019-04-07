@@ -63,7 +63,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <NMakeBuildCommandLine>make -j8 run</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>make -j8 send</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>make clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>make clean run</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>WIN32;_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -72,7 +72,7 @@
     <OutDir>.</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <NMakeBuildCommandLine>make -j8 run</NMakeBuildCommandLine>
+    <NMakeBuildCommandLine>make -j8 send</NMakeBuildCommandLine>
     <NMakeCleanCommandLine>make clean</NMakeCleanCommandLine>
     <NMakeReBuildCommandLine>make clean run</NMakeReBuildCommandLine>
     <NMakePreprocessorDefinitions>_DEBUG;$(NMakePreprocessorDefinitions)</NMakePreprocessorDefinitions>
@@ -95,6 +95,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="source\alltitleselect.cpp" />
+    <ClCompile Include="source\archive\archive.c" />
     <ClCompile Include="source\config.cpp" />
     <ClCompile Include="source\download.cpp" />
     <ClCompile Include="source\error.cpp" />
@@ -102,6 +103,7 @@
     <ClCompile Include="source\main.cpp" />
     <ClCompile Include="source\migrators\ss1x.cpp" />
     <ClCompile Include="source\migrators\ss2x.cpp" />
+    <ClCompile Include="source\modpackdownload.cpp" />
     <ClCompile Include="source\sdraw\fragment.cpp" />
     <ClCompile Include="source\sdraw\sdraw.cpp" />
     <ClCompile Include="source\sdraw\shader.cpp" />
@@ -114,6 +116,7 @@
     <ClCompile Include="source\workerfunction.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="source\archive\archive.h" />
     <ClInclude Include="source\config.hpp" />
     <ClInclude Include="source\download.hpp" />
     <ClInclude Include="source\error.hpp" />

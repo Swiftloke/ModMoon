@@ -13,6 +13,24 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="Header Files\sDraw">
+      <UniqueIdentifier>{7aa3f35e-7e31-43c1-8e45-cbb18ea8488f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\Tools">
+      <UniqueIdentifier>{c39f7254-5c85-4c53-a0e4-4dd7d7fc98df}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sDraw">
+      <UniqueIdentifier>{9e2c15c0-ac2b-45f5-9d92-23ed34a234f8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Tools">
+      <UniqueIdentifier>{3484bca6-b099-4bef-a794-4a73b181b07f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\HorizonInterfaces">
+      <UniqueIdentifier>{c442076a-62c5-4fb9-ba03-d80a6555490a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\sDraw\Shaders">
+      <UniqueIdentifier>{9bacb23e-8d6a-41e2-8fb9-a877dd2bb776}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\config.cpp">
@@ -24,49 +42,55 @@
     <ClCompile Include="source\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\smdh.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\titleselect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\download.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\migrators\ss1x.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\alltitleselect.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\srv.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\initialsetup.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\smashcontrols.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\migrators\ss2x.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="source\toolsmenu.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="source\workerfunction.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="source\sdraw\shader.cpp">
-      <Filter>Source Files</Filter>
+    <ClCompile Include="source\sdraw\fragment.cpp">
+      <Filter>Source Files\sDraw</Filter>
     </ClCompile>
     <ClCompile Include="source\sdraw\sdraw.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\sDraw</Filter>
     </ClCompile>
-    <ClCompile Include="source\sdraw\fragment.cpp">
+    <ClCompile Include="source\sdraw\shader.cpp">
+      <Filter>Source Files\sDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="source\smashcontrols.cpp">
+      <Filter>Source Files\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="source\titleselect.cpp">
+      <Filter>Source Files\sDraw</Filter>
+    </ClCompile>
+    <ClCompile Include="source\alltitleselect.cpp">
+      <Filter>Source Files\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="source\migrators\ss1x.cpp">
+      <Filter>Source Files\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="source\migrators\ss2x.cpp">
+      <Filter>Source Files\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="source\modpackdownload.cpp">
+      <Filter>Source Files\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="source\toolsmenu.cpp">
+      <Filter>Source Files\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="source\download.cpp">
+      <Filter>Source Files\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="source\initialsetup.cpp">
+      <Filter>Source Files\Tools</Filter>
+    </ClCompile>
+    <ClCompile Include="source\smdh.cpp">
+      <Filter>Source Files\HorizonInterfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="source\srv.cpp">
+      <Filter>Source Files\HorizonInterfaces</Filter>
+    </ClCompile>
+    <ClCompile Include="source\archive\archive.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -86,37 +110,40 @@
     <ClInclude Include="source\utils.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\download.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="source\error.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\titleselects.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="source\srv.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="source\migrators\migrators.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="source\initialsetup.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="source\toolsmenu.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\workerfunction.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\sdraw\sdraw.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\sDraw</Filter>
     </ClInclude>
     <ClInclude Include="source\sdraw\shader.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\sDraw</Filter>
     </ClInclude>
     <ClInclude Include="source\sdraw\fragment.hpp">
+      <Filter>Header Files\sDraw</Filter>
+    </ClInclude>
+    <ClInclude Include="source\download.hpp">
+      <Filter>Header Files\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\initialsetup.hpp">
+      <Filter>Header Files\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\migrators\migrators.hpp">
+      <Filter>Header Files\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\toolsmenu.hpp">
+      <Filter>Header Files\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\titleselects.hpp">
+      <Filter>Header Files\Tools</Filter>
+    </ClInclude>
+    <ClInclude Include="source\archive\archive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -124,18 +151,18 @@
     <Text Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="source\panicmode.v.pica" />
     <None Include="source\eventualvertex.v.pica">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\sDraw\Shaders</Filter>
     </None>
-    <None Include="source\vshader.v.pica">
-      <Filter>Source Files</Filter>
+    <None Include="source\threetextures.v.pica">
+      <Filter>Source Files\sDraw\Shaders</Filter>
     </None>
     <None Include="source\twocoordsinterp.v.pica">
-      <Filter>Source Files</Filter>
+      <Filter>Source Files\sDraw\Shaders</Filter>
     </None>
-    <None Include="source\panicmode.v.pica" />
-    <None Include="source\threetextures.v.pica">
-      <Filter>Source Files</Filter>
+    <None Include="source\vshader.v.pica">
+      <Filter>Source Files\sDraw\Shaders</Filter>
     </None>
   </ItemGroup>
 </Project>

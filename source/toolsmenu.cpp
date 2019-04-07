@@ -151,11 +151,7 @@ void toolsmenu()
 				}
 				case 3:
 				{
-					bool migrationwasdone = doallmigration();
-					if (!migrationwasdone)
-					{
-						error("No mods needing to be\nmigrated were found.");
-					}
+					modpackDownload();
 					break;
 				}
 				case 4: 
@@ -261,11 +257,7 @@ void toolsmenu()
 			position = 3;
 		else if (buttonpressed(migrationbutton, 18, 138, opos, kHeld))
 		{
-			bool migrationwasdone = doallmigration();
-			if (!migrationwasdone)
-			{
-				error("No mods needing to be\nmigrated were found.");
-			}
+			modpackDownload();
 		}
 		
 		//Dark mode / light mode buttons have the same coordinate info so it doesn't matter
