@@ -189,6 +189,8 @@ int startup()
 	cfguInit(); //For system language
 	amInit(); //For getting all the installed titles + updating
 	httpcInit(0); //Downloading
+	//ModMoon should be as fast as possible, especially when extracting ZIP files
+	osSetSpeedupEnable(true);
 	initializeallSMDHdata(titleids);
 	//Do this in the main thread, because it may throw error calls
 	updatecartridgedata(); 
