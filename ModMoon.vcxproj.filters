@@ -60,9 +60,6 @@
     <ClCompile Include="source\smashcontrols.cpp">
       <Filter>Source Files\Tools</Filter>
     </ClCompile>
-    <ClCompile Include="source\titleselect.cpp">
-      <Filter>Source Files\sDraw</Filter>
-    </ClCompile>
     <ClCompile Include="source\alltitleselect.cpp">
       <Filter>Source Files\Tools</Filter>
     </ClCompile>
@@ -92,6 +89,9 @@
     </ClCompile>
     <ClCompile Include="source\archive\archive.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="source\titleselect.cpp">
+      <Filter>Source Files\Tools</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -151,7 +151,6 @@
     <Text Include="Makefile" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="source\panicmode.v.pica" />
     <None Include="source\eventualvertex.v.pica">
       <Filter>Source Files\sDraw\Shaders</Filter>
     </None>

@@ -141,7 +141,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="source\eventualvertex.v.pica" />
-    <None Include="source\panicmode.v.pica" />
     <None Include="source\threetextures.v.pica" />
     <None Include="source\twocoordsinterp.v.pica" />
     <None Include="source\vshader.v.pica" />

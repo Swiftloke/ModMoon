@@ -31,6 +31,16 @@
 #- Special thanks to Aurelio for testing, bug-fixing and various help with codes and implementations -------------------#
 #-----------------------------------------------------------------------------------------------------------------------*/
 
+/*
+* Please note: this file has been slightly modified from its original form as 
+* found in Lua Player Plus.
+* To prevent a segfault upon failing to open a file,
+* a modified mkdir (_mkdir, seen directly below) was added to the source
+* and the code was updated to use it. This allows the program to recursively
+* create directories, which the original program logic relies on but fails to
+* follow through on.
+*/
+
 #ifdef __cplusplus
 extern "C" {
 #endif
