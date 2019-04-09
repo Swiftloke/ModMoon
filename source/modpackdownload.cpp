@@ -109,8 +109,8 @@ void modpackDownload()
 
 	//Read out info about the modpack
 	ifstream tidfile("/3ds/ModMoon/temp/titleid.txt");
-	char titleid[128];
-	tidfile.read(titleid, 128);
+	char titleid[16]={0};
+	tidfile.read(titleid, 16);
 	u64 tid = strtoull(titleid, NULL, 16);
 
 	tidfile.close();
@@ -130,7 +130,7 @@ void modpackDownload()
 	}
 
 	int newslot = maxslotcheck(tid, 1000) + 1;
-	string dest = "/3ds/ModMoon/" + string(titleid) + "/Slot_" + to_string(newslot);
+	string dest = "/3ds/ModMoon/" + string(titleid).substr(0,16) + "/Slot_" + to_string(newslot);
 	chdir("/");
 	remove("/3ds/ModMoon/temp.zip");
 	rename("/3ds/ModMoon/temp", dest.c_str());
