@@ -121,7 +121,7 @@
     <ClInclude Include="source\download.hpp" />
     <ClInclude Include="source\error.hpp" />
     <ClInclude Include="source\initialsetup.hpp" />
-    <ClInclude Include="source\lerp.hpp" />
+    <ClInclude Include="source\smooth.hpp" />
     <ClInclude Include="source\lodepng.h" />
     <ClInclude Include="source\main.hpp" />
     <ClInclude Include="source\migrators\migrators.hpp" />

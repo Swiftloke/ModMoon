@@ -72,13 +72,14 @@ void _mkdir(const char *dir) { //http://nion.modprobe.de/blog/archives/357-Recur
 		//a file's directoriy to "../../" etc.
 		//Props go to him for exploiting an unpatched version of this
 		//by generating a modpack download that replaced ModMoon with Smash Selector. lol
-		if(p[0] == '.' && p[1] == '.')
+		if (p[0] == '.' && p[1] == '.')
 			svcBreak(USERBREAK_PANIC);
 		if (*p == '/') {
 			*p = 0;
 			mkdir(tmp, S_IRWXU);
 			*p = '/';
 		}
+	}
 	mkdir(tmp, S_IRWXU);
 }
 

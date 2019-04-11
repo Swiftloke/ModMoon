@@ -146,7 +146,7 @@
     <ClInclude Include="source\archive\archive.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\lerp.hpp">
+    <ClInclude Include="source\smooth.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
