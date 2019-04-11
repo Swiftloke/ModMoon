@@ -49,6 +49,7 @@
 #include "download.hpp"
 #include "toolsmenu.hpp"
 #include "initialsetup.hpp"
+#include "smooth.hpp"
 
 using namespace std;
 
@@ -493,19 +494,10 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	static float animationplus = 0;
 	//It's a bit jarring to enable mods and immediately
 	//have the rainbow pop up. This code smoothes it out a bit.
-	static int rainbowinterp = 0;
-	if (modsenabled && rainbowinterp < 128)
-	{
-		rainbowinterp += 3;
-		if(rainbowinterp > 128) rainbowinterp = 128;
-	}
-	if (!modsenabled && rainbowinterp > 0)
-	{
-		rainbowinterp -= 3;
-		if(rainbowinterp < 0) rainbowinterp = 0;
-	}
+	static Smooth moon(true, 0, 0, 128, 3);
+	moon.plus = modsenabled;
 	//rainbowinterp = 128; //For testing on Citra
-	sdraw::setfs("launchButtonMoon", 0, RGBA8(0, 0, 0, rainbowinterp));
+	sdraw::setfs("launchButtonMoon", 0, RGBA8(0, 0, 0, moon.value));
 
 	sdraw_stex temp(rainbow, 0, 0 - animationplus, 256, 40, false);
 	sdraw::MM::shader_threetextures->bind();
