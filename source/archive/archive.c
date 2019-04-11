@@ -53,6 +53,7 @@ extern "C" {
 #include <stdlib.h>
 #include <malloc.h>
 #include <sys/stat.h>
+#include <3ds/svc.h>
 
 #include "archive.h"
 
@@ -66,6 +67,12 @@ void _mkdir(const char *dir) { //http://nion.modprobe.de/blog/archives/357-Recur
 	if (tmp[len - 1] == '/')
 		tmp[len - 1] = 0;
 	for (p = tmp + 1; *p; p++)
+		//Prevent "zip slips", as Cydget pointed out- overwriting files by setting
+		//a file's directoriy to "../../" etc.
+		//Props go to him for exploiting an unpatched version of this
+		//by generating a modpack download that replaced ModMoon with Smash Selector. lol
+		if(p[0] == '.' && p[1] == '.')
+			svcBreak(USERBREAK_PANIC);
 		if (*p == '/') {
 			*p = 0;
 			mkdir(tmp, S_IRWXU);
