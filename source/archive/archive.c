@@ -67,6 +67,7 @@ void _mkdir(const char *dir) { //http://nion.modprobe.de/blog/archives/357-Recur
 	if (tmp[len - 1] == '/')
 		tmp[len - 1] = 0;
 	for (p = tmp + 1; *p; p++)
+	{
 		//Prevent "zip slips", as Cydget pointed out- overwriting files by setting
 		//a file's directoriy to "../../" etc.
 		//Props go to him for exploiting an unpatched version of this
