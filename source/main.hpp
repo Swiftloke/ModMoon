@@ -77,6 +77,7 @@ extern sdraw_stex tutorialbutton;
 extern sdraw_stex migrationbutton;
 extern sdraw_stex darkmodebutton;
 extern sdraw_stex lightmodebutton;
+extern sdraw_stex modinstallbutton;
 
 extern Config config;
 extern bool modsenabled;

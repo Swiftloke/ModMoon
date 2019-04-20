@@ -75,10 +75,10 @@ bool toolsmenushift(float& interpfactor, bool plus)
 void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool shouldblink)
 {
 	const int initialxvals[] = { -290, 401, -290, 401, -290 };
-	const int toolsyvals[] = { 6, 56, 102, 141, 190 };
+	const int toolsyvals[] = { 6, 56, 102, 146, 190 };
 	//Where the highlighter goes to actually be over the button... Some buttons have
 	//parts that stick out.
-	const int highlighteradds[] = { 3, 0, 2, 7, 4 };
+	const int highlighteradds[] = { 3, 0, 2, 2, 4 };
 	sdraw::framestart();
 	sdraw::MM::shader_basic->bind();
 	if (shouldblink)
@@ -103,7 +103,7 @@ void toolsmenudraw(float interpfactor, int position, int highlighteralpha, bool 
 		sdraw::drawtexture(activetitlesbutton,  initialxvals[0], toolsyvals[0], 18, toolsyvals[0], interpfactor);
 		sdraw::drawtexture(smashcontrolsbutton, initialxvals[1], toolsyvals[1], 18, toolsyvals[1], interpfactor);
 		sdraw::drawtexture(tutorialbutton,      initialxvals[2], toolsyvals[2], 18, toolsyvals[2], interpfactor);
-		sdraw::drawtexture(migrationbutton,     initialxvals[3], toolsyvals[3], 18, toolsyvals[3], interpfactor);
+		sdraw::drawtexture(modinstallbutton,     initialxvals[3], toolsyvals[3], 18, toolsyvals[3], interpfactor);
 		sdraw::drawtexture(sdraw::darkmodeshouldactivate ? lightmodebutton : darkmodebutton, \
 											    initialxvals[4], toolsyvals[4], 18, toolsyvals[4], interpfactor);
 	}
@@ -237,10 +237,9 @@ void toolsmenu()
 				break; 
 			}
 			case 2: helptext = "Tutorial:\nReplay the tutorial shown at the\nfirst start of ModMoon."; break;
-			case 3: 
-			{ 
-				helptext = "Smash Selector Mods Migrator:\nMigrate mods to ModMoon from\nSmash Selector 1.0 or\nSmash Selector 2.x.";
-				helptext2 = "This functionality is activated\nautomatically at first boot."; 
+			case 3: 	
+			{
+				helptext = "Modpack Installer:\nInstall mods from the internet!\nSimply enter a link to a zip file\nand let ModMoon do its thing.";
 				break; 
 			}
 			case 4: helptext = " Mode:\nChange the theme of ModMoon!"; helptext.insert(0, sdraw::darkmodeshouldactivate ? "Light" : "Dark");

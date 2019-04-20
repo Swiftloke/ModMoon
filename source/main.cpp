@@ -96,6 +96,7 @@ sdraw_stex tutorialbutton(21, spritesheet, false);//(spritesheet, 706, 518, 289,
 sdraw_stex migrationbutton(22, spritesheet, false);//(spritesheet, 706, 560, 289, 51, false);
 sdraw_stex darkmodebutton(23, spritesheet, false);//(spritesheet, 706, 611, 289, 46, false);
 sdraw_stex lightmodebutton(24, spritesheet, false);//(spritesheet, 706, 657, 289, 46, false);
+sdraw_stex modinstallbutton(25, spritesheet, false);
 
 bool modsenabled = config.read("ModsEnabled", true);
 
