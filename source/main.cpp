@@ -465,6 +465,7 @@ void drawtopscreen()
 	//Draw the title selection text
 	sdraw::MM::shader_basic->bind();
 	sdraw::setfs("textColor", 0, RGBA8(165, 165, 165, 255));
+	sdraw::drawtext(" : Delete Modpack", 5, 240 - 60, 0.55, 0.55);
 	sdraw::drawtext(": Help", 5, 240 - 40, 0.55, 0.55);
 	sdraw::drawtext(": Title selection", 5, 240 - 20, 0.55, 0.55);
 
@@ -687,6 +688,18 @@ int main(int argc, char **argv) {
 				dpadpos = 3;
 				alphapos = 255;
 			}
+		}
+		if (kDown & KEY_R)
+		{
+			if (maxslot != 0)
+			{
+				string src = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
+				error("Deleting slot:\n" + slotname + "\nAre you sure?\n(Press start to cancel.)");
+				if (!errorwasstartpressed())
+					remove(src.c_str());
+			}
+			else
+				error("Cannot delete a mod if\nthere are no mods to delete!");
 		}
 		if (kDown & KEY_Y) titleselect();
 		if (kDown & KEY_X)
