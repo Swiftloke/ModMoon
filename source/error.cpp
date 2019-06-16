@@ -61,7 +61,7 @@ void drawerrorbox(string text, int alphapos, float expandpos)
 	sdraw::MM::shader_eventual->setUniformF("expansion", expandpos);
 	sdraw::drawtexture(textbox, 10, 20);
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
-	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
+	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo(nullptr)->lineFeed));
 	sdraw::drawtexture(textboxokbutton, 112, 163);
 	//I did it this way before I wrote the stencil test highlighter, and besides which that wouldn't work because it uses
 	//The eventual shader itself so the popup wouldn't show properly for this
@@ -89,7 +89,7 @@ void drawerrorfade(string text, int alphapos, float fadepos)
 	sdraw::drawtexture(textbox, 10, 20);*/
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
 	sdraw::setfs("textColor", 0, RGBA8(255, 255, 255, fade * 2));
-	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
+	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo(nullptr)->lineFeed));
 	sdraw::drawtexture(textboxokbutton, 112, 163);
 	//I did it this way before I wrote the stencil test highlighter, and besides which that wouldn't work because it uses
 	//The eventual shader itself so the popup wouldn't show properly for this
@@ -196,7 +196,7 @@ void drawprogresserror(string text, float expandpos, float progress, C3D_Tex top
 	sdraw::setfs("texture", 0);
 	sdraw::drawtexture(textbox, 10, 20);
 	//y = (240/2 - 20) - height of one line (sdraw function returns height of all lines combined, something I don't want here
-	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo()->lineFeed));
+	sdraw::drawcenteredtext(text.c_str(), TEXTSCALE, TEXTSCALE, 100 - (TEXTSCALE * fontGetInfo(nullptr)->lineFeed));
 	//Progress bar
 
 	int x = 30, y = 150;

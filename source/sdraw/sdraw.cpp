@@ -147,12 +147,12 @@ int sdraw::init()
 
 	// Load the glyph texture sheets
 	int i;
-	TGLP_s* glyphInfo = fontGetGlyphInfo();
+	TGLP_s* glyphInfo = fontGetGlyphInfo(nullptr);
 	glyphSheets = (C3D_Tex*)malloc(sizeof(C3D_Tex)*glyphInfo->nSheets);
 	for (i = 0; i < glyphInfo->nSheets; i++)
 	{
 		C3D_Tex* tex = &glyphSheets[i];
-		tex->data = fontGetGlyphSheetTex(i);
+		tex->data = fontGetGlyphSheetTex(nullptr, i);
 		tex->fmt = (GPU_TEXCOLOR)glyphInfo->sheetFmt;
 		tex->size = glyphInfo->sheetSize;
 		tex->width = glyphInfo->sheetWidth;
@@ -226,13 +226,13 @@ void sdraw::drawtext(const char* text, float x, float y, float sizeX, float size
 		if (code == '\n')
 		{
 			x = firstX;
-			y += sizeY * fontGetInfo()->lineFeed;
+			y += sizeY * fontGetInfo(nullptr)->lineFeed;
 		}
 		else if (code > 0)
 		{
-			int glyphIdx = fontGlyphIndexFromCodePoint(code);
+			int glyphIdx = fontGlyphIndexFromCodePoint(nullptr, code);
 			fontGlyphPos_s data;
-			fontCalcGlyphPos(&data, glyphIdx, flags, sizeX, sizeY);
+			fontCalcGlyphPos(&data, nullptr, glyphIdx, flags, sizeX, sizeY);
 
 			// Bind the correct texture sheet
 			if (data.sheetIndex != lastSheet)
@@ -260,7 +260,7 @@ float sdraw::gettextheight(const char* text, float sizeY)
 {
 	string tex(text);
 	int lines = std::count(tex.begin(), tex.end(), '\n') + 1; //There's always one line that doesn't have a \n
-	return (sizeY*fontGetInfo()->lineFeed)*lines;
+	return (sizeY*fontGetInfo(nullptr)->lineFeed)*lines;
 }
 
 //Get the width of the text input. Account for \n by using a vector of possible widths. Use gettextmaxwidth to return the longest one
@@ -291,9 +291,9 @@ vector<float> sdraw::gettextwidths(const char* text, float sizeX)
 		}
 		else if (code > 0)
 		{
-			int glyphIdx = fontGlyphIndexFromCodePoint(code);
+			int glyphIdx = fontGlyphIndexFromCodePoint(nullptr, code);
 			fontGlyphPos_s data;
-			fontCalcGlyphPos(&data, glyphIdx, flags, sizeX, 0);
+			fontCalcGlyphPos(&data, nullptr, glyphIdx, flags, sizeX, 0);
 
 			x += data.xAdvance;
 
@@ -337,13 +337,13 @@ void sdraw::drawcenteredtext(const char* text, float scaleX, float scaleY, float
 		{
 			widthiterator++; //We won't end up past the vector's limits, as there are only as many values as there are newlines
 			x = (((currentoutput == GFX_TOP) ? 400 : 320) / 2 - (*widthiterator / 2)) - 5;
-			y += scaleY * fontGetInfo()->lineFeed;
+			y += scaleY * fontGetInfo(nullptr)->lineFeed;
 		}
 		else if (code > 0)
 		{
-			int glyphIdx = fontGlyphIndexFromCodePoint(code);
+			int glyphIdx = fontGlyphIndexFromCodePoint(nullptr, code);
 			fontGlyphPos_s data;
-			fontCalcGlyphPos(&data, glyphIdx, flags, scaleX, scaleY);
+			fontCalcGlyphPos(&data, nullptr, glyphIdx, flags, scaleX, scaleY);
 
 			// Bind the correct texture sheet
 			if (data.sheetIndex != lastSheet)
