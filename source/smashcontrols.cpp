@@ -29,6 +29,7 @@
 #include <sstream>
 #include "main.hpp"
 #include "error.hpp"
+#include "utils.hpp"
 
 using namespace std;
 
@@ -58,6 +59,7 @@ void controlsdraw()
 {
 	//Smash Selector 2.4 used cout. I'd rather not change all of this code, so a stringstream works fine.
 	stringstream strout;
+
 	for (int i = 0; i <= 11; i++)
 	{
 		//Ensure we don't accidentally print buttons that aren't on an o3DS
@@ -71,13 +73,19 @@ void controlsdraw()
 	cursorprint = (cursor == 13) ? "(x)" : "( )";
 	enabledordisabled = (buttons[13] == 1) ? "Enabled" : "Disabled";
 	strout << cursorprint << " A+B Smash Attack: <" << enabledordisabled << ">" << '\n';
+
+	//New for ModMoon: Hitbox Display is controlled here
+	cursorprint = (cursor == 14) ? "(x)" : "( )";
+	enabledordisabled = saltysdishitbox ? "Enabled" : "Disabled";
+	strout << cursorprint << " Hitbox Display: <" << enabledordisabled << ">" << '\n';
+
 	sdraw::framestart();
 	drawtopscreen();
 	sdraw::MM::shader_basic->bind();
 	sdraw::drawon(GFX_BOTTOM);
 	sdraw::drawtexture(backgroundbot, 0, 0);
 	sdraw::setfs("textColor", 0, RGBA8(0, 0, 0, 255));
-	sdraw::drawtext(strout.str().c_str(), 0, 0, 0.6, 0.55);
+	sdraw::drawtext(strout.str().c_str(), 0, 0, 0.6, 0.525);
 	sdraw::frameend();
 }
 
@@ -141,14 +149,14 @@ void controlsmodifier() {
 			cursor--;
 			if (!isn3ds && cursor == 9) cursor--;
 			if (!isn3ds && cursor == 3) cursor -= 2; //Skip 2 more to go past ZL and ZR to R
-			if (cursor == -1) cursor = 13;
+			if (cursor == -1) cursor = 14;
 		}
 		if (kDown & KEY_DOWN)
 		{
 			cursor++;
 			if (!isn3ds && cursor == 9) cursor++;
 			if (!isn3ds && cursor == 2) cursor += 2; //Skip 2 more to go past ZL and ZR to D-Up
-			if (cursor == 14) cursor = 0;
+			if (cursor == 15) cursor = 0;
 		}
 		if (kDown & KEY_LEFT)
 		{
@@ -156,6 +164,17 @@ void controlsmodifier() {
 			{
 				if (buttons[cursor] == 1) buttons[cursor] = 0;
 				else buttons[cursor] = 1;
+			}
+			else if (cursor == 14) //Special case for hitbox display
+			{
+				saltysdishitbox = !saltysdishitbox;
+				config.write("SaltySDHitboxEnabled", saltysdishitbox);
+				//Find every Smash title and write SaltySD for all of them. Yes, really.
+				for (auto iter = titleids.begin(); iter != titleids.end(); iter++)
+				{
+					if (issaltysdtitle(*iter))
+						writeSaltySD(*iter, saltysdishitbox);
+				}
 			}
 			else
 			{
@@ -169,6 +188,17 @@ void controlsmodifier() {
 			{
 				if (buttons[cursor] == 1) buttons[cursor] = 0;
 				else buttons[cursor] = 1;
+			}
+			else if (cursor == 14) //Special case for hitbox display
+			{
+				saltysdishitbox = !saltysdishitbox;
+				config.write("SaltySDHitboxEnabled", saltysdishitbox);
+				//Find every Smash title and write SaltySD for all of them. Yes, really.
+				for (auto iter = titleids.begin(); iter != titleids.end(); iter++)
+				{
+					if(issaltysdtitle(*iter))
+						writeSaltySD(*iter, saltysdishitbox);
+				}
 			}
 			else
 			{

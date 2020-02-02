@@ -85,6 +85,7 @@ extern string modsfolder;
 extern string slotname;
 extern int maxslot;
 extern bool cartridgeneedsupdating;
+extern bool saltysdishitbox;
 
 extern bool shoulddisableerrors;
 extern bool shoulddisableupdater;
@@ -111,7 +112,7 @@ bool touched(sdraw_stex button, int dx, int dy, touchPosition tpos);
 bool touched(int x, int y, int width, int height, touchPosition tpos);
 bool buttonpressed(sdraw_stex button, int bx, int by, touchPosition lastpos, u32 kHeld);
 bool buttonpressed(int bx, int by, int bwidth, int bheight, touchPosition lastpos, u32 kHeld);
-bool issaltysdtitle(u64 optionaltitleid = 0);
+bool issaltysdtitle(u64 optionaltitleid = 0xFFFF);
 //Returns "USA", "EUR" or "JPN"
 string saltysdtidtoregion(u64 optionaltitleid = 0);
 void drawtopscreen();

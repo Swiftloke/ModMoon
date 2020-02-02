@@ -47,7 +47,10 @@ int countEntriesInDir(const char* dirname);
 //Extremely common logic used in rendering code, but it doesn't feel right to be in sDraw
 void highlighterhandle(int& alphapos, bool& alphaplus);
 
-void writeSaltySD(u64 titleid);
+void writeSaltySD(u64 titleid, bool ishitboxdisplay = false);
+
+//Fixes slots after a slot deletion.
+void slotFixer(int missingSlot);
 
 inline bool pathExist(const string filename) {
 	struct stat buffer;

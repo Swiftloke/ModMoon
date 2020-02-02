@@ -29,8 +29,8 @@
 #include <vector>
 #include <3ds/types.h>
 
-#define CONFIG_FILE_VERSION 17
-#define MODMOON_VERSION 301
+#define CONFIG_FILE_VERSION 18
+#define MODMOON_VERSION 310
 using namespace std;
 
 class Config

@@ -107,6 +107,7 @@ ErrorHighlightColors{255, 0, 0}
 TitleSelectHighlightColors{255, 0, 0}
 ToolsMenuHighlightColors{133, 46, 165}
 EnableFlexibleCartridgeSystem{False}
+SaltySDHitboxEnabled{False}
 ;This file saves config info for ModMoon.
 ;If you change things in this file and ModMoon breaks, just delete it.
 ;By enabling DisableErrors, you are disqualifying yourself from
@@ -140,7 +141,8 @@ Config::Config(string path, string filename)
 	}
 	if(this->read("ModMoonVersion", 0) < MODMOON_VERSION)
 		this->write("ModMoonVersion", MODMOON_VERSION);
-	//if(read("ConfigFileVersion", 0) < CONFIG_FILE_VERSION) updateconfig();
+	if(read("ConfigFileVersion", 0) < CONFIG_FILE_VERSION) 
+		updateconfig();
 }
 
 string Config::read(string configsetting)
@@ -303,5 +305,11 @@ void reloadconfigvalues()
 
 void Config::updateconfig() //Migrate old stuff
 {
-	//Stubbed in initial release. Fleshed out fully; see top comment.
+	unordered_map<int, string> newoptions;
+	newoptions[18] = R"raw(
+	SaltySDHitboxEnabled{False})raw";
+		for (int i = this->read("ConfigFileVersion", 0) + 1; i <= CONFIG_FILE_VERSION; i++)
+		{
+			this->configfile.append(newoptions[i]);
+		}
 }

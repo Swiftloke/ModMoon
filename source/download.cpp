@@ -49,6 +49,8 @@ DownloadWorker saltysdupdaterworker(threadfunc_updatesaltysd, \
 	"Updating SaltySD...\nByte [progress] of [total]", true);
 bool updateisavailable = false;
 bool saltysdupdateavailable = false;
+bool modpackupdateisavailable = false;
+int whichmodpackupdate = 0;
 string result;
 //unsigned int downloadprogress = 0;
 Handle event_downloadthreadfinished;
@@ -249,7 +251,8 @@ void threadfunc_updatechecker(WorkerFunction* notthis)
 	{
 		if(!issaltysdtitle(*iter))
 			continue;
-		URL = baseURL + tid2str(*iter) + "Hash.txt";
+		string suffix = (saltysdishitbox ? "Hitbox" : "") + string("Hash.txt");
+		URL = baseURL + tid2str(*iter) + suffix;
 		res = http_download(URL.c_str(), "TEXT", notthis);
 		if (res)
 		{
@@ -300,6 +303,11 @@ bool issaltysdupdateavailable()
 	return saltysdupdateavailable;
 }
 
+bool ismodpackupdateavailable()
+{
+	return modpackupdateisavailable;
+}
+
 void threadfunc_downloadandinstallupdate(WorkerFunction* notthis)
 {
 	string URL = baseURL + "ModMoonBin";
@@ -320,7 +328,7 @@ void threadfunc_updatesaltysd(WorkerFunction* notthis)
 	};
 	for (int i = 0; i < 2; i++)
 	{
-		string URL = baseURL + "SaltySD" + tid2str(saltysdtids[i]) + ".ips";
+		string URL = baseURL + (saltysdishitbox ? "Hitbox" : "") + "SaltySD" + tid2str(saltysdtids[i]) + ".ips";
 		string out = "/luma/titles/" + tid2str(saltysdtids[i]) + '/';
 		if (!pathExist(out)) //Maybe it's disabled?
 		{
@@ -334,6 +342,11 @@ void threadfunc_updatesaltysd(WorkerFunction* notthis)
 	svcSignalEvent(event_downloadthreadfinished);
 	notthis->functiondone = true;
 	saltysdupdateavailable = false; //We don't want this to run over and over again...
+}
+
+void threadfunc_modpackupdatechecker(WorkerFunction* notthis)
+{
+
 }
 
 /*void initdownloadandinstallupdate()

@@ -134,3 +134,18 @@ void modpackDownload()
 	maxslot = maxslotcheck();
 	error("Finished installing modpack!\nModpack name:\n" + name);
 }
+
+/*
+Modpack updates:
+Provided in the "UpdateInfo" section of the modpack config.
+Link to a Config text file that can be downloaded, opened,
+and checked for an update.
+Updates will be checked for by comparing the "Version" tag on disk
+against the "Version" tag on the server.
+When an update is available, an alert will pop up stating that an update
+is available for "Modpack X" and it can be downloaded now. An "IgnoreUpdates" tag
+should be written to the modpack on disk if the update is taken, downloading to a new slot,
+or if the user responds "do not download" and says yes to "ignore from now on?".
+When the update is accepted, just run the modpack downloader with an argument of
+"UpdateLink" from the server config.
+*/

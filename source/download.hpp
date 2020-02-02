@@ -38,6 +38,8 @@ public:
 extern DownloadWorker updatecheckworker;
 extern DownloadWorker updateinstallworker;
 extern DownloadWorker saltysdupdaterworker;
+extern DownloadWorker modpackupdatechecker;
+extern DownloadWorker modpackupdateinstalled;
 
 //void initupdatechecker();
 bool isupdateavailable();

@@ -117,6 +117,8 @@ int maxslot = maxslotcheck();
 
 bool cartridgeneedsupdating = false;
 
+bool saltysdishitbox = config.read("SaltySDHitboxEnabled", true);
+
 bool shoulddisableerrors = config.read("DisableErrors", true);
 bool shoulddisableupdater = config.read("DisableUpdater", true);
 
@@ -162,7 +164,7 @@ string hex2str(u32 in)
 
 bool issaltysdtitle(u64 optionaltitleid)
 {
-	u64 titleop = optionaltitleid != 0 ? optionaltitleid : currenttitleid;
+	u64 titleop = optionaltitleid != 0xFFFF ? optionaltitleid : currenttitleid;
 	return titleop == 0x00040000000EDF00 || titleop ==  0x00040000000EE000 \
 	|| titleop == 0x00040000000B8B00;
 }
@@ -696,7 +698,11 @@ int main(int argc, char **argv) {
 				string src = modsfolder + currenttitleidstr + "/Slot_" + to_string(currentslot);
 				error("Deleting slot:\n" + slotname + "\nAre you sure?\n(Press start to cancel.)");
 				if (!errorwasstartpressed())
+				{
 					remove(src.c_str());
+					slotFixer(currentslot);
+					maxslot = maxslotcheck();
+				}
 			}
 			else
 				error("Cannot delete a mod if\nthere are no mods to delete!");

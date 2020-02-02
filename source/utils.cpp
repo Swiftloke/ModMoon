@@ -190,7 +190,7 @@ void fcopy(string input, string output)
 	out.close();
 }
 
-void writeSaltySD(u64 titleid)
+void writeSaltySD(u64 titleid, bool ishitboxdisplay)
 {
 	string regionmodifier;
 	switch (titleid)
@@ -205,24 +205,42 @@ void writeSaltySD(u64 titleid)
 	outputpath.append("/code.ips");
 	//In this implementation, we expect that mods are enabled.
 	//This may change if hitbox display is implemented
+	//Update: We now no longer expect SaltySD to be enabled
 
-	//if (!saltySDEnabled) { outputpath.insert(13, ".Disabled"); }
-	/*if (!pathExist(outputpath.c_str()))
+	//if (!saltySDEnabled) { outputpath.insert(13, "Disabled"); }
+
+	//Hey, dude: Deal with this.
+	//-Me
+	if (!pathExist(outputpath.c_str()))
 	{
 		string attempt2 = outputpath;
 		attempt2.insert(13, "Disabled");
-		if(pathExist(attempt2.c_str()))
+		if (pathExist(attempt2.c_str()))
 			outputpath = attempt2;
-		else
-			
-	}*/
+	}
+
 	string inputpath = "romfs:/code.ips";
 	inputpath.insert(7, regionmodifier);
+
+
+	if(ishitboxdisplay)
+		inputpath.insert(7, "Hitbox");
 	//if (hitboxdisplay) { inputpath.insert(7, "Hitbox"); }
 	//else { inputpath.insert(7, "Normal"); }
 	if (pathExist(outputpath)) { remove(outputpath.c_str()); }
 	fcopy(inputpath, outputpath);
-	error("New SaltySD file written.\nRegion Type: " + regionmodifier);
+	error("New SaltySD file written.\nRegion Type: " + regionmodifier + "\nHitbox Display: " + (ishitboxdisplay ? "Enabled" : "Disabled"));
+}
+
+void slotFixer(int missingSlot)
+{
+	//Well, we'll start here, one past the slot we're missing.
+	for (int i = missingSlot + 1; i <= maxslot; i++)
+	{
+		string src = (modsfolder + string("Slot_") + to_string(i));
+		string dest = (modsfolder + string("Slot_") + to_string(i - 1));
+		rename(src.c_str(), dest.c_str());
+	}
 }
 
 unsigned int MurmurHash2(const void * key, int len, unsigned int seed)
@@ -359,6 +377,16 @@ void launch(){
 					error("ModMoon tackled this issue\nautomagically. Now isn't that\nnice? Retrying now...");
 					goto attemptrename;
 				}
+			}
+			if ((unsigned int)errno == 2)
+			{
+				//Many users report errno 2- destination does not exist.
+				//Which is clearly insane because C82044BE occurs when the destination DOES exist.
+				//(Recreating or deleting and recreating?????) the folder triggered C82044BE auto-fix, which then allowed
+				//mods to load normally. Weird!
+				_mkdir(dest.c_str());
+				error("ModMoon tackled this issue\n automagically. Retrying now...\nYou should see one more error,\n then everything should work!");
+				goto attemptrename;
 			}
 		}
 	}
