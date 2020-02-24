@@ -90,6 +90,8 @@ extern bool saltysdishitbox;
 extern bool shoulddisableerrors;
 extern bool shoulddisableupdater;
 
+extern bool isrunningascia;
+
 extern float minusy; //Needed for the fading function
 
 extern vector<u64> titleids;

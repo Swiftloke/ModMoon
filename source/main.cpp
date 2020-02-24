@@ -122,6 +122,8 @@ bool saltysdishitbox = config.read("SaltySDHitboxEnabled", true);
 bool shoulddisableerrors = config.read("DisableErrors", true);
 bool shoulddisableupdater = config.read("DisableUpdater", true);
 
+bool isrunningascia;
+
 string slotname = "";
 
 float minusy = 0;
@@ -541,6 +543,9 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 
 
 int main(int argc, char **argv) {
+
+	//When running as CIA, argc is 0. We need this for the updater.
+	isrunningascia = argc == 0;
 
 	int renamefailed = startup();
 	touchPosition tpos;

@@ -9,5 +9,4 @@ For future civilizations reading this code through the Artic Code Vault, an alte
 
 
 # Building
-You'll need the latest ctrulib and citro3d to build ModMoon. Just type "make" at the command line.
-If you're building a 3DSX build (anything *except* "make cia"), you'll need to define BUILTFROM3DSX somewhere in the code. This allows the downloader to correctly do its thing. Otherwise, it will accidentally install updates as CIA files.
+You'll need the latest ctrulib, citro3d and zlib to build ModMoon. Just type "make" at the command line.

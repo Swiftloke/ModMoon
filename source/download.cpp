@@ -203,7 +203,8 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 	{
 		romfsExit(); //One cannot have an open handle to their romFS while they are updating it
 		//notthis->functionprogress = 101; //Signal we're currently installing
-#ifdef BUILTFROM3DSX
+		if(!isrunningascia) //Write to the 3dsx file we downloaded
+		{
 			char cwdbuf[1024];
 			getcwd(cwdbuf, sizeof(cwdbuf));
 			string outputlocation(cwdbuf);
@@ -211,13 +212,15 @@ Result http_download(const char *url, string savelocation, WorkerFunction* notth
 			ofstream out(outputlocation.c_str(), ofstream::trunc | ofstream::binary);
 			out.write((const char*)buf, size);
 			out.close();
-#else //Install the CIA we downloaded
+		}
+		else //Install the CIA we downloaded
+		{
 			Handle cia;
 			AM_QueryAvailableExternalTitleDatabase(NULL);
 			AM_StartCiaInstall(MEDIATYPE_SD, &cia);
 			FSFILE_Write(cia, NULL, 0, buf, contentsize, 0);
 			AM_FinishCiaInstall(cia);
-#endif
+		}
 	}
 	else //It's a file
 	{
