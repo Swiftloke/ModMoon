@@ -197,7 +197,7 @@ void writeSaltySD(u64 titleid, bool ishitboxdisplay)
 	{
 		case 0x00040000000EDF00: {regionmodifier = "USA"; break; }
 		case 0x00040000000EE000: {regionmodifier = "EUR"; break; }
-		case 0x00040000000B8B00: {regionmodifier = "JAP"; break; }
+		case 0x00040000000B8B00: {regionmodifier = "JPN"; break; }
 	}
 	string outputpath = "/luma/titles/" + tid2str(titleid);
 	if(!pathExist(outputpath.c_str()))
