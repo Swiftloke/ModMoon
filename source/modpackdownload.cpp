@@ -107,13 +107,49 @@ void modpackDownload()
 		return;
 	}*/
 
-	//Read out info about the modpack
-	Config info("/3ds/ModMoon/temp/", "modpackinfo.txt");
-	u64 tid = info.read("TitleID", 0, 0);
+	//Check that the modpack is, well, a modpack
 	ifstream namefile("/3ds/ModMoon/temp/desc.txt");
+
+	if(!namefile)
+	{
+		error("This modpack does not contain\na desc.txt file. As a result, it is\nunlikely that it is a real modpack.");
+		error("The download has been\ndiscarded. Please try again with\na valid link to a modpack.");
+		
+		chdir("/");
+		remove("/3ds/ModMoon/temp.zip");
+		rmdir("/3ds/ModMoon/temp");
+		return;
+	}
+
 	string name;
 	getline(namefile, name);
 	namefile.close();
+
+	u64 tid = 0;
+	//Before opening the config, check to see if a modpackinfo exists.
+	//ModMoon's updater is recent relative to most modpacks. This file may
+	//not exist. 
+	ifstream check("/3ds/ModMoon/temp/modpackinfo.txt");
+	if(!check)
+	{
+		error("This modpack does not contain\ninformation that ModMoon\nneeds to determine the game\nit goes with.");
+		error("The active title select menu\nwill be opened. Please pick the\ntitle that this game is for.");
+		
+		tid = activetitleselect(true);
+		while(!tid)
+		{
+			error("A title was not selected.\nIf your title is on a cartridge\nthat was not inserted when\nModMoon started,");
+			error("Due to a bug, ModMoon cannot\ndetect it without restarting.\nPlease see the GitHub README\nfor more info on this bug.");
+			tid = activetitleselect(true);
+		}
+	}
+	else
+	{
+		//Read out info about the modpack
+		Config info("/3ds/ModMoon/temp/", "modpackinfo.txt");
+		tid = info.read("TitleID", 0, 0);
+	}
+	check.close();
 
 	if (std::find(titleids.begin(), titleids.end(), tid) == titleids.end())
 	{

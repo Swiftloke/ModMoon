@@ -28,7 +28,10 @@
 #include <3ds/types.h>
 //Both the regular title selection menu and the active title selection menu
 void titleselect();
-void activetitleselect();
+//The active title select menu can be used to select an arbitrary title,
+//even one not in the list. This can be used to select a destination title
+//for a modpack which has no information about it (i.e. what TID it goes with.)
+u64 activetitleselect(bool picktitle = false);
 //This is used during initial setup. This use case is based around when a title
 //needs to be activated, but all the title icons need to finish loading
 //before that can occur.

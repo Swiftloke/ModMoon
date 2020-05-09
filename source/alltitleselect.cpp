@@ -158,7 +158,7 @@ void activetitleselectdraw(C3D_Tex prevbotfb, float fbinterpfactor, int scrollsu
 	sdraw::frameend();
 }
 
-void activetitleselect()
+u64 activetitleselect(bool picktitle)
 {
 	C3D_Tex prevtop, prevbot;
 	//Save the framebuffer from the previous menu
@@ -313,9 +313,15 @@ void activetitleselect()
 		if (kDown & KEY_A)
 		{
 			selecttitle:
+
+			smdhdata& titleop = allicons.at(selectpos);
+			
+			//If we are in "pick title" mode, simply return the title picked.
+			if(picktitle)
+				return titleop.titl;
+
 			if (selectpos != 0) //Not a cartridge, these rules don't apply to them
 			{
-				smdhdata& titleop = allicons.at(selectpos);
 				if (titleop.isactive)
 				{
 					titleop.isactive = false;
@@ -366,4 +372,6 @@ void activetitleselect()
 		fbinterpfactor -= 0.05;
 		activetitleselectdraw(prevbot, fbinterpfactor, scrollsubtractrows, selectpos);
 	}
+
+	return 0;
 }
