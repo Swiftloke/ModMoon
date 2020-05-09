@@ -424,6 +424,10 @@ void sdraw::drawtexture(sdraw_stex info, int x, int y, int x1, int y1, float int
 //Draw a framebuffer, it's tilted sideways and stuffed into a larger texture and flipped so we need some extra maths for this
 void sdraw::drawframebuffer(C3D_Tex& tex, int x, int y, bool istopfb, int x1, int y1, float interpfactor)
 {
+	//Framebuffers are never drawn with inverted colors!
+	//This fixes a bug that caused frames drawn in dark mode to
+	//be inverted, causing them to look as if they're in light mode.
+	enabledarkmode(false);
 	bindtex(0, &tex);
 	const float scrwidth = 240, scrheight = istopfb ? 400 : 320;
 	const float texwidth = 256, texheight = 512;

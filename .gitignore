@@ -18,3 +18,5 @@ ModMoon.vcxproj.filters
 *.t3x
 ModMoon.cia
 textures/spritesheet.preview.png
+bannertool
+makerom

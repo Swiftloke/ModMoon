@@ -1,4 +1,4 @@
-﻿/*
+/*
 *   This file is part of ModMoon
 *   Copyright (C) 2018-2019 Swiftloke
 *
