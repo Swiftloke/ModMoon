@@ -66,7 +66,7 @@ void modpackDownload()
 		notthis->functiondone = true;
 	};
 	DownloadWorker downloader(downloadfunc, 
-		"Downloading modpack...\n[progress] bytes / [total] bytes", true);
+		"Downloading modpack...\n[progress] bytes / [total] bytes...\nGet comfy, this is going to\ntake a while.", true);
 	downloader.startworker();
 	downloader.displayprogress();
 	if (success != 0)
@@ -106,10 +106,12 @@ void modpackDownload()
 		rmdir("/3ds/ModMoon/temp");
 		return;
 	}*/
-
-	//Check that the modpack is, well, a modpack
 	ifstream namefile("/3ds/ModMoon/temp/desc.txt");
 
+
+	//Check that the modpack is, well, a modpack
+	//Eh, in reality, I trust the user enough to pick a real modpack.
+	/*
 	if(!namefile)
 	{
 		error("This modpack does not contain\na desc.txt file. As a result, it is\nunlikely that it is a real modpack.");
@@ -119,7 +121,7 @@ void modpackDownload()
 		remove("/3ds/ModMoon/temp.zip");
 		rmdir("/3ds/ModMoon/temp");
 		return;
-	}
+	}*/
 
 	string name;
 	getline(namefile, name);
