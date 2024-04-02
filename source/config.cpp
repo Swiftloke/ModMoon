@@ -106,7 +106,7 @@ MainMenuHighlightColors{255, 0, 0}
 ErrorHighlightColors{255, 0, 0}
 TitleSelectHighlightColors{255, 0, 0}
 ToolsMenuHighlightColors{133, 46, 165}
-EnableFlexibleCartridgeSystem{False}
+EnableFlexibleCartridgeSystem{True}
 SaltySDHitboxEnabled{False}
 ;This file saves config info for ModMoon.
 ;If you change things in this file and ModMoon breaks, just delete it.
@@ -147,11 +147,11 @@ Config::Config(string path, string filename)
 
 string Config::read(string configsetting)
 {
-	int pos = configfile.find(configsetting, 0);
+	unsigned int pos = configfile.find(configsetting, 0);
 	if(pos == string::npos)
 		return "";
 	pos += configsetting.size() + 1; //Now pos is after the '{' of the config setting
-	int posb = configfile.find('}', pos);
+	unsigned int posb = configfile.find('}', pos);
 	return configfile.substr(pos, posb-pos);
 }
 

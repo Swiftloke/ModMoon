@@ -138,7 +138,7 @@ void threadfunc_fade(void* main)
 	int* rgbvalues = (int*)main; //We expect an array of 3 ints for the RGB values
 	//C3D_AlphaBlend(GPU_BLEND_ADD, GPU_BLEND_ADD, GPU_ONE_MINUS_CONSTANT_ALPHA, GPU_CONSTANT_COLOR, GPU_ONE_MINUS_CONSTANT_ALPHA, GPU_CONSTANT_ALPHA);
 	//I tried to use blending operations but the equation I used didn't like an alpha value of < 1 for a texture, and overwrote it entirely with the color. It looked gross.
-	C3D_Tex fbtop, fbbot;
+	//C3D_Tex fbtop, fbbot;
 	//linearAlloc isn't thread-safe in current libctru (as of 9/24/18, check again if you're in the future).
 	//As such, the framebuffer code can't be present here. It still looks fine, actually, because sDraw doesn't
 	//clear the color buffer at the start of a frame.

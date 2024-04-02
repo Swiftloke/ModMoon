@@ -128,6 +128,8 @@ string slotname = "";
 
 float minusy = 0;
 
+void cleanup(u32 NotificationID);
+
 string getversion()
 {
 	//After each digit, insert a period.
@@ -226,9 +228,10 @@ int startup()
 	initializeallSMDHdata(titleids);
 	//Do this in the main thread, because it may throw error calls
 	updatecartridgedata(); 
-	if (config.read("EnableFlexibleCartridgeSystem", false))
+	if (config.read("EnableFlexibleCartridgeSystem", true))
 	{
 		srv::init();
+		srv::hook(0x100, cleanup); // Notif 0x100: Terminate
 		srv::hook(0x208, cartridgesrvhook); //Notif 0x208: Game cartridge inserted
 		srv::hook(0x20A, cartridgesrvhook); //Notif 0x20A: Game cartridge removed
 	}
@@ -541,6 +544,24 @@ void mainmenudraw(unsigned int dpadpos, touchPosition tpos, unsigned int alphapo
 	//sdraw::drawtext(to_string(sdraw::MM::shader_twocoords->getArrayPos()).c_str(), 0, 50, 1, 1);
 }
 
+void cleanup(u32 NotificationID){
+	updatecheckworker.shutdown();
+	SMDHworker.shutdown();
+	
+	//svcWaitSynchronization(event_fadefinished, U64_MAX);
+	//C3D_TexDelete(spritesheet);
+	//C3D_TexDelete(progressfiller);
+	//freeSMDHdata();
+	sdraw::cleanup();
+	sdraw::MM::destroymodmoonshaders();
+	srv::exit();
+	romfsExit();
+	gfxExit();
+	cfguExit();
+	amExit();
+	exit(0);
+}
+
 
 int main(int argc, char **argv) {
 
@@ -798,19 +819,6 @@ int main(int argc, char **argv) {
 	config.write("SelectedTitleIDPos", currenttidpos);
 	config.flush();
 
-	updatecheckworker.shutdown();
-	SMDHworker.shutdown();
-	
-	//svcWaitSynchronization(event_fadefinished, U64_MAX);
-	//C3D_TexDelete(spritesheet);
-	//C3D_TexDelete(progressfiller);
-	//freeSMDHdata();
-	sdraw::cleanup();
-	sdraw::MM::destroymodmoonshaders();
-	srv::exit();
-	romfsExit();
-	gfxExit();
-	cfguExit();
-	amExit();
+	cleanup(0);
 	return 0;
 }
